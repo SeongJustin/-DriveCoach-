@@ -1,0 +1,3 @@
+Tree models generated with EZ-Tree (https://www.eztree.dev, https://github.com/dgreenheck/ez-tree)
+Copyright (c) Daniel Greenheck, MIT License. Bark textures in EZ-Tree come from Poly Haven / TextureCan (CC0).
+Converted for DriveCoach (LOD1/LOD2, street variant with lifted crown).

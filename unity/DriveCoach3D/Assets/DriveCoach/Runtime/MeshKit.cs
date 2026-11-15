@@ -1,0 +1,342 @@
+// 담당: S (3D 주차 연습 — 코드로 만드는 도형: 바닥 다각형, 선(띠), 벽(기둥형), 리본(곡선 띠))
+// 같은 재질은 한 메시에 모아(드로우 콜을 줄여) 에뮬레이터에서도 가볍게 그린다.
+using System.Collections.Generic;
+using DriveCoach.Core;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+namespace DriveCoach.Unity
+{
+    /// <summary>삼각형을 모아 한 메시로 만든다. uvScale(m) 간격으로 바닥 좌표를 그대로 UV 로 쓴다(질감 반복).</summary>
+    public class MeshKit
+    {
+        readonly List<Vector3> v = new List<Vector3>();
+        readonly List<Vector3> n = new List<Vector3>();
+        readonly List<Vector2> uv = new List<Vector2>();
+        readonly List<int> t = new List<int>();
+        public float uvScale = 4f;
+        public bool IsEmpty => t.Count == 0;
+
+        int Add(Vector3 p, Vector3 normal, Vector2 tex) { v.Add(p); n.Add(normal); uv.Add(tex); return v.Count - 1; }
+        Vector2 Planar(Vector3 p) => new Vector2(p.x / uvScale, p.z / uvScale);
+
+        /// <summary>볼록(또는 별 모양) 다각형을 높이 y 에 위로 보게(부채꼴)</summary>
+        public void Polygon(IList<V2> poly, float y)
+        {
+            if (poly.Count < 3) return;
+            int b = v.Count;
+            foreach (var p in poly) { var w = Space3D.W(p, y); Add(w, Vector3.up, Planar(w)); }
+            // 계산 좌표는 y 아래 → Unity Z = -y 라 감는 방향이 바뀐다. 위에서 보이도록 두 방향 모두 맞춘다.
+            bool flip = SignedArea(poly) > 0f;
+            for (int i = 1; i + 1 < poly.Count; i++)
+            {
+                if (flip) { t.Add(b); t.Add(b + i); t.Add(b + i + 1); }
+                else { t.Add(b); t.Add(b + i + 1); t.Add(b + i); }
+            }
+        }
+
+        public void Rect(Core.Rect r, float y) => Polygon(new[] { new V2(r.x, r.y), new V2(r.x + r.w, r.y), new V2(r.x + r.w, r.y + r.h), new V2(r.x, r.y + r.h) }, y);
+
+        static float SignedArea(IList<V2> p)
+        {
+            float a = 0f;
+            for (int i = 0; i < p.Count; i++) { var q = p[i]; var r = p[(i + 1) % p.Count]; a += q.x * r.y - r.x * q.y; }
+            return a * 0.5f;
+        }
+
+        /// <summary>선분 a→b 를 폭 w 의 납작한 띠로(바닥 칠)</summary>
+        public void Line(V2 a, V2 b, float w, float y)
+        {
+            var d = (b - a).Normalized;
+            var o = new V2(-d.y, d.x) * (w / 2f);
+            Polygon(new[] { a + o, b + o, b - o, a - o }, y);
+        }
+
+        /// <summary>바닥 다각형을 y0 에서 y1 까지 세운 기둥(벽·기둥·연석). 옆면 + 윗면.</summary>
+        public void Prism(IList<V2> poly, float y0, float y1)
+        {
+            Polygon(poly, y1);
+            int cnt = poly.Count;
+            bool ccw = SignedArea(poly) > 0f;
+            for (int i = 0; i < cnt; i++)
+            {
+                var a = poly[i]; var bb = poly[(i + 1) % cnt];
+                var wa0 = Space3D.W(a, y0); var wb0 = Space3D.W(bb, y0); var wa1 = Space3D.W(a, y1); var wb1 = Space3D.W(bb, y1);
+                var edge = (wb0 - wa0);
+                // 넓이가 + 인 다각형(계산 좌표)은 Unity 위에서 보면 시계 방향 → 바깥 법선 = -(위 × 변)
+                var normal = Vector3.Cross(Vector3.up, edge).normalized * (ccw ? -1f : 1f);
+                float len = edge.magnitude;
+                int s = v.Count;
+                Add(wa0, normal, new Vector2(0, y0 / uvScale));
+                Add(wb0, normal, new Vector2(len / uvScale, y0 / uvScale));
+                Add(wb1, normal, new Vector2(len / uvScale, y1 / uvScale));
+                Add(wa1, normal, new Vector2(0, y1 / uvScale));
+                if (ccw) { t.Add(s); t.Add(s + 1); t.Add(s + 2); t.Add(s); t.Add(s + 2); t.Add(s + 3); }
+                else { t.Add(s); t.Add(s + 2); t.Add(s + 1); t.Add(s); t.Add(s + 3); t.Add(s + 2); }
+            }
+        }
+
+        /// <summary>점들을 따라 폭 w 의 띠(서킷 노면·가장자리 선). closed 면 고리. off = 가운데선에서 옆으로 민 거리(+ 왼쪽)</summary>
+        public void Ribbon(IList<V2> pts, float w, float y, bool closed, float off = 0f, int from = 0, int to = -1)
+        {
+            int n0 = pts.Count;
+            if (to < 0) to = closed ? n0 : n0 - 1;
+            V2 Normal(int i)
+            {
+                var prev = pts[closed ? (i - 1 + n0) % n0 : Mathf.Max(0, i - 1)];
+                var next = pts[closed ? (i + 1) % n0 : Mathf.Min(n0 - 1, i + 1)];
+                var d = (next - prev).Normalized;
+                return new V2(d.y, -d.x);   // 진행 방향 왼쪽(계산 좌표)
+            }
+            float along = 0f;
+            int prevL = -1, prevR = -1;
+            for (int k = from; k <= to; k++)
+            {
+                int i = closed ? k % n0 : k;
+                var p = pts[i];
+                var nn = Normal(i);
+                var c = p + nn * off;
+                var l = Space3D.W(c + nn * (w / 2f), y);
+                var r = Space3D.W(c - nn * (w / 2f), y);
+                if (k > from) along += pts[i].DistanceTo(pts[closed ? (k - 1) % n0 : k - 1]);
+                int il = Add(l, Vector3.up, new Vector2(0f, along / uvScale));
+                int ir = Add(r, Vector3.up, new Vector2(w / uvScale, along / uvScale));
+                if (prevL >= 0)
+                {
+                    t.Add(prevL); t.Add(il); t.Add(ir);
+                    t.Add(prevL); t.Add(ir); t.Add(prevR);
+                }
+                prevL = il; prevR = ir;
+            }
+        }
+
+        /// <summary>바닥에서 h 높이로 세운 판(띠 두께 없음). 방호벽·간판 등.</summary>
+        public void Box(Vector3 center, Vector3 size, float yawDeg)
+        {
+            var q = Quaternion.Euler(0f, yawDeg, 0f);
+            var hx = size.x / 2f; var hy = size.y / 2f; var hz = size.z / 2f;
+            Vector3[] c =
+            {
+                new Vector3(-hx, -hy, -hz), new Vector3(hx, -hy, -hz), new Vector3(hx, hy, -hz), new Vector3(-hx, hy, -hz),
+                new Vector3(-hx, -hy, hz), new Vector3(hx, -hy, hz), new Vector3(hx, hy, hz), new Vector3(-hx, hy, hz),
+            };
+            int[][] faces = { new[] { 0, 3, 2, 1 }, new[] { 4, 5, 6, 7 }, new[] { 0, 1, 5, 4 }, new[] { 3, 7, 6, 2 }, new[] { 0, 4, 7, 3 }, new[] { 1, 2, 6, 5 } };
+            Vector3[] normals = { Vector3.back, Vector3.forward, Vector3.down, Vector3.up, Vector3.left, Vector3.right };
+            for (int f = 0; f < 6; f++)
+            {
+                int s = v.Count;
+                var nrm = q * normals[f];
+                for (int k = 0; k < 4; k++)
+                {
+                    var p = center + q * c[faces[f][k]];
+                    Add(p, nrm, new Vector2((k == 1 || k == 2) ? 1f : 0f, k >= 2 ? 1f : 0f));
+                }
+                t.Add(s); t.Add(s + 1); t.Add(s + 2); t.Add(s); t.Add(s + 2); t.Add(s + 3);
+            }
+        }
+
+        /// <summary>
+        /// 네 점 판(건물 벽 등). outward 쪽에서 보이도록 감는 방향을 맞춘다(Unity: 앞면 = cross(p1-p0, p2-p0) 쪽).
+        /// uv 는 p0..p3 순서.
+        /// </summary>
+        public void Quad(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 outward, Vector2 uv0, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+        {
+            int s = v.Count;
+            Add(p0, outward, uv0); Add(p1, outward, uv1); Add(p2, outward, uv2); Add(p3, outward, uv3);
+            bool front = Vector3.Dot(Vector3.Cross(p1 - p0, p2 - p0), outward) >= 0f;
+            if (front) { t.Add(s); t.Add(s + 1); t.Add(s + 2); t.Add(s); t.Add(s + 2); t.Add(s + 3); }
+            else { t.Add(s); t.Add(s + 2); t.Add(s + 1); t.Add(s); t.Add(s + 3); t.Add(s + 2); }
+        }
+
+        /// <summary>삼각형 하나(UV 지정). normal 쪽에서 보이게 감는 방향을 맞춘다(표지판·신호 불빛).</summary>
+        public void Tri(Vector3 a, Vector3 b, Vector3 c, Vector2 ua, Vector2 ub, Vector2 uc, Vector3 normal)
+        {
+            int s = v.Count;
+            Add(a, normal, ua); Add(b, normal, ub); Add(c, normal, uc);
+            if (Vector3.Dot(Vector3.Cross(b - a, c - a), normal) >= 0f) { t.Add(s); t.Add(s + 1); t.Add(s + 2); }
+            else { t.Add(s); t.Add(s + 2); t.Add(s + 1); }
+        }
+
+        /// <summary>위를 보는 삼각형 하나(바닥 좌표 그대로 UV). 감는 방향은 위에서 보이게 맞춘다.</summary>
+        public void TriUp(Vector3 a, Vector3 b, Vector3 c)
+        {
+            int s = v.Count;
+            Add(a, Vector3.up, Planar(a)); Add(b, Vector3.up, Planar(b)); Add(c, Vector3.up, Planar(c));
+            if (Vector3.Cross(b - a, c - a).y >= 0f) { t.Add(s); t.Add(s + 1); t.Add(s + 2); }
+            else { t.Add(s); t.Add(s + 2); t.Add(s + 1); }
+        }
+
+        /// <summary>둥근 고리(핸들 테): XZ 평면, 가운데 center, 고리 반지름 R, 굵기 반지름 r. UV u = 둘레, v = 단면</summary>
+        public void Torus(Vector3 center, float R, float r, int seg = 48, int sides = 12)
+        {
+            int b = v.Count;
+            for (int i = 0; i <= seg; i++)
+            {
+                float a = i / (float)seg * Mathf.PI * 2f;
+                var dir = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+                for (int k = 0; k <= sides; k++)
+                {
+                    float c = k / (float)sides * Mathf.PI * 2f;
+                    var nrm = dir * Mathf.Cos(c) + Vector3.up * Mathf.Sin(c);
+                    Add(center + dir * R + nrm * r, nrm, new Vector2(i / (float)seg * 8f, k / (float)sides));
+                }
+            }
+            int row = sides + 1;
+            for (int i = 0; i < seg; i++)
+                for (int k = 0; k < sides; k++)
+                {
+                    int a0 = b + i * row + k, a1 = a0 + 1, b0 = a0 + row, b1 = b0 + 1;
+                    t.Add(a0); t.Add(a1); t.Add(b1); t.Add(a0); t.Add(b1); t.Add(b0);
+                }
+        }
+
+        /// <summary>오목한 다각형도 되는 위를 보는 면(귀 자르기 삼각분할). 건물 지붕.</summary>
+        public void PolygonEar(IList<V2> poly, float y)
+        {
+            int cnt = poly.Count;
+            if (cnt < 3) return;
+            int b = v.Count;
+            foreach (var p in poly) { var w = Space3D.W(p, y); Add(w, Vector3.up, Planar(w)); }
+            float area = SignedArea(poly);
+            var idx = new List<int>();
+            for (int i = 0; i < cnt; i++) idx.Add(i);
+            int guard = 0;
+            while (idx.Count > 3 && guard++ < 4 * cnt)
+            {
+                bool cut = false;
+                for (int k = 0; k < idx.Count; k++)
+                {
+                    int i0 = idx[(k - 1 + idx.Count) % idx.Count], i1 = idx[k], i2 = idx[(k + 1) % idx.Count];
+                    var a = poly[i0]; var c = poly[i1]; var d = poly[i2];
+                    float cr = (c.x - a.x) * (d.y - a.y) - (c.y - a.y) * (d.x - a.x);
+                    if (cr * area <= 0f) continue;   // 볼록한 꼭짓점만
+                    bool inside = false;
+                    foreach (int j in idx)
+                    {
+                        if (j == i0 || j == i1 || j == i2) continue;
+                        if (InTri(poly[j], a, c, d)) { inside = true; break; }
+                    }
+                    if (inside) continue;
+                    Tri(b, i0, i1, i2, area > 0f);
+                    idx.RemoveAt(k);
+                    cut = true;
+                    break;
+                }
+                if (!cut) break;   // 꼬인 다각형: 남은 것은 부채꼴로
+            }
+            for (int k = 1; k + 1 < idx.Count; k++) Tri(b, idx[0], idx[k], idx[k + 1], area > 0f);
+        }
+
+        void Tri(int b, int i0, int i1, int i2, bool flip)
+        {
+            if (flip) { t.Add(b + i0); t.Add(b + i1); t.Add(b + i2); }
+            else { t.Add(b + i0); t.Add(b + i2); t.Add(b + i1); }
+        }
+
+        static bool InTri(V2 p, V2 a, V2 b, V2 c)
+        {
+            float d1 = (p.x - b.x) * (a.y - b.y) - (a.x - b.x) * (p.y - b.y);
+            float d2 = (p.x - c.x) * (b.y - c.y) - (b.x - c.x) * (p.y - c.y);
+            float d3 = (p.x - a.x) * (c.y - a.y) - (c.x - a.x) * (p.y - a.y);
+            bool neg = d1 < 0 || d2 < 0 || d3 < 0, pos = d1 > 0 || d2 > 0 || d3 > 0;
+            return !(neg && pos);
+        }
+
+        /// <summary>(11/11) 켜 두면(null 아님) Build 가 만든 메시를 모은다. 다 지은 뒤 한꺼번에 그래픽 장치로만 넘기고 일반 메모리 사본을 내리기 위해(CityBuilder).</summary>
+        public static List<Mesh> Built;
+
+        /// <summary>
+        /// (11/11) 납작한 면의 큰 삼각형을 가장 긴 변의 가운데에서 잘라 변이 maxEdge 를 넘지 않게 한다.
+        /// 안개는 꼭짓점에서 계산되므로, 수백 m 짜리 삼각형(큰 공원·숲·땅)은 가까운 곳까지 안개색으로 뿌옇게 칠해진다.
+        /// </summary>
+        public void SplitLong(float maxEdge)
+        {
+            float lim = maxEdge * maxEdge;
+            var mid = new Dictionary<long, int>();
+            for (int i = 0; i + 2 < t.Count && t.Count < 900000; )
+            {
+                int a = t[i], b = t[i + 1], c = t[i + 2];
+                float ab = (v[a] - v[b]).sqrMagnitude, bc = (v[b] - v[c]).sqrMagnitude, ca = (v[c] - v[a]).sqrMagnitude;
+                float mx = Mathf.Max(ab, Mathf.Max(bc, ca));
+                if (mx <= lim) { i += 3; continue; }
+                // 가장 긴 변이 a-b 가 되게 돌린다(감는 방향은 그대로)
+                if (mx == bc) { int x = a; a = b; b = c; c = x; }
+                else if (mx == ca) { int x = c; c = b; b = a; a = x; }
+                long key = a < b ? ((long)a << 32) | (uint)b : ((long)b << 32) | (uint)a;
+                if (!mid.TryGetValue(key, out int m))
+                {
+                    var pm = (v[a] + v[b]) * 0.5f;
+                    m = Add(pm, n[a], (uv[a] + uv[b]) * 0.5f);
+                    mid[key] = m;
+                }
+                t[i] = a; t[i + 1] = m; t[i + 2] = c;          // 앞 절반은 제자리에서 다시 검사
+                t.Add(m); t.Add(b); t.Add(c);                  // 뒤 절반은 끝에 붙여 나중에 검사
+            }
+        }
+
+        public Mesh Build(string name = "dc", bool tangents = true)
+        {
+            var m = new Mesh { name = name };
+            if (v.Count > 65000) m.indexFormat = IndexFormat.UInt32;
+            m.SetVertices(v);
+            m.SetNormals(n);
+            m.SetUVs(0, uv);
+            m.SetTriangles(t, 0);
+            m.RecalculateBounds();
+            // 노멀맵(사진 질감의 요철)은 접선이 있어야 맞게 보인다(11/8)
+            if (tangents && uv.Count == v.Count && v.Count > 0) m.RecalculateTangents();
+            Built?.Add(m);
+            return m;
+        }
+
+        /// <summary>메시를 가진 GameObject 를 만든다(그림자 받기·드리우기 선택)</summary>
+        /// <summary>
+        /// 단면들(점 개수가 같음)을 차례로 이어 매끈한 곡면을 만든다(11/8 실내: 대시보드·필러·문턱). sections[i][k] = i 번째 단면의 k 번째 점.
+        /// 법선은 이웃 점들로 계산해 부드럽게 보이고, flip 이면 반대쪽을 앞면으로. UV 는 두 방향 길이(m) / uvM.
+        /// </summary>
+        public void Loft(IList<Vector3[]> sections, bool flip = false, float uvM = 0.5f)
+        {
+            int ns = sections.Count;
+            if (ns < 2) return;
+            int m = sections[0].Length;
+            int b = v.Count;
+            var ua = new float[ns, m];
+            for (int k = 0; k < m; k++)
+                for (int i = 1; i < ns; i++) ua[i, k] = ua[i - 1, k] + (sections[i][k] - sections[i - 1][k]).magnitude;
+            for (int i = 0; i < ns; i++)
+            {
+                float va = 0f;
+                for (int k = 0; k < m; k++)
+                {
+                    if (k > 0) va += (sections[i][k] - sections[i][k - 1]).magnitude;
+                    var du = sections[Mathf.Min(ns - 1, i + 1)][k] - sections[Mathf.Max(0, i - 1)][k];
+                    var dv = sections[i][Mathf.Min(m - 1, k + 1)] - sections[i][Mathf.Max(0, k - 1)];
+                    var nrm = Vector3.Cross(du, dv);
+                    nrm = nrm.sqrMagnitude > 1e-12f ? nrm.normalized : Vector3.up;
+                    Add(sections[i][k], flip ? -nrm : nrm, new Vector2(ua[i, k] / uvM, va / uvM));
+                }
+            }
+            for (int i = 0; i + 1 < ns; i++)
+                for (int k = 0; k + 1 < m; k++)
+                {
+                    int a = b + i * m + k, c = b + (i + 1) * m + k, d = b + (i + 1) * m + k + 1, e = b + i * m + k + 1;
+                    if (!flip) { t.Add(a); t.Add(c); t.Add(d); t.Add(a); t.Add(d); t.Add(e); }
+                    else { t.Add(a); t.Add(d); t.Add(c); t.Add(a); t.Add(e); t.Add(d); }
+                }
+        }
+
+        public GameObject ToObject(string name, Material mat, Transform parent, bool castShadows = false, bool receiveShadows = true)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            // (11/11) 접선은 요철 지도(노멀맵)가 있는 재질에만 쓰인다 → 없는 재질(차선 칠·볼라드·표지 등)은 만들지 않는다(점마다 16바이트, 모양은 같음)
+            bool needTan = mat == null || (mat.HasProperty("_BumpMap") && mat.GetTexture("_BumpMap") != null);
+            go.AddComponent<MeshFilter>().sharedMesh = Build(name, needTan);
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = mat;
+            mr.shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            mr.receiveShadows = receiveShadows;
+            return go;
+        }
+    }
+}

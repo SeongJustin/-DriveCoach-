@@ -1,0 +1,9 @@
+# 이 파일을 복사해 local.properties 로 만들고 값을 채운다. local.properties 는 git 에 올라가지 않는다.
+sdk.dir=C\:\\Users\\<사용자>\\AppData\\Local\\Android\\Sdk
+# 네이버 클라우드 Maps > Directions 15 (ncloud.com 콘솔 > Application 인증 정보)
+NCP_KEY_ID=
+NCP_KEY=
+# 시연 빌드 전용: 제한속도를 모를 때 기본 50 km/h 로 과속 피드백(시연 영상용). 평소·제출은 0 또는 줄 삭제.
+DEMO_SPEED_LIMIT_KMH=0
+# 공공데이터포털(data.go.kr) 일반 인증키 — 경찰청 교차로계획정보서비스(15056569) 활용신청 뒤. ' 빌드 도구' 가 씀(게임 신호를 실제 운영계획으로)
+DATA_GO_KR_KEY=

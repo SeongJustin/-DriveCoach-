@@ -1,0 +1,76 @@
+// 담당: S (11/8) 게임 프로세스 쪽 GameLink 수신기(3D 게임용). CoachService 에 바인딩해 차량 신호·제원을 Messenger 로 받는다.
+// 2D(GameActivity)는 같은 일을 자기 안에서 한다(바꾸지 않음).
+package kr.drivecoach.app.game
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
+import android.os.Message
+import android.os.Messenger
+import android.util.Log
+import kr.drivecoach.app.CoachService
+
+class GameLinkClient(
+    private val ctx: Context,
+    private val onState: (steer: Double, gear: String, brake: Boolean, speedKmh: Double, rpm: Double, accelPct: Double, switches: String) -> Unit,
+    private val onSpec: (json: String) -> Unit,
+) {
+    private var service: Messenger? = null
+    private var bound = false
+
+    private val incoming = Messenger(Handler(Looper.getMainLooper()) { msg -> onMessage(msg); true })
+
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+            val m = Messenger(binder ?: return)
+            service = m
+            runCatching { m.send(Message.obtain(null, GameLink.MSG_REGISTER).apply { replyTo = incoming }) }
+                .onFailure { Log.w(TAG, "register failed: ${it.message}") }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            service = null
+        }
+    }
+
+    private fun onMessage(msg: Message) {
+        val d = msg.data ?: return
+        when (msg.what) {
+            GameLink.MSG_STATE -> onState(
+                d.getDouble(GameLink.KEY_STEER), d.getString(GameLink.KEY_GEAR) ?: "UNKNOWN", d.getBoolean(GameLink.KEY_BRAKE),
+                d.getDouble(GameLink.KEY_SPEED), d.getDouble(GameLink.KEY_RPM, -1.0), d.getDouble(GameLink.KEY_ACCEL, -1.0),
+                d.getString(GameLink.KEY_SWITCHES).orEmpty(),
+            )
+            GameLink.MSG_SPEC -> onSpec(d.getString(GameLink.KEY_SPEC).orEmpty())
+        }
+    }
+
+    fun start() {
+        if (bound) return
+        val intent = Intent(ctx, CoachService::class.java).setAction(GameLink.ACTION)
+        bound = ctx.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+    }
+
+    /** (11/15 대표) 3D 연습의 할 일을 코치 음성으로 한 번 읽어 달라고 보낸다. */
+    fun speak(text: String) {
+        val m = service ?: return
+        runCatching { m.send(Message.obtain(null, GameLink.MSG_SPEAK).apply { data = android.os.Bundle().apply { putString(GameLink.KEY_TEXT, text) } }) }
+    }
+
+    fun stop() {
+        service?.let { m -> runCatching { m.send(Message.obtain(null, GameLink.MSG_UNREGISTER).apply { replyTo = incoming }) } }
+        service = null
+        if (bound) {
+            runCatching { ctx.unbindService(connection) }
+            bound = false
+        }
+    }
+
+    companion object {
+        private const val TAG = "GameLinkClient"
+    }
+}

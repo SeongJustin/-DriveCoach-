@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 빌드 도구 이 adb 로 띄운다). release APK 에는 없다. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".debug.SelfTestActivity"
+            android:exported="true"
+            android:label="드라이브코치 자가 검사"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
+    </application>
+</manifest>

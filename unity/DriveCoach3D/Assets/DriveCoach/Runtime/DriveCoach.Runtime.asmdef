@@ -1,0 +1,25 @@
+{
+    "name": "DriveCoach.Runtime",
+    "rootNamespace": "DriveCoach.Unity",
+    "references": [
+        "DriveCoach.Core",
+        "UnityEngine.UI",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "DC_URP"
+        }
+    ],
+    "noEngineReferences": false
+}

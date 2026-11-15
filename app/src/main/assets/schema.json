@@ -1,0 +1,52 @@
+{
+  "packageName": "kr.drivecoach.app",
+  "appDescription": "A driving coach app for new drivers that teaches car features, parking and steering, and practice driving routes using real vehicle signals.",
+  "invokeWord": "드라이브코치",
+  "version": "1.0.0",
+  "actionCalls": [
+    {
+      "type": "function",
+      "function": {
+        "name": "LEARN_CAR_FEATURE",
+        "description": "Open the step-by-step practice that teaches how to use a control or feature of this car.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "featureName": {
+              "type": "string",
+              "description": "Name of the car control or feature the driver wants to learn, as the driver said it."
+            }
+          },
+          "required": ["featureName"]
+        },
+        "component": "activity"
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "START_PARKING_PRACTICE",
+        "description": "Start the interactive 3D parking and steering practice, which is available only while the car is parked.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "component": "activity"
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "START_PRACTICE_COURSE",
+        "description": "Create a short practice driving course around the current location and prepare it for route guidance.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "component": "activity"
+      }
+    }
+  ]
+}

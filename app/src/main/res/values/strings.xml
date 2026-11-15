@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 담당: A. 앱 이름은 가칭 (README 참고) -->
+    <string name="app_name">드라이브코치</string>
+
+    <!-- 담당: S. 화면 라벨(버튼·헤더). 음성으로 들리는 문장은 여기 두지 않고 core/tts/Phrases 의 ID 로만 쓴다. -->
+    <string name="header_car_unknown">인식 차종: 확인 중…</string>
+    <string name="header_car_detected">인식 차종: %1$s</string>
+    <string name="driving_caption">앱 화면은 P 기어일 때만 볼 수 있습니다.</string>
+    <string name="menu_practice">차량 조작법</string>
+    <string name="menu_parking">직각 주차</string>
+    <!-- (11/15 대표: 실제 차 주차는 직각·평행 둘 다, "실제 차로" 라는 말은 빼기) -->
+    <string name="menu_parking_parallel">평행 주차</string>
+    <!-- (11/15) "주차·핸들 연습" 선택 화면: 3D 연습 / 직각 주차 / 평행 주차 -->
+    <string name="parking_menu_title">주차 연습</string>
+    <string name="menu_parking_learn">직각 주차 배우기</string>
+    <string name="menu_parking_parallel_learn">평행 주차 배우기</string>
+    <string name="parking_menu_game">주차 게임</string>
+    <string name="menu_game">주차 연습</string>
+    <string name="menu_law">도로 법규</string>
+    <string name="menu_course">코스 주행</string>
+    <string name="menu_road3d">도로 주행 연습</string>
+    <string name="btn_confirm">확인</string>
+    <string name="btn_next">다음</string>
+    <string name="btn_again">다시</string>
+    <string name="btn_close">메뉴로</string>
+    <string name="btn_skip">건너뛰기</string>
+    <string name="btn_prev">이전</string>
+    <string name="btn_to_list">목록으로</string>
+    <string name="btn_listen_again">다시 듣기</string>
+    <string name="practice_hint_manual_try">해 본 뒤 \'다음\'을 누르십시오.</string>
+    <string name="practice_hint_auto_next">잠시 후 다음 항목으로 넘어갑니다.</string>
+    <string name="btn_done">마치기</string>
+    <string name="btn_close_settings">← 닫기</string>
+    <string name="practice_passed_before">✓ 통과한 항목</string>
+    <string name="header_car_default">차종: %1$s</string>
+    <string name="parking_selfeval_caption">잘 안 된 것만 누르십시오.</string>
+    <string name="parking_selfeval_body">주차를 마쳤습니다. 차에서 내려 뒤 간격, 각도, 앞뒤 위치를 눈으로 확인하고, 잘 안 된 것만 고른 뒤 \'평가 끝\'을 누르십시오.</string>
+    <string name="btn_try">해 보기</string>
+    <string name="btn_next_item">다음 항목</string>
+    <string name="practice_search_clear">검색어 지우기</string>
+    <string name="settings_title">설정</string>
+    <string name="setting_voice">코칭 음성</string>
+    <string name="setting_rate">음성 속도</string>
+    <string name="setting_rate_slow">느리게</string>
+    <string name="setting_rate_normal">보통</string>
+    <string name="setting_rate_fast">빠르게</string>
+    <string name="setting_diag">진단 보기 (개발용)</string>
+    <string name="setting_version">앱 버전</string>
+    <!-- 11/7: 음성 엔진(Pleos TTS 우선 / 녹음 클립 고정) -->
+    <!-- 11/6: 설정 "Pleos 연결" — 이 앱이 쓰는 Pleos Playground SDK 와 지금 연결 상태 -->
+    <string name="setting_pleos">Pleos 연결</string>
+    <string name="pleos_vehicle">차량 신호(Vehicle)</string>
+    <string name="pleos_vehicle_value">%1$d / %2$d 연결</string>
+    <string name="pleos_navi">내비게이션(NaviHelper)</string>
+    <string name="pleos_location">위치(FusedLocation)</string>
+    <string name="pleos_voice">음성 안내</string>
+    <string name="pleos_stt">음성 명령(SpeechToText)</string>
+    <string name="pleos_unavailable">사용 불가</string>
+    <string name="voice_button">음성 명령 켜기</string>
+    <string name="voice_button_off">음성 명령 끄기</string>
+    <string name="voice_always_on">항상 듣기</string>
+    <string name="voice_off">꺼짐(마이크 버튼으로 켜기)</string>
+    <string name="lab_title">Pleos 실험</string>
+    <string name="lab_do">주행 중 화면 점검</string>
+    <string name="lab_clear">지우기</string>
+    <string name="lab_inject">말 넣기</string>
+    <string name="pleos_connected">연결됨</string>
+    <string name="pleos_waiting">연결 대기</string>
+    <string name="setting_exit">앱 종료</string>
+    <string name="setting_on">켜짐</string>
+    <string name="setting_off">꺼짐</string>
+    <string name="btn_exit_app">종료</string>
+    <string name="exit_confirm_title">앱을 종료하시겠습니까?</string>
+    <string name="exit_confirm_text">코칭 음성도 함께 멈춥니다.</string>
+    <string name="btn_yes">예</string>
+    <string name="btn_no">아니요</string>
+    <string name="btn_back_menu">← 메뉴로</string>
+    <string name="practice_menu_title">차량 조작법</string>
+    <!-- 도로 법규 글 아래 근거 조문(11/15 대표) -->
+    <string name="law_basis">근거: %1$s</string>
+    <string name="practice_search_hint">기능 검색</string>
+    <string name="practice_no_match">검색 결과가 없습니다.</string>
+    <string name="label_last_spoken">최근 안내</string>
+    <!-- 신호 한 줄("P · 0 km/h · 브레이크 OFF · 깜빡이 OFF · 와이퍼 OFF") 의 라벨 -->
+    <!-- 메뉴 카드 아래 작은 설명(기획서 장 번호). %1$d = 항목 수 -->
+    <string name="label_auto_check">센서가 자동 확인</string>
+    <string name="label_manual_check">해 본 뒤 \'다음\'</string>
+    <string name="phase_explain">설명</string>
+    <string name="phase_try">해 보기</string>
+    <string name="phase_confirm">확인</string>
+    <string name="phase_passed">통과</string>
+    <string name="phase_skipped">건너뜀</string>
+    <string name="diag_tts">TTS 엔진</string>
+    <string name="diag_danger">위험 피드백</string>
+    <string name="diag_speech_log">발화 판정</string>
+    <string name="diag_sdk">SDK 진단</string>
+    <string name="diag_perm">권한 진단(거부된 것만)</string>
+
+    <!-- 담당: S. 포그라운드 서비스(CoachService) 알림·연결 상태. 화면이 런처에 가려져도 음성 코칭이 계속되게 하는 서비스 -->
+    <string name="notif_channel_name">운전 코칭 실행 중</string>
+    <string name="notif_channel_desc">주행 중 음성 코칭이 계속 동작하도록 유지하는 알림</string>
+    <string name="notif_title">운전 코칭 실행 중</string>
+    <string name="notif_mode_parked">주차 중(화면 연습 가능)</string>
+    <string name="notif_mode_driving">주행 중(음성 안내만 제공)</string>
+    <string name="notif_mode_unknown">차량 신호를 기다리는 중</string>
+    <string name="label_connecting_service">서비스 연결 중…</string>
+
+    <!-- 담당: S. 직각 주차(4-5) 화면 -->
+    <!-- 캡션: "직각 주차 · 3/9 단계 · 2번째 시도". %1$d 단계, %2$d 전체, %3$d 시도 -->
+    <string name="parking_caption">직각 주차, %1$d/%2$d 단계, %3$d번째 시도</string>
+    <!-- 자리 바로잡기 중 캡션: "자리 바로잡기 · 비스듬함 · 2/4". %1$s 꼬임 이름, %2$d 단계, %3$d 전체 -->
+    <string name="parking_caption_recovery">자리 바로잡기 > %1$s, %2$d/%3$d</string>
+    <string name="parking_caption_choose">자리 바로잡기 > 지금 상태 고르기</string>
+    <string name="parking_caption_selfeval">자기평가</string>
+    <string name="parking_caption_done">완료</string>
+    <string name="parking_check_manual">눈으로 보고 확인</string>
+    <string name="btn_parking_help">자리 바로잡기</string>
+    <string name="btn_parking_back_to_step">하던 단계로</string>
+    <string name="btn_parking_restart">처음부터</string>
+    <string name="parking_tangle_too_close">너무 붙음</string>
+    <string name="parking_tangle_angled">비스듬함</string>
+    <string name="parking_tangle_too_close_desc">옆 차나 선에 너무 가까움</string>
+    <string name="parking_tangle_angled_desc">차가 칸과 비스듬함</string>
+    <string name="parking_tangle_too_far_desc">칸에서 너무 떨어짐</string>
+    <string name="parking_caption_intro">직각 주차 > 시작 전 안내</string>
+    <!-- 평행 주차(11/15): 캡션·탈출 이름·자기평가 -->
+    <string name="parking_par_caption">평행 주차, %1$d/%2$d 단계, %3$d번째 시도</string>
+    <string name="parking_par_caption_intro">평행 주차 > 시작 전 안내</string>
+    <string name="parking_par_tangle_too_close">연석에 붙음</string>
+    <string name="parking_par_tangle_angled">비스듬함</string>
+    <string name="parking_par_tangle_too_far">연석과 멂</string>
+    <string name="parking_par_tangle_too_close_desc">바퀴가 연석에 닿을 듯함</string>
+    <string name="parking_par_tangle_angled_desc">앞이 길 쪽으로 나와 있음</string>
+    <string name="parking_par_tangle_too_far_desc">연석과 1미터 넘게 떨어짐</string>
+    <string name="parking_par_selfeval_curb_gap">연석 간격</string>
+    <string name="parking_par_selfeval_body">주차를 마쳤습니다. 차에서 내려 연석 간격, 각도, 앞뒤 위치를 눈으로 확인하고, 잘 안 된 것만 고른 뒤 \'평가 끝\'을 누르십시오.</string>
+    <string name="btn_start">시작</string>
+    <string name="parking_tangle_too_far">너무 멂</string>
+    <string name="parking_selfeval_curb_gap">뒤 간격</string>
+    <string name="parking_selfeval_angle">비스듬함</string>
+    <string name="parking_selfeval_front_back">앞뒤 위치</string>
+    <string name="btn_parking_selfeval_submit">평가 끝</string>
+    <!-- 주행 화면(R/D)에서 주차 단계 한 줄: "주차 5/9 · 살살 뒤로, 선 나란하면 정지." -->
+
+    <!-- 담당: S. 코스 주행(5-1~5-4, 내비 연동) 화면. 음성 문장은 Phrases(briefing_*/guide_*/report_*) 로만 -->
+    <string name="course_title">코스 주행</string>
+    <!-- (11/15 강명수) 난이도별 코스(길찾기 키가 있을 때만 보임) -->
+    <string name="course_difficulty_label">난이도(1 쉬움, 5 어려움)</string>
+    <string name="course_minutes_label">연습 시간</string>
+    <string name="course_minutes">%1$d분</string>
+    <string name="course_caption_choose">코스 주행 > 연습 목적을 고르십시오.</string>
+    <!-- 5-1 선택지 라벨(core CourseOptionId 와 1:1) -->
+    <string name="course_option_neighborhood_right">동네 한 바퀴(우회전 위주)</string>
+    <string name="course_option_city_left">시내 입문(좌회전 1~2개)</string>
+    <string name="course_option_left_turn_drill">좌회전 연습</string>
+    <string name="course_option_lane_change">차로 변경 연습</string>
+    <string name="course_option_merge">합류 연습</string>
+    <string name="course_option_straight_only">직진 위주(페달 헷갈림, 뒤차 경적 걱정)</string>
+    <string name="course_option_night_rain">야간 및 우천 연습</string>
+    <string name="course_option_exam_retake">재시험 대비(좌회전, 차로 변경)</string>
+    <!-- READY 캡션: "코스 주행 · 동네 한 바퀴 · 경유지 2 · 목적지 약 1.5 km" -->
+    <string name="course_caption_ready">코스 주행 > %1$s</string>
+    <string name="btn_course_send">내비로 보내기</string>
+    <string name="course_send_hint">누르면 내비 화면으로 바뀝니다. 돌아오려면 아래 줄의 스티어링 휠 모양(드라이브코치) 아이콘을 누르십시오.</string>
+    <string name="practice_chip_now">지금 차 상태</string>
+    <string name="course_navi_ready">내비 연결됨</string>
+    <string name="course_navi_not_ready">내비 연결 안 됨</string>
+    <string name="course_status_routing">경로 계산 중…</string>
+    <string name="course_status_driving">안내 중</string>
+    <!-- 경로 요약: "경로 2.1 km · 약 5분" -->
+    <string name="course_route_line">경로 %1$.1f km, 약 %2$d분</string>
+    <!-- 다음 회전 한 줄: "다음: 300 m 앞 우회전 (판교역로)" -->
+    <string name="course_tbt_line">다음: %1$d m 앞 %2$s</string>
+    <string name="course_tbt_none">다음 안내 대기 중</string>
+    <string name="course_speed_limit">제한 속도 %1$d</string>
+    <string name="course_maneuver_straight">직진</string>
+    <string name="course_maneuver_left">좌회전</string>
+    <string name="course_maneuver_right">우회전</string>
+    <string name="course_maneuver_uturn">유턴</string>
+    <string name="course_maneuver_unprotected_left">비보호 좌회전</string>
+    <string name="course_maneuver_roundabout">회전교차로</string>
+    <string name="course_maneuver_highway_enter">고속도로 진입</string>
+    <string name="course_maneuver_highway_exit">고속도로 진출</string>
+    <string name="course_maneuver_merge">합류</string>
+    <string name="course_maneuver_tollgate">톨게이트</string>
+    <string name="course_maneuver_waypoint">경유지</string>
+    <string name="course_maneuver_destination">목적지</string>
+    <string name="course_maneuver_other">안내</string>
+    <!-- 주행 화면 한 줄: "코스 · 다음: 300 m 앞 우회전 · 제한속도 50" -->
+    <string name="course_caption_arrived">도착 > 오늘 리포트</string>
+    <!-- 결과 한 줄: "주행 2.1 km · 5분 · 급제동 0회 · 과속 1곳 · 코치 7번" -->
+    <string name="course_result_line">주행 %1$.1f km, %2$.0f분, 급제동 %3$d회, 과속 %4$d곳, 코치 %5$d번</string>
+    <string name="course_result_pending">정차 후 리포트를 안내합니다.</string>
+    <string name="course_caption_error">코스 오류</string>
+    <string name="course_err_location">현재 위치를 아직 모릅니다. 잠시 뒤 다시 시도하십시오.</string>
+    <string name="course_err_navi_not_ready">내비가 아직 준비되지 않았습니다. 잠시 뒤 다시 시도하십시오.</string>
+    <string name="course_err_request">내비에 코스를 넣지 못했습니다. 다시 시도하십시오.</string>
+    <string name="course_err_no_course">이 목적에 맞는 코스를 만들지 못했습니다. 다른 목적을 고르십시오.</string>
+    <string name="course_err_navi_route">내비가 이 코스의 경로를 찾지 못했습니다. 다른 목적을 고르십시오.</string>
+    <string name="course_err_network">길찾기 서비스에 연결하지 못했습니다. 다시 시도하십시오.</string>
+    <string name="course_err_other">코스를 만들지 못했습니다. 다시 시도하십시오.</string>
+    <string name="btn_course_retry">다시 시도</string>
+    <!-- (담당 T) 실제 길찾기 코스 생성 -->
+    <string name="course_caption_generating">코스 주행 > %1$s, 코스 계산 중</string>
+    <string name="course_status_generating">코스 계산 중… 길찾기로 도로 위 코스를 선택하고 있습니다.</string>
+    <string name="course_summary_numbers">거리 %1$.1f km, 좌회전 %2$d, 차로 변경 %3$d, 비보호 좌회전 %4$d, 우회전 %5$d</string>
+    <string name="course_mismatch">근처에서 이 목적에 딱 맞는 길을 찾지 못해 가장 가까운 코스를 골랐습니다: %1$s</string>
+    <string name="btn_course_rechoose">다른 목적</string>
+    <string name="course_map_legend">● 출발(위가 북쪽)</string>
+    <string name="course_source_generated">실제 도로 경로(길찾기 %1$d회)</string>
+    <string name="course_source_offset">기본 코스(현재 위치 주변). 내비가 경로를 찾지 못할 수 있습니다.</string>
+    <string name="btn_course_fallback">기본 코스로 진행</string>
+    <string name="course_route_diag_title">길찾기 진단</string>
+    <string name="course_diag_title">내비 진단</string>
+    <string name="intro_tagline">내 차를 알아 가는 연습</string>
+    <string name="game_idle_notice">엔진 시동을 끈 전원 ON 상태에서 이용하십시오(공회전 제한).</string>
+</resources>
