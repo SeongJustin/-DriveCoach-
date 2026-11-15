@@ -1,5 +1,5 @@
 // 담당: A+B → R
-// 검증: Vehicle-2.3.2 / FusedLocation-1.1.3 jar + Android 스텁으로 kotlinc 타입 검사 통과. 값의 의미(단위·부호·0=닫힘)는 에뮬레이터에서 확인할 것.
+// 검증: Vehicle-2.3.2 / FusedLocation-1.1.3 jar 의 시그니처에 맞췄다. 값의 의미(단위·부호·0=닫힘)는 에뮬레이터에서 확인할 것.
 package kr.drivecoach.app.vehicle
 
 import ai.pleos.playground.location.fused.FusedLocation

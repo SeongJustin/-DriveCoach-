@@ -4,17 +4,17 @@
 
 ## 1. 기능
 
-학습 화면은 차가 멈춰 있고(0.5 km/h 이하) 기어가 P 이거나 주차 브레이크가 걸려 있을 때만 표시되며, 차량의 화면 제한(CarUxRestrictions)이 켜지면 표시되지 않습니다. 주행 중에는 음성으로만 안내합니다.
+학습 화면은 차가 멈춰 있을 때(0.5 km/h 이하) 기어가 P 이거나 주차 브레이크가 걸려 있으면 표시합니다. 차량이 화면 제한(CarUxRestrictions)을 요구하면 표시하지 않습니다. 주행 중에는 음성으로만 안내합니다.
 
 | 카드 | 내용 |
 |---|---|
 | 차량 조작법 | 좌석, 안전벨트, 시동, 주차 브레이크, 변속, 등화, 와이퍼, 방향지시등, 창문, 공조, 클러스터, 운전자 보조 등 49개 항목을 음성과 그림(취급설명서 그림 46개 항목, 직접 그린 그림 3개 항목)으로 설명합니다 |
 | 도로 법규 | 우회전, 비보호 좌회전, 유턴, 어린이 보호구역 등 12개 주제를 도로교통법 조문 발췌와 장면 그림으로 설명합니다 |
 | 주차 연습 | 직각 주차와 평행 주차를 단계 영상으로 설명합니다. 주차 게임(3D) 25단계에서는 실제 스티어링 휠과 브레이크로 3D 차를 조작해 주차를 연습합니다 |
-| 도로 주행 연습 | 실제 지도로 만든 3D 동네(서울 역삼1동, 양재1동, 양재2동)를 신호등, 차로, 보행자, 다른 차가 있는 환경에서 주행합니다. 양재1동과 양재2동은 다듬는 중이라 목록에 Beta 로 표시됩니다 |
-| 코스 주행 | 연습 목적을 고르면 현재 위치와 진행 방향을 기준으로 경유지 2곳과 목적지(약 1.5 km 앞)를 좌표로 정해 차량 내비게이션에 경로를 요청합니다. 도로 경로는 차량 내비게이션이 계산합니다. 주행 중에는 위험 상황만 음성으로 경고합니다. 도착 후 P 로 정차하면 주행 리포트를 표시합니다 |
+| 도로 주행 연습 | 실제 지도로 만든 3D 동네(서울 역삼1동, 양재1동, 양재2동)를 신호등, 차로, 보행자, 다른 차가 있는 환경에서 주행합니다. 양재1동과 양재2동은 아직 보완 중이어서 목록에 Beta 로 표시합니다 |
+| 코스 주행 | 연습 목적을 고르면 현재 위치와 진행 방향을 기준으로 경유지 2곳과 목적지(출발지에서 직선거리 약 1.5 km)의 좌표를 정해 차량 내비게이션에 경로를 요청합니다. 실제 도로 경로는 차량 내비게이션이 계산합니다. 주행 중에는 위험 상황만 음성으로 경고합니다. 도착 후 P 로 정차하면 주행 리포트를 표시합니다 |
 
-음성 명령은 "다음", "다시", "확인", "이전", "건너뛰기"(또는 "스킵"), "조용히", "세울래요"이며, "한 번 더", "네", "그만", "세워" 같은 비슷한 말도 알아듣습니다.
+음성 명령은 "다음", "다시", "확인", "이전", "건너뛰기"(또는 "스킵"), "조용히", "세울래요"이며, "한 번 더", "네", "그만", "세워" 같은 비슷한 표현도 인식합니다.
 
 ## 2. 실행
 
@@ -28,7 +28,10 @@
 
 1. Android Studio(JDK 17, Android SDK API 34)에서 저장소 폴더를 열고 Gradle Sync 를 실행합니다. Pleos SDK 는 `settings.gradle.kts` 의 Playground Maven 저장소에서 내려받습니다.
 2. `app` 을 Run 하거나 Build Variants 를 release 로 변경해 APK 를 빌드합니다.
-3. 3D 화면(주차 게임, 도로 주행)은 `unity/export/unityLibrary-release.aar` 파일이 있을 때만 앱에 포함됩니다. 이 파일은 Unity 6000.3 에서 `unity/DriveCoach3D` 에 `DcSetup.AddPackages`, `DcConfigure.Run`(프로젝트 설정), `DcBuild.ExportAndroid`(Android 프로젝트 내보내기)를 차례로 실행한 뒤, 내보낸 프로젝트의 unityLibrary 모듈을 release 로 빌드해 만듭니다. 파일이 없으면 3D 화면 없이 빌드되고, 3D 메뉴를 누르면 3D 연습이 들어 있지 않다는 안내가 표시됩니다.
+3. 3D 화면(주차 게임, 도로 주행)은 `unity/export/unityLibrary-release.aar` 파일이 있을 때만 앱에 포함됩니다. 파일이 없으면 3D 화면 없이 빌드되고, 3D 메뉴를 누르면 3D 연습이 들어 있지 않다는 안내가 표시됩니다. 이 파일은 Unity 6000.3 으로 다음과 같이 만듭니다.
+   - Unity 를 `-batchmode -quit -projectPath <저장소>/unity/DriveCoach3D -executeMethod DriveCoach.Setup.DcSetup.AddPackages` 로 실행해 패키지를 받습니다.
+   - `-buildTarget Android` 를 더해 `DriveCoach.EditorTools.DcConfigure.Run`(프로젝트 설정), `DriveCoach.EditorTools.DcBuild.ExportAndroid`(Android Gradle 프로젝트 내보내기)를 차례로 실행합니다. 내보낼 폴더는 `-dcOut <폴더>` 로 정하며, 기본값은 `unity/export` 입니다.
+   - 내보낸 프로젝트를 경로에 한글이 없는 폴더에서 `:unityLibrary:assembleRelease` 로 빌드하고, `unityLibrary/build/outputs/aar/unityLibrary-release.aar` 를 `unity/export/unityLibrary-release.aar` 로 복사합니다.
 
 ## 4. 환경
 
@@ -39,7 +42,7 @@
 | SDK | minSdk 28, targetSdk 34, AGP 8.8.2, Kotlin 2.0, Jetpack Compose |
 | 기준 차종 | 현대 아반떼 CN8 |
 | 권한 | Pleos Vehicle SDK 읽기 권한, NaviHelper, TTS, STT, FusedLocation, Android Automotive 표준 속성(`CAR_SPEED`, `CAR_POWERTRAIN`, `CAR_INFO`, `READ_CAR_PEDALS`), 인터넷, 포그라운드 서비스와 알림 |
-| 네트워크 | 제출 APK 는 길찾기 키를 포함하지 않아 길찾기 호출을 하지 않습니다. 키를 넣어 빌드하면 네이버 Directions 로 도로 경로를 조회해 코스를 만듭니다 |
+| 네트워크 | 제출 APK(release)에는 길찾기 키가 없어 길찾기 API 를 호출하지 않습니다. `local.properties` 에 키를 넣고 debug 로 빌드하면 네이버 Directions 로 도로 경로를 조회해 코스를 만듭니다 |
 
 ## 5. Pleos Playground SDK
 
@@ -57,14 +60,14 @@
 
 ```
 apk/     release APK
-core/    차량, Android 와 무관한 Kotlin 로직(신호 모델, 연습 항목, 주차 절차, 코스 생성, 위험 판정, 음성 문장)
+core/    차량·Android 에 의존하지 않는 Kotlin 로직(신호 모델, 연습 항목, 주차 절차, 코스 생성, 위험 판정, 음성 문장)
 app/     Pleos SDK 어댑터, Compose 화면, 포그라운드 서비스
 unity/DriveCoach3D/   3D 주차 게임과 도로 주행(Unity 6). Assets/DriveCoach/Core 는 계산, Runtime 은 화면
 ```
 
 ## 7. 자료와 라이선스
 
-- 기기 안에는 설정, 연습 진행 상태, 3D 게임 설정과 단계 기록을 저장합니다. 주행 기록과 리포트는 저장하지 않습니다. 앱 코드가 외부 서버로 보내는 요청은 길찾기 키를 넣은 빌드의 길찾기 호출뿐입니다.
-- 사용한 라이브러리와 자료: AndroidX, Jetpack Compose, Kotlin Coroutines(Apache 2.0), Asta Sans 글꼴(OFL), Unity 6000.3(Unity 이용 약관). 가져온 3D 모델과 질감은 Poly Haven, Kenney, Quaternius(CC0), EZ-Tree(MIT)입니다. 라이선스 글은 `unity/DriveCoach3D/Assets/Resources/DC/` 아래 각 폴더의 `License.txt` 와 `Fonts/LICENSE-OFL-AstaSans.txt` 에 있습니다.
-- 차량 조작 그림: 49개 항목 중 46개 항목의 그림은 현대자동차 아반떼(CN8) 2027 취급설명서(https://ownersmanual.hyundai.com/full_webhelp/CN8/2027/ko_KR/index.html)의 그림이며(경고등 3색 항목은 설명서 그림에 색 설명을 덧붙임), 3개 항목은 직접 그렸습니다. 저작권은 현대자동차에 있습니다. 공모전 운영사무국의 안내(2026-11-13)에 따라 출품작에 사용했습니다. 그림별 출처는 `docs/manual_figs/출처.md` 에 있습니다.
-- 지도 자료: 도로와 건물 윤곽은 © OpenStreetMap contributors(ODbL), 건물 높이와 층수는 국토교통부 GIS건물통합정보(브이월드), 노면 표시, 신호등, 안전표지, 횡단보도 자리는 서울시 교통안전시설물 공개 자료(T-GIS), 교차로 5곳의 신호 주기는 경찰청 교차로 신호 운영계획(공공데이터포털)이고 나머지 교차로는 교차로 크기로 정한 값입니다. 도로 주행 화면에는 OpenStreetMap 과 브이월드 출처를 표시합니다. 차량과 건물에 실제 상표나 로고는 사용하지 않았습니다.
+- 기기 안에는 설정, 연습 진행 상태, 3D 게임 설정과 단계 기록, 3D 화면 실행 실패 기록을 저장합니다. 주행 기록과 리포트는 저장하지 않습니다. 앱 코드가 외부 서버로 보내는 요청은 키를 넣은 debug 빌드의 길찾기 호출(네이버 Directions)뿐입니다.
+- 사용한 라이브러리와 자료: AndroidX, Jetpack Compose, Kotlin Coroutines(모두 Apache 2.0), Asta Sans 글꼴(OFL), Unity 6000.3(Unity 이용 약관). 가져온 3D 모델과 질감은 Poly Haven, Kenney, Quaternius(CC0), EZ-Tree(MIT)입니다. 라이선스 글은 `unity/DriveCoach3D/Assets/Resources/DC/` 아래 `CC0/`, `PolyHaven/`, `PolyHaven/Models/`, `Kenney/CarKit/`, `Kenney/CityRoads/`, `Quaternius/ModularStreet/`, `Trees/` 의 `License.txt` 와 `Fonts/LICENSE-OFL-AstaSans.txt` 에 있습니다.
+- 차량 조작 그림: 49개 항목 중 46개 항목은 현대자동차 아반떼(CN8) 2027 취급설명서(https://ownersmanual.hyundai.com/full_webhelp/CN8/2027/ko_KR/index.html)의 그림을 쓰며, 저작권은 현대자동차에 있습니다(경고등 3색 항목은 설명서 그림에 색 설명을 덧붙였습니다). 나머지 3개 항목은 직접 그렸습니다. 공모전 운영사무국의 안내(2026-11-13)에 따라 출품작에 사용했습니다. 그림별 출처는 `docs/manual_figs/출처.md` 에 있습니다.
+- 지도 자료: 도로와 건물 윤곽은 © OpenStreetMap contributors(ODbL), 건물 높이와 층수는 국토교통부 GIS건물통합정보(브이월드), 노면 표시, 신호등, 안전표지, 횡단보도 자리는 서울시 교통안전시설물 공개 자료(T-GIS), 교차로 4곳의 신호 주기와 현시는 경찰청 교차로 신호 운영계획(공공데이터포털)이며, 나머지 교차로는 들어오는 차로 수로 정한 값을 씁니다. 도로 주행 화면에는 OpenStreetMap 과 브이월드 출처를 표시합니다. 차량과 건물에 실제 상표나 로고는 사용하지 않았습니다.

@@ -1,5 +1,5 @@
 // 담당: A
-// 주의: 이 환경에서는 Android 빌드가 불가하다. Pleos 주행 규제 가이드는 CarUxRestrictionsManager.registerListener /
+// Pleos 주행 규제 가이드는 CarUxRestrictionsManager.registerListener /
 //       onUxRestrictionsChanged / isRequiresDistractionOptimization / getActiveRestrictions 를 쓰라고만 명시한다.
 package kr.drivecoach.app.vehicle
 

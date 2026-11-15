@@ -90,7 +90,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Gleo AI 음성 연동(11/8, Gleo Interface): assets/schema.json 의 함수 이름 = 인텐트 action. 처리·응답은 GleoActions.kt -->
+            <!-- Gleo 음성 연동(11/8, Gleo Interface): assets/schema.json 의 함수 이름 = 인텐트 action. 처리·응답은 GleoActions.kt -->
             <intent-filter>
                 <action android:name="LEARN_CAR_FEATURE" />
                 <action android:name="START_PARKING_PRACTICE" />

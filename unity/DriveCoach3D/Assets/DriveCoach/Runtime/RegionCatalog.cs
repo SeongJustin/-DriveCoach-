@@ -1,5 +1,5 @@
 // 담당: S (3D 내 동네 도로 연수(베타) — 들어 있는 동네 목록(Resources/DC/Regions/index.json)과 읽기.
-// 동네 파일(JSON)은 OSM 자료로 미리 만들어 Resources/DC/Regions 에 넣었다. 나중에 서버에서 받는 동네도 같은 모양(파일 경로만 다름).
+// 동네 파일(JSON)은 OSM·브이월드·서울 T-GIS 등 공개 자료로 미리 만들어 Resources/DC/Regions 에 넣었다. 나중에 서버에서 받는 동네도 같은 모양(파일 경로만 다름).
 using System.Collections.Generic;
 using DriveCoach.Core;
 using UnityEngine;

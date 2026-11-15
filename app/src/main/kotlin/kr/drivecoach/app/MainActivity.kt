@@ -1,5 +1,5 @@
 // 담당: A (신호 소스·차종·주행 규제 생명주기, 권한 요청, 진단) → S (CoachController·TTS 연결, 첫 실제 화면, 흰 바탕 스타일·연습 그림, 포그라운드 서비스 바인딩, 핸들 감각·직각 주차·코스 주행 화면)
-// 주의: 이 환경에서는 Android 빌드가 불가하다. Compose 는 compose-bom 2024.06.00(ui 1.6.8, material3 1.2.1) 의 표준 API 만 쓰고 모든 심볼을 명시 import 했다.
+// Compose 는 compose-bom 2024.06.00(ui 1.6.8, material3 1.2.1) 의 표준 API 만 쓰고 모든 심볼을 명시 import 했다.
 package kr.drivecoach.app
 
 import android.content.ComponentName
@@ -209,7 +209,7 @@ class MainActivity : ComponentActivity() {
         handleGleo(intent)
     }
 
-    // ═══════════════════════════ Gleo AI 음성 연동(assets/schema.json) ═══════════════════════════
+    // ═══════════════════════════ Gleo 음성 연동(assets/schema.json) ═══════════════════════════
 
     private fun handleGleo(i: Intent?) {
         if (!GleoActions.isGleo(i)) return

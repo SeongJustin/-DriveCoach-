@@ -1,4 +1,4 @@
-// 담당: S (11/8) 3D 주차·핸들 연습 화면(Unity as a Library). 첫 화면 "주차·핸들 연습" 카드 → GameLauncher 가 연다.
+// 담당: S (11/8) 3D 주차 게임·도로 주행 화면(Unity as a Library). 첫 화면 "주차 연습" → "주차 게임" 카드와 "도로 주행 연습" 카드에서 GameLauncher 가 연다.
 // 별도 프로세스(:game3d, AndroidManifest): Unity 는 화면을 닫을 때 자기 프로세스를 끝내므로 메인 프로세스(CoachService)와 떨어뜨린다.
 // 차량 신호·제원은 CoachService 의 GameLink 에서 받아(GameLinkClient) Unity 의 "DriveCoachBridge" 오브젝트(GameMain.cs)로 넘긴다.
 // Unity 쪽은 준비되면 onUnityReady(), 닫을 때 closeGame() 을 부른다(C# AndroidLink.Call).

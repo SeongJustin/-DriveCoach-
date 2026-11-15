@@ -1,5 +1,5 @@
 // 담당: S (화면 스타일 — 흰 바탕, 검정 글씨, 라임 포인트. 색과 글자 크기는 전부 이 파일에서만 바꾼다)
-// 주의: 이 환경에서는 Android 빌드가 불가하다. material3 1.2.x(compose-bom 2024.06.00) 의 공개 API 만 썼다.
+// material3 1.2.x(compose-bom 2024.06.00) 의 공개 API 만 썼다.
 package kr.drivecoach.app.ui
 
 import androidx.compose.foundation.BorderStroke

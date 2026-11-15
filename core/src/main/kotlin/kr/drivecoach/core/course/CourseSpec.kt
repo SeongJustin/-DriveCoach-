@@ -1,7 +1,7 @@
 // 담당: J (코스 자동 생성)
 package kr.drivecoach.core.course
 
-/** 코스 선택의 "가장 무서운 것". 코스 점수에 가중치를 준다. */
+/** 코스 선택 화면의 "가장 무서운 것" 선택지. 코스 점수에 가중치를 준다. */
 enum class Fear { PARKING, LANE_CHANGE, MERGE, LEFT_TURN, NIGHT_RAIN, HORN_PRESSURE, PEDAL_CONFUSION }
 
 /**

@@ -12,7 +12,7 @@ data class TbtAnnouncement(val phraseId: PhraseId, val params: Map<String, Strin
  * 같은 회전에 대해 내비가 거리 갱신을 초마다 보내도 두 번 넘게 말하지 않는다.
  * 문장은 전부 core/tts 카탈로그의 guide_* ID 이고 여기서는 ID 와 {distance} 값만 만든다.
  *
- * @param farM 이 거리(m) 안으로 들어오면 "N m 앞" 안내. 기본 350 (300 m 에 여유를 둔 값).
+ * @param farM 이 거리(m) 안으로 들어오면 "N m 앞" 안내. 기본 350 (300 m 앞 안내에 여유를 둔 값).
  * @param nearM 이 거리(m) 안이면 "여기서" 안내. 기본 60.
  */
 class TbtGuide(private val farM: Double = DEFAULT_FAR_M, private val nearM: Double = DEFAULT_NEAR_M) {

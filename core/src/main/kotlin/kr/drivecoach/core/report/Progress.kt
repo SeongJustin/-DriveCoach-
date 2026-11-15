@@ -7,12 +7,12 @@ data class ProgressState(
     val reports: List<TripReport> = emptyList(),
 )
 
-/** 약한 항목 추천 결과: 어떤 지표가 약하고, 어느 단계(단계 번호)를 다시 연습하면 좋은지. */
+/** 약한 항목 추천 결과: 어떤 지표가 약하고, 어느 단계(번호)를 다시 연습하면 좋은지. */
 data class WeakSpot(val key: MetricKey, val avgScore: Double, val practiceStage: String)
 
 /**
  * 성장 기록(9장): 단계별 완료 체크, 코스별 리포트 누적, 약한 항목 추천, 초보 졸업 플래그.
- * 단계 ID 는 번호 문자열("2-1", "4-7", "5-3" …) 을 그대로 쓴다.
+ * 단계 ID 는 "2-1", "4-7", "5-3" 같은 번호 문자열이다.
  */
 class Progress(initial: ProgressState = ProgressState()) {
     private val stages = initial.completedStages.toMutableSet()

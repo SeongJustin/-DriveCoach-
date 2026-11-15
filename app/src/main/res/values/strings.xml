@@ -81,7 +81,6 @@
     <string name="practice_search_hint">기능 검색</string>
     <string name="practice_no_match">검색 결과가 없습니다.</string>
     <string name="label_last_spoken">최근 안내</string>
-    <!-- 신호 한 줄("P · 0 km/h · 브레이크 OFF · 깜빡이 OFF · 와이퍼 OFF") 의 라벨 -->
     <string name="label_auto_check">센서가 자동 확인</string>
     <string name="label_manual_check">해 본 뒤 \'다음\'</string>
     <string name="phase_explain">설명</string>
