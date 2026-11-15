@@ -123,6 +123,8 @@ class CoachService : Service() {
         val demoLimit = BuildConfig.DEMO_SPEED_LIMIT_KMH.takeIf { it > 0 }?.toDouble()
         coach = CoachController(signals, speaker, scope, speaker.activeName, navi = navi, courseSource = courseSource, routeDiag = directions?.diag,
             defaultSpeedLimitKmh = demoLimit)
+        // (11/16) 통화·음성 비서로 오디오 포커스를 잃으면 남은 안내 줄을 비운다
+        speaker.onFocusLostListener = { coach.onAudioFocusLost() }
         // 음성 명령: 들은 문장 → CoachController.onVoice(core 의 CommandRecognizer 로 해석)
         voice = VoiceCommandListener(this, isCoachSpeaking = { speaker.isSpeaking }) { text -> coach.onVoice(text) }
         voice.start()

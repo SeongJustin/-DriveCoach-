@@ -22,7 +22,9 @@ android {
         versionCode = 1
         versionName = "1.0.0"
         // 3D 게임(Unity) 네이티브 라이브러리는 ABI 마다 수십 MB 라 실제 차량(arm64)·에뮬레이터(x86_64) 것만 넣는다.
-        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        // -Pabi=x86_64 처럼 주면 그 ABI 하나만 넣는다(에뮬레이터 전용 APK 를 100 MB 아래로 만들 때). 기본은 둘 다.
+        val onlyAbi = (project.findProperty("abi") as String?)?.takeIf { it.isNotBlank() }
+        ndk { abiFilters += if (onlyAbi != null) listOf(onlyAbi) else listOf("arm64-v8a", "x86_64") }
     }
 
     buildTypes {

@@ -35,7 +35,7 @@ class Game3DActivity : UnityPlayerActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        link = GameLinkClient(this, ::onState, ::onSpec)
+        link = GameLinkClient(this, ::onState, ::onSpec, ::onLinkLost)
         main.postDelayed(fallback, READY_TIMEOUT_MS)
     }
 
@@ -157,6 +157,17 @@ class Game3DActivity : UnityPlayerActivity() {
     @Keep
     fun closeGame() {
         runOnUiThread { finish() }
+    }
+
+    /**
+     * (11/16) 코치 서비스와 연결이 끊기면 차량 신호(기어·속도)가 더 오지 않아, 실제 차가 움직여도 3D 를 멈출 수 없다.
+     * 그래서 3D 화면을 닫는다. 다시 열면 새로 연결한다.
+     */
+    private fun onLinkLost() {
+        if (isFinishing) return
+        Log.w(TAG, "차량 신호 연결이 끊겨 3D 를 닫음")
+        Toast.makeText(this, "차량 신호 연결이 끊겨 3D 연습을 닫았습니다.", Toast.LENGTH_LONG).show()
+        finish()
     }
 
     private fun openFallback() {

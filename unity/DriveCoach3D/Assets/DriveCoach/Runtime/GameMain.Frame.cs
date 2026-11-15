@@ -228,14 +228,15 @@ namespace DriveCoach.Unity
 
         float lastMoveT;
         /// <summary>
-        /// (11/14 베타: 차가 왜 서 있는지 화면에 안 나온다) 서 있는 까닭: 부딪힘·신호·보행자·앞차. 정보 칸 끝에 " · 까닭" 으로 붙인다.
+        /// (11/14 베타: 차가 왜 서 있는지 화면에 안 나온다) 서 있는 까닭: 신호·보행자·앞차(11/16: 닿아 선 것은 말하지 않음). 정보 칸 끝에 " · 까닭" 으로 붙인다.
         /// 사람이 브레이크를 밟고 있거나 P·N 이면 붙이지 않는다(까닭이 뻔하다).
         /// </summary>
         string StopWhy()
         {
             var car = world.car;
             if (world.state != PlayState.Play) return "";
-            if (world.Touching) return world.BumpDir > 0 ? ", 부딪힘: R로 물러납니다" : ", 부딪힘: D로 나옵니다";
+            // (11/16) 닿아 서 있을 때는 까닭을 붙이지 않는다.
+            if (world.Touching) return "";
             if (Mathf.Abs(car.speed) > 0.3f) { lastMoveT = world.t; return ""; }
             if (world.t - lastMoveT < 1.2f || car.gear == Gear.P || car.gear == Gear.N) return "";
             if (AutoOn && auto != null)

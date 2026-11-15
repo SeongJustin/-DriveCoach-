@@ -159,6 +159,16 @@ internal fun CoachController.speakNow(req: SpeechRequest, vars: Map<String, Stri
     speaker.speak(text, uid, interrupt)
 }
 
+/**
+ * (11/16) 오디오 포커스를 잃었을 때(통화·음성 비서): 줄에 남은 안내와 미뤄진 코칭을 버린다.
+ * 위험·공황·경고등 안내는 세대와 무관해 그대로 나오고, 새 버튼·음성 명령 응답도 새로 요청되므로 나온다.
+ */
+internal fun CoachController.onAudioFocusLost() {
+    requestGen++
+    clearSubModeQueue()
+    log("FOCUS_LOST 남은 줄 비움")
+}
+
 internal fun CoachController.speakWarningLamps(state: VehicleState) {
     val prev = lastLampState
     lastLampState = state

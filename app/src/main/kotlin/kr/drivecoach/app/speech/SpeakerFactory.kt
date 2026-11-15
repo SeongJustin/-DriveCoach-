@@ -34,7 +34,22 @@ class FallbackSpeaker(context: Context) : Speaker {
     private val appContext: Context = context.applicationContext
     private var active: Speaker = NoopSpeaker { Log.i(TAG, it) }
     /** 코치 음성 동안 오디오 포커스(내비 안내, 음악은 줄이기). 통화·음성 비서로 포커스를 잃으면 말을 멈춘다. */
-    private val focus = GuidanceAudioFocus(appContext) { stop() }
+    private val focus = GuidanceAudioFocus(appContext) { onFocusLost() }
+
+    /**
+     * (11/16) 포커스를 잃었을 때 컨트롤러가 줄에 남은 안내를 비우게 알린다(통화·음성 비서가 끝나도 남은 안내가 이어 나오지 않게,
+     * Pleos 오디오 포커스 가이드: Resume 때 자동 재생 금지). 위험·경고등 안내와 새 버튼 응답은 그대로 나온다.
+     */
+    var onFocusLostListener: (() -> Unit)? = null
+
+    private fun onFocusLost() {
+        if (released) return
+        note("포커스 잃음: 말 멈춤·남은 줄 비움")
+        inFlight = null
+        runCatching { onFocusLostListener?.invoke() }   // stop() 보다 먼저: 끝남 콜백이 이어 꺼낼 줄이 이미 비어 있게
+        stop()
+    }
+
     private var listener: SpeakerListener? = null
     private var released = false
 
