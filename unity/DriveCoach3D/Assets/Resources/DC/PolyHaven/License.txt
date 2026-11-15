@@ -1,4 +1,4 @@
 Poly Haven (polyhaven.com) textures and HDRIs
 - garage_floor, asphalt_03, asphalt_floor (textures, 4K originals downscaled to 1K/512 by DriveCoach)
-- rooftop_day, homecoming_center_rooftop (HDRIs, downscaled to 1024x512)
+- kloofendal_48d_partly_cloudy_puresky (HDRI, 2K 2048x1024, saved as HDRI/sky_kloofendal_48d_2k.exr)
 License: CC0 1.0 Universal (public domain)
