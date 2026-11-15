@@ -76,9 +76,8 @@ internal const val INTRO_FALLBACK_MS = 2_500L
 internal const val INTRO_MAX_MS = 6_000L
 
 /**
- * (11/15) 인트로 영상(intro.mp4)은 뺐다(차 그릴의 엠블럼이 다른 회사 것처럼 보임). 지금은 앱 이름을 2.5초 보여 준다. 영상을 다시 넣으면 아래 코드가 그대로 재생한다.
- * 인트로 영상(11/3 대표 요청): 앱을 켠 직후 res/raw/intro.mp4(4초, 무음)를 화면 가득 한 번 재생한다. 화면을 누르면 바로 건너뛴다.
- * 영상이 없거나 재생에 실패하면 drawable `intro` 그림, 그것도 없으면 앱 이름만 보여 주고 [INTRO_FALLBACK_MS] 뒤 넘어간다.
+ * 앱을 켠 직후의 첫 화면. 지금 빌드에는 인트로 영상·그림이 없어 앱 이름을 [INTRO_FALLBACK_MS] 동안 보여 준다. 화면을 누르면 바로 건너뛴다.
+ * raw `intro`(영상)가 있으면 화면 가득 한 번 무음 재생하고, 없거나 재생에 실패하면 drawable `intro` 그림, 그것도 없으면 앱 이름을 보여 준다.
  * 이 시간 동안 뒤에서 서비스 바인딩·차종 인식·주차 판정(2초)이 끝나므로 대기 화면을 겸한다. 안전장치로 [INTRO_MAX_MS] 가 지나면 무조건 넘어간다.
  */
 @Composable
@@ -300,8 +299,8 @@ internal fun MainActivity.HeaderChip(text: String, selected: Boolean, done: Bool
 }
 
 /**
- * 메뉴 4개(11/5): "차 기능 익히기"(→ 선택 화면: 순서대로/항목 선택/실제 차로 직각 주차), "도로 법규",
- * "주차·핸들 연습"(Godot 게임: 튜토리얼 3 + 25단계, P 에서), "코스 주행". 주어진 높이를 꽉 채운다.
+ * 메뉴 5개: "차량 조작법"(→ 선택 화면), "도로 법규", "주차 연습"(→ 주차 게임·직각 주차·평행 주차 선택),
+ * "도로 주행 연습"(3D), "코스 주행". 주어진 높이를 꽉 채운다.
  */
 @Composable
 internal fun MainActivity.MenuGrid(coach: CoachController, modifier: Modifier = Modifier) {

@@ -1,11 +1,11 @@
 // 담당: J (코스 자동 생성)
 package kr.drivecoach.core.course
 
-/** 기획서 5-1 "가장 무서운 것". 코스 점수에 가중치를 준다. */
+/** 코스 선택의 "가장 무서운 것". 코스 점수에 가중치를 준다. */
 enum class Fear { PARKING, LANE_CHANGE, MERGE, LEFT_TURN, NIGHT_RAIN, HORN_PRESSURE, PEDAL_CONFUSION }
 
 /**
- * 사용자가 고른 연습 조건. 기획서 5-1 의 "운전자가 원하는 연습 + 난이도".
+ * 사용자가 고른 연습 조건(원하는 연습 + 난이도).
  *
  * @param fearFocus 가장 무서운 것. null 이면 가중치 없음.
  * @param leftTurns 원하는 좌회전 횟수 범위(비보호 포함).
@@ -43,27 +43,27 @@ data class CourseSpec(
     val allowedCongestion: Int get() = when (effectiveDifficulty) { 1, 2 -> 1; 3, 4 -> 2; else -> 3 }
 
     companion object {
-        /** 기획서 5-1 프리셋: 동네 한 바퀴(우회전 위주). */
+        /** 코스 선택 프리셋: 동네 한 바퀴(우회전 위주). */
         fun neighborhoodLoop(difficulty: Int = 1) = CourseSpec(
             leftTurns = 0..1, preferRightTurns = true, maxDistanceKm = 4.0, loop = true, difficulty = difficulty,
         )
 
-        /** 기획서 5-1 프리셋: 시내 입문(좌회전 1~2개). */
+        /** 코스 선택 프리셋: 시내 입문(좌회전 1~2개). */
         fun cityIntro(difficulty: Int = 2) = CourseSpec(
             leftTurns = 1..2, maxDistanceKm = 6.0, loop = true, difficulty = difficulty,
         )
 
-        /** 기획서 5-1 프리셋: 좌회전만 N번 도는 코스. */
+        /** 코스 선택 프리셋: 좌회전만 N번 도는 코스. */
         fun leftTurnDrill(count: Int = 3, difficulty: Int = 2) = CourseSpec(
             fearFocus = Fear.LEFT_TURN, leftTurns = count..count, maxDistanceKm = 6.0, loop = true, difficulty = difficulty,
         )
 
-        /** 기획서 5-1 프리셋: 합류 한 구간. */
+        /** 코스 선택 프리셋: 합류 한 구간. */
         fun mergeDrill(difficulty: Int = 3) = CourseSpec(
             fearFocus = Fear.MERGE, includeMerge = true, maxDistanceKm = 15.0, loop = true, difficulty = difficulty,
         )
 
-        /** 기획서 4-7 / 5-1 프리셋: 차선 변경 M번. */
+        /** 코스 선택 프리셋: 차선 변경 M번. */
         fun laneChangeDrill(count: Int = 3, difficulty: Int = 2) = CourseSpec(
             fearFocus = Fear.LANE_CHANGE, laneChanges = count..(count + 1), maxDistanceKm = 8.0, loop = true, difficulty = difficulty,
         )

@@ -7,7 +7,7 @@ namespace DriveCoach.Unity
     public static class DcRender
     {
         /// <summary>
-        /// cam 을 지금 바로 rt 에 그린다(bat 캡처·편집기용). 게임 중에는 쓰지 않는다 — 게임 중 보조 카메라는
+        /// cam 을 지금 바로 rt 에 그린다(명령줄 화면 사진·편집기용). 게임 중에는 쓰지 않는다 — 게임 중 보조 카메라는
         /// enabled 를 켜고 꺼서 렌더 루프가 그리게 한다(번갈아 그리기).
         /// </summary>
         public static void Now(Camera cam, RenderTexture rt)

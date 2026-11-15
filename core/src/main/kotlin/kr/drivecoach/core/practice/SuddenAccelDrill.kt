@@ -7,7 +7,7 @@ import kr.drivecoach.core.signal.VehicleState
 import kr.drivecoach.core.tts.PhraseId
 
 /**
- * 급발진·헛밟음 대처 훈련(기획서 2-4).
+ * 급발진·헛밟음 대처 훈련(2-4).
  *
  * 흐름: P 상태에서 시작 → EXPLAIN(화면+음성 30초: "발 떼고 → 브레이크 끝까지 → N → 시동 버튼 길게")
  *   → ACTION(실제로 "브레이크 밟은 채 유지 + N 변속" 이 감지되면 통과; 설명 중에 해도 통과)
@@ -148,7 +148,7 @@ class SuddenAccelDrill(
     private fun emit(e: Event) { listener?.invoke(e) }
 
     companion object {
-        /** 설명 시간(기획서: 30초). */
+        /** 설명 시간(30초). */
         const val EXPLAIN_MS = 30_000L
         private const val DAY_MS = 24L * 60 * 60 * 1000
         /** 간격 반복: 1일, 3일, 7일. */

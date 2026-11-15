@@ -2,7 +2,7 @@
 // 별도 프로세스(:game3d, AndroidManifest): Unity 는 화면을 닫을 때 자기 프로세스를 끝내므로 메인 프로세스(CoachService)와 떨어뜨린다.
 // 차량 신호·제원은 CoachService 의 GameLink 에서 받아(GameLinkClient) Unity 의 "DriveCoachBridge" 오브젝트(GameMain.cs)로 넘긴다.
 // Unity 쪽은 준비되면 onUnityReady(), 닫을 때 closeGame() 을 부른다(C# AndroidLink.Call).
-// 15초 안에 준비 신호가 없으면 2D(Godot) 게임으로 바꿔 연다.
+// READY_TIMEOUT_MS 안에 준비 신호가 없으면 실패를 기록하고(GameLauncher) 안내를 띄운 뒤 닫는다.
 // 이 파일은 unity/export 가 있을 때만 빌드에 들어간다(app/build.gradle.kts). 없을 때는 src/nounity 의 같은 이름 대체 화면.
 package kr.drivecoach.app.game3d
 

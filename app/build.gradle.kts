@@ -1,13 +1,13 @@
 import java.util.Properties
 
-// 담당: A (Android 앱 모듈. 이 환경에서는 빌드 불가 — Android Studio + Pleos Connect Emulator 에서 빌드한다)
+// 담당: A (Android 앱 모듈. Android Studio 에서 빌드하고 Pleos Connect Emulator 에서 실행한다)
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-// (담당 S, 11/8) 3D 주차·핸들 연습(Unity). 빌드 도구 이 만든 AAR 이 있을 때만 넣는다(없으면 2D 만, HAS_UNITY = false).
+// (담당 S, 11/8) 3D 주차·도로 주행(Unity). unity/export/unityLibrary-release.aar 이 있을 때만 넣는다(없으면 3D 화면 없이 빌드, HAS_UNITY = false).
 val unityAar = rootProject.file("unity/export/unityLibrary-release.aar")
 val hasUnity = unityAar.exists()
 
@@ -21,7 +21,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
-        // 주차 게임(Godot) 네이티브 라이브러리는 ABI 마다 수십 MB 라 실제 차량(arm64)·에뮬레이터(x86_64) 것만 넣는다.
+        // 3D 게임(Unity) 네이티브 라이브러리는 ABI 마다 수십 MB 라 실제 차량(arm64)·에뮬레이터(x86_64) 것만 넣는다.
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
@@ -29,7 +29,7 @@ android {
         release {
             // 공모전 제출용 release APK(실행 가능해야 함): 별도 키스토어 없이 디버그 키로 서명한다. 앱 마켓 출시 때는 출시용 키로 바꿀 것.
             signingConfig = signingConfigs.getByName("debug")
-            // 11/7: R8(쓰지 않는 코드 줄이기) + 쓰지 않는 리소스 빼기. Pleos SDK·Godot·우리 앱 코드는 이름째 전부 남기고(proguard-rules.pro),
+            // 11/7: R8(쓰지 않는 코드 줄이기) + 쓰지 않는 리소스 빼기. Pleos SDK·Unity·우리 앱 코드는 이름째 전부 남기고(proguard-rules.pro),
             // AndroidX·Compose·Material·kotlin-reflect 같은 라이브러리에서 안 쓰는 부분만 뺀다. 난독화는 하지 않는다(-dontobfuscate).
             isMinifyEnabled = true
             isShrinkResources = true
@@ -41,13 +41,12 @@ android {
             buildConfigField("int", "DEMO_SPEED_LIMIT_KMH", "0")
         }
     }
-    // APK 크기: minSdk 28 이상이면 .so 와 dex 를 압축 없이 넣는 게 기본이라 306MB 가 됐다(Godot .so 2개만 145MB).
-    // 압축해서 넣으면 Godot .so 145→49MB, dex 36→12MB. 설치 때 한 번 풀어 두는 방식이라 실행 속도는 같다.
+    // APK 크기: minSdk 28 이상이면 .so 와 dex 를 압축 없이 넣는 게 기본이다. 압축해서 넣으면 APK 가 크게 줄고,
+    // 설치 때 한 번 풀어 두는 방식이라 실행 속도는 같다.
     packaging {
         jniLibs {
             useLegacyPackaging = true
-            // (S, 11/8) 3D(Unity)와 2D(Godot) 엔진이 같은 C++ 표준 라이브러리(libc++_shared.so)를 각각 넣어 겹친다 → 하나만.
-            //  두 게임은 따로 도는 프로세스(:game, :game3d)이고, 자동 검수가 둘 다 켜지는지 확인한다.
+            // (S, 11/8) 같은 C++ 표준 라이브러리(libc++_shared.so)가 여러 의존성에서 겹쳐 들어오면 하나만 넣는다.
             pickFirsts += "lib/*/libc++_shared.so"
         }
         dex { useLegacyPackaging = true }
@@ -59,13 +58,13 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true; buildConfig = true }
     sourceSets["main"].kotlin.srcDirs("src/main/kotlin")
-    // debug 전용 자가 검사 화면(SelfTestActivity, 빌드 도구)
+    // debug 전용 자가 검사 화면(SelfTestActivity)
     sourceSets["debug"].kotlin.srcDirs("src/debug/kotlin")
-    // 3D 게임: Unity 가 있으면 진짜 Game3DActivity(src/unity), 없으면 2D 로 넘기는 대체 화면(src/nounity)
+    // 3D 게임: Unity 가 있으면 진짜 Game3DActivity(src/unity), 없으면 안내만 띄우는 대체 화면(src/nounity)
     sourceSets["main"].kotlin.srcDirs(if (hasUnity) "src/unity/kotlin" else "src/nounity/kotlin")
-    // 주차 게임: godot/ 프로젝트를 export-pack 한 결과를 APK assets 로 넣는다.
+    // APK assets: src/main/assets(schema.json, Gleo 음성 연동).
     sourceSets["main"].assets.srcDirs("src/main/assets")
-    // Godot 는 숨김 폴더(.godot/)를 쓰므로 기본 무시 규칙에서 '.' 시작 항목 제외를 뺀다(공식 문서 'Embedding Godot in Android projects').
+    // assets 무시 규칙: 기본 규칙에서 '.' 으로 시작하는 항목을 빼는 부분만 없앴다(숨김 파일·폴더도 넣는다).
     androidResources {
         ignoreAssetsPattern = "!.svn:!.git:!.gitignore:!.ds_store:!*.scc:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
         // 3D 게임(Unity): 엔진이 APK 안 데이터 파일을 압축 없이 바로 읽는다(Unity 가 내보낸 launcher/build.gradle 과 같은 목록)

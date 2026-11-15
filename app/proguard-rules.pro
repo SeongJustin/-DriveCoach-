@@ -14,8 +14,6 @@
 -dontwarn java.awt.**
 -dontwarn com.sun.jna.**
 
-# Godot: 네이티브 엔진이 JNI 로 Java 메서드를 이름으로 부르고, 플러그인을 리플렉션으로 찾는다
-
 # 3D 게임(Unity, 11/8): 엔진이 JNI 로 Java 클래스·메서드를 이름으로 부른다(unityLibrary 의 proguard-unity.txt 와 같은 취지)
 -keep class com.unity3d.** { *; }
 -keep interface com.unity3d.** { *; }
@@ -26,7 +24,7 @@
 -dontwarn org.fmod.**
 -dontwarn com.google.androidgamesdk.**
 
-# 우리 앱 코드(작음): Godot 쪽 연결·서비스·화면을 전부 남긴다
+# 우리 앱 코드(작음): 게임 연결·서비스·화면을 전부 남긴다
 -keep class kr.drivecoach.** { *; }
 
 # android.car 는 차량 플랫폼 라이브러리(APK 에 들어가지 않음)

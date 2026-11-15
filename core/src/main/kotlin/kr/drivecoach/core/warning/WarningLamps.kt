@@ -1,4 +1,4 @@
-// 담당: L (경고등 3색 분류 데이터, 기획 2-8 / 7장)
+// 담당: L (경고등 3색 분류 데이터)
 package kr.drivecoach.core.warning
 
 import kr.drivecoach.core.tts.PhraseId
@@ -8,7 +8,7 @@ import kr.drivecoach.core.tts.PhraseId
  * - GREEN: 계속 가도 됨 / 단순 표시(작동 중 알림).
  * - YELLOW: 가까운 안전한 곳에 세우거나 가까운 정비소에서 점검.
  * - RED: 지금 바로 멈춤(안전하게 즉시 정차·시동 OFF, 또는 즉시 브레이크).
- * 기획서 2-8 "경고등 3색 뜻"의 앱 내부 기준이며, 실제 계기판 램프 색과 반드시 같지는 않다
+ * "경고등 3색 뜻"(2-8)의 앱 내부 기준이며, 실제 계기판 램프 색과 반드시 같지는 않다
  * (예: 에어백 경고등은 램프는 빨간색이지만 할 일은 "점검"이므로 YELLOW).
  */
 enum class Severity { GREEN, YELLOW, RED }

@@ -11,7 +11,7 @@ namespace DriveCoach.Unity
     /// </summary>
     public static class CityTextures
     {
-        public const int ShopColors = 8;   // 상가 간판 질감 수(make_textures.py SHOP_TEX)
+        public const int ShopColors = 8;   // 상가 간판 질감 수(CC0/shop_0~7)
         static readonly Dictionary<string, Texture2D> cache = new Dictionary<string, Texture2D>();
 
         public static float Bay(string kind)

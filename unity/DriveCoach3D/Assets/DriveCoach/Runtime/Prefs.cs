@@ -45,7 +45,7 @@ namespace DriveCoach.Unity
             set => Set("quality2", value);
         }
 
-        /// <summary>bat 화면 사진용: 설정과 상관없이 이 품질로(-1 = 설정대로)</summary>
+        /// <summary>화면 사진(DcBuild.Shots)용: 설정과 상관없이 이 품질로(-1 = 설정대로)</summary>
         public static int QualityOverride = -1;
 
         /// <summary>

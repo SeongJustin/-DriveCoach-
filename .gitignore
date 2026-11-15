@@ -3,7 +3,7 @@ local.properties
 *.secret
 ID,SECRET.txt
 NCP.txt
-# (11/15 보안 검토 권고) 서명 키·환경 변수 파일
+# 서명 키·환경 변수 파일
 *.jks
 *.keystore
 *.p12
@@ -29,9 +29,6 @@ _sdk/
 captures/
 .externalNativeBuild/
 .cxx/
-
-# 음성 클립 원본 WAV(약 110MB). 앱에는 OGG(app/src/main/assets/tts/*.ogg)만 넣는다
-
 
 검수결과/
 

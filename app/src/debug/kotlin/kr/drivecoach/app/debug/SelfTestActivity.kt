@@ -1,4 +1,4 @@
-// 담당: S (debug 전용 자가 검사, 11/7) — 빌드 도구 이 adb 로 띄워 사람 없이 Pleos 연결·음성·음성 명령을 확인한다.
+// 담당: S (debug 전용 자가 검사, 11/7) — adb 로 띄워 사람 없이 Pleos 연결·음성·음성 명령을 확인한다.
 // 결과는 화면과 logcat(태그 DCTEST)에 "PASS/FAIL/INFO 이름 | 내용" 으로 남고, 마지막 줄은 "DONE pass=N fail=M".
 package kr.drivecoach.app.debug
 

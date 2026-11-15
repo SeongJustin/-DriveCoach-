@@ -5,7 +5,7 @@ import kr.drivecoach.app.R
 
 /**
  * core/parking 의 `ParkingStep.illustration`("step03_gear_r_steer_right.svg" 같은 SVG 파일명)을
- * `res/drawable-nodpi/parking_<파일명에서 .svg 제거>.png` 리소스 ID 로 바꾼다.
+ * `res/drawable-nodpi/parking_<파일명에서 .svg 제거>`(.webp/.png) 리소스 ID 로 바꾼다.
  * 모르는 키는 null — 화면은 그림 자리를 비우고 문장만 보여 준다.
  */
 object ParkingArt {
@@ -43,7 +43,7 @@ object ParkingArt {
 
     /**
      * (11/14) 단계 영상: "step03_gear_r_steer_right.svg" → res/raw/parking_step03.mp4 의 리소스 ID. 없으면 0(그림만 보여 준다).
-     * 영상은 빌드 도구 + video 로 만든다.
+     * 영상은 3D 게임의 주차장 장면으로 만들었다.
      */
     fun videoResFor(ctx: android.content.Context, key: String?): Int {
         // 직각 "stepNN_…" → parking_stepNN, 평행 "parNN_…" → parking_parNN

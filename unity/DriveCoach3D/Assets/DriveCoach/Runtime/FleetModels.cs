@@ -135,7 +135,7 @@ namespace DriveCoach.Unity
 
         static readonly Dictionary<int, Material> mats = new Dictionary<int, Material>();
 
-        /// <summary>make_car.py 재질 번호 → Unity 재질(차체색 0 은 차마다 바꾼다)</summary>
+        /// <summary>차 모델 파일의 재질 번호 → Unity 재질(차체색 0 은 차마다 바꾼다)</summary>
         public static Material Mat(int id)
         {
             if (mats.TryGetValue(id, out var m)) return m;

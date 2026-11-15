@@ -1,5 +1,5 @@
 // 담당: S (3D 내 동네 도로 연수(베타) — 들어 있는 동네 목록(Resources/DC/Regions/index.json)과 읽기.
-// 동네 파일은 가 OSM 전국 파일에서 만든다. 나중에 서버에서 받는 동네도 같은 모양(파일 경로만 다름).
+// 동네 파일(JSON)은 OSM 자료로 미리 만들어 Resources/DC/Regions 에 넣었다. 나중에 서버에서 받는 동네도 같은 모양(파일 경로만 다름).
 using System.Collections.Generic;
 using DriveCoach.Core;
 using UnityEngine;
@@ -130,7 +130,7 @@ namespace DriveCoach.Unity
             if (txt == null) return;
             var task = System.Threading.Tasks.Task.Run(() => RegionData.Parse(txt));
             lock (cache) pending[f] = task;
-            RoadSurface.Preload(f + "_surface");       // 노면 파일 이름 규칙(make_surface.py): <동네>_surface
+            RoadSurface.Preload(f + "_surface");       // 노면 파일 이름 규칙: <동네>_surface
             Debug.Log("DC3D preload " + f);
         }
 

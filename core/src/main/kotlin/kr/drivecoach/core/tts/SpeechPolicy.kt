@@ -21,7 +21,7 @@ data class SpeechOutcome(
     val interrupt: Boolean = false,
 )
 
-/** 집중 구간(기획 1장: 합류·좌회전·차선 변경에서는 안내를 최소 문장으로). */
+/** 집중 구간(합류·좌회전·차선 변경에서는 안내를 최소 문장으로). */
 enum class FocusZone { NONE, MERGE, LEFT_TURN, LANE_CHANGE }
 
 /** 앱이 어떤 상태에서 말하려 하는지. P 상태에서만 화면 학습, 주행 중에는 음성만. */
@@ -63,14 +63,14 @@ data class SpeechContext(
     val focusZone: FocusZone = FocusZone.NONE,
     /** TTS 가 지금 재생 중인 멘트의 카테고리. 없으면 null. */
     val currentlySpeaking: PhraseCategory? = null,
-    /** 적응형(기획 1장): 이 안내를 운전자가 연속으로 잘 따른 횟수. 멘트 ID → 횟수. */
+    /** 적응형: 이 안내를 운전자가 연속으로 잘 따른 횟수. 멘트 ID → 횟수. */
     val followStreak: Map<PhraseId, Int> = emptyMap(),
     /** 마지막 경고등(빨강/노랑) 대응 중이면 true. 그 동안 안내는 멈춘다. */
     val warningLampActive: Boolean = false,
 )
 
 /**
- * 발화 정책 설정값. 전부 ms. 기획 1장 "한 번만, 짧게" 를 숫자로 둔 것.
+ * 발화 정책 설정값. 전부 ms. "한 번만, 짧게" 원칙을 숫자로 둔 것.
  */
 data class SpeechPolicyConfig(
     /** 같은 ID 재발화 금지 간격. 카테고리별. */

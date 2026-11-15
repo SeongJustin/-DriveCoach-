@@ -6,7 +6,7 @@ import kr.drivecoach.core.signal.StateListener
 import kr.drivecoach.core.signal.VehicleState
 
 /**
- * 앱의 큰 동작 모드. 기획 0장 안전 원칙:
+ * 앱의 큰 동작 모드. 안전 원칙:
  * "화면을 보며 배우는 것은 주차(P) 상태에서만. 주행 중에는 음성만, 화면은 한 줄 요약까지."
  */
 enum class DriveMode {
@@ -21,7 +21,7 @@ enum class DriveMode {
 }
 
 /**
- * 모드별로 화면에 허용되는 것. 숫자는 기획 0장("한 줄 요약 이상 띄우지 않는다")을 그대로 옮긴 것.
+ * 모드별로 화면에 허용되는 것. 숫자는 "한 줄 요약 이상 띄우지 않는다" 원칙을 그대로 옮긴 것.
  *
  * AAOS `CarUxRestrictions` 와의 결합(앱 담당):
  *  - 앱은 `CarUxRestrictionsManager` 의 현재 제한과 이 정책을 **OR 조건**으로 합친다.

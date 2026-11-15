@@ -7,12 +7,12 @@ import kr.drivecoach.core.tts.PhraseId
 data class TbtAnnouncement(val phraseId: PhraseId, val params: Map<String, String>)
 
 /**
- * 기획서 5-3 "다음 동작은 미리 한참 전부터 안내한다": 내비가 주는 다음 회전(종류·남은 거리)을 받아
+ * "다음 동작은 미리 한참 전부터 안내한다": 내비가 주는 다음 회전(종류·남은 거리)을 받아
  * 회전 하나당 **멀리서 한 번**("{distance}m 앞 우회전…"), **직전에 한 번**("여기서 우회전…")만 멘트 ID 를 낸다.
  * 같은 회전에 대해 내비가 거리 갱신을 초마다 보내도 두 번 넘게 말하지 않는다.
  * 문장은 전부 core/tts 카탈로그의 guide_* ID 이고 여기서는 ID 와 {distance} 값만 만든다.
  *
- * @param farM 이 거리(m) 안으로 들어오면 "N m 앞" 안내. 기본 350 (기획 예시 300 m 에 여유).
+ * @param farM 이 거리(m) 안으로 들어오면 "N m 앞" 안내. 기본 350 (300 m 에 여유를 둔 값).
  * @param nearM 이 거리(m) 안이면 "여기서" 안내. 기본 60.
  */
 class TbtGuide(private val farM: Double = DEFAULT_FAR_M, private val nearM: Double = DEFAULT_NEAR_M) {

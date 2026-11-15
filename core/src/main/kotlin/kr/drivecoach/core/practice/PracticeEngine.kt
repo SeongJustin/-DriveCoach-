@@ -1,4 +1,4 @@
-// 담당: D (기능 연습 상태 머신, 기획서 0장 "진행 방식" + 2장)
+// 담당: D (기능 연습 상태 머신)
 package kr.drivecoach.core.practice
 
 import kr.drivecoach.core.signal.Gear
@@ -9,7 +9,7 @@ import kr.drivecoach.core.tts.PhraseId
 /** 연습 항목 하나의 진행 단계. "설명 → 해보기 → 확인 → (통과 | 건너뜀)". */
 enum class Phase { EXPLAIN, TRY, CONFIRM, PASSED, SKIPPED }
 
-/** 사용자가 주행 중에도 할 수 있는 입력(음성 또는 휠 버튼). 기획서 1장. PREV 는 화면 "이전" 버튼(11/4): 목록의 바로 앞 항목으로. */
+/** 사용자가 주행 중에도 할 수 있는 입력(음성 또는 휠 버튼). PREV 는 화면 "이전" 버튼(11/4): 목록의 바로 앞 항목으로. */
 enum class UserInput { CONFIRM, NEXT, AGAIN, SKIP, PREV }
 
 /**
@@ -50,8 +50,8 @@ sealed class CheckKind {
 }
 
 /**
- * 연습 항목. 기획서 2장 각 소항목 하나가 PracticeItem 하나다.
- * @param chapter "2-1" 처럼 기획서 번호
+ * 연습 항목 하나.
+ * @param chapter "2-1" 처럼 장 번호
  * @param requiredCapability 이 기능이 차량 옵션에 있어야만 보여줄 때 그 capability 이름. null 이면 항상 포함.
  */
 data class PracticeItem(
@@ -87,7 +87,7 @@ fun interface PracticeStepListener {
 /**
  * "설명 → 해보기 → 확인 → 다음" 상태 머신.
  *
- * 규칙(기획서 0장):
+ * 규칙:
  * - 2장(화면 학습)은 P 상태에서만 시작할 수 있다. gear != P 이면 [start] 거부.
  * - 감지 가능 항목은 EXPLAIN 중이라도 실제로 조작하면 즉시 PASSED(자동 통과).
  * - 어느 단계든 SKIP 으로 건너뛸 수 있다.

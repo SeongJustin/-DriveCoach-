@@ -1,4 +1,4 @@
-// 담당: L (가짜 경고등 퀴즈 — 기획 2-8 경고등 3색 뜻, 5-2 출발 전 브리핑 "경고등 대응 다시 묻기", 7장)
+// 담당: L (가짜 경고등 퀴즈 — 경고등 3색 뜻, 출발 전 브리핑 "경고등 대응 다시 묻기")
 package kr.drivecoach.core.warning
 
 import kr.drivecoach.core.signal.Gear
@@ -9,7 +9,7 @@ import kotlin.random.Random
 
 /**
  * 가짜 경고등 퀴즈 생성기.
- * - 안전 원칙(기획 0장): 화면을 보며 배우는 것은 주차(P) 상태에서만. 그래서 모든 진입점은 gear == P 가 아니면 null 을 돌려준다.
+ * - 안전 원칙: 화면을 보며 배우는 것은 주차(P) 상태에서만. 그래서 모든 진입점은 gear == P 가 아니면 null 을 돌려준다.
  * - 한 라운드는 무작위 [QUESTIONS_PER_ROUND] 문항, 문항마다 보기 [CHOICES_PER_QUESTION] 개(GREEN/YELLOW/RED 행동).
  * - 틀린 문항의 경고등은 [retryQueue] 에 쌓이고 [startRetry] 로 다시 출제한다. 맞히면 큐에서 빠진다.
  * - [random] 에 시드를 주면 출제 순서·보기 순서가 결정적이라 테스트할 수 있다.

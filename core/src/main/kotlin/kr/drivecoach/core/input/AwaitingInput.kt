@@ -6,7 +6,7 @@ import kr.drivecoach.core.signal.VehicleState
 import kr.drivecoach.core.tts.PhraseId
 
 /**
- * "운전자 입력을 기다리는 중"인 하나의 프롬프트. 기획 1장: 입력이 필요한데 없는 상황을 반드시 처리한다.
+ * "운전자 입력을 기다리는 중"인 하나의 프롬프트. 원칙: 입력이 필요한데 없는 상황을 반드시 처리한다.
  *
  * @property promptId 어떤 안내(연습 항목·질문)에 대한 대기인지. practice 모듈의 항목 ID 등.
  * @property deadlineMs 이 시각(ms)까지 입력이 없으면 [AwaitingInputManager.tick] 이 조치한다.
@@ -127,7 +127,7 @@ class AwaitingInputManager(
         const val DEFAULT_TIMEOUT_MS = 15_000L
         const val DEFAULT_REPROMPT_TIMEOUT_MS = 20_000L
         const val DEFAULT_SPEED_EPSILON_KMH = 0.5
-        /** 재안내 최대 횟수. 기획: 재촉하지 않는다. */
+        /** 재안내 최대 횟수. 재촉하지 않는다. */
         const val MAX_REPROMPTS = 1
 
         /**

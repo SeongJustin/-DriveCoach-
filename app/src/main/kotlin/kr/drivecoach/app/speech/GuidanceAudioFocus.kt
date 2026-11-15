@@ -10,7 +10,7 @@ import android.os.Looper
 import android.util.Log
 
 /**
- * 코치 음성(Pleos TTS·녹음 클립)이 나오는 동안 오디오 포커스를 잡는다.
+ * 코치 음성(Pleos TTS)이 나오는 동안 오디오 포커스를 잡는다.
  *
  * Pleos "Audio Focus Development" 가이드(document.pleos.ai, vehicle-app-developer-guide):
  *  - 소리를 내기 전에 AudioAttributes + AudioFocusRequest 로 포커스를 요청한다.
@@ -106,7 +106,7 @@ class GuidanceAudioFocus(
         private const val TAG = "AudioFocus"
         /** 마지막 문장 뒤 이만큼 다음 문장이 없으면 포커스를 놓는다. */
         const val RELEASE_DELAY_MS = 1_500L
-        /** 코치 음성의 출력 용도: 내비 안내 음성(녹음 클립·Pleos TTS 모두 같은 값). */
+        /** 코치 음성의 출력 용도: 내비 안내 음성. */
         val ATTRIBUTES: AudioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)

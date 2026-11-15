@@ -172,11 +172,11 @@ class PleosLab(
         } catch (t: Throwable) { end("initialize 예외 ${t.javaClass.simpleName} ${t.message}") }
     }
 
-    /** debug 빌드의 시험 녹음 목록(assets 의 voice_test 폴더 .pcm 파일, 빌드 도구 으로 만든다). release 에는 없어 빈 목록. */
+    /** debug 빌드의 시험 녹음 목록(assets 의 voice_test 폴더 .pcm 파일). release 에는 없어 빈 목록. */
     fun commandRecordings(): List<String> =
         try { app.assets.list(VOICE_TEST_DIR)?.filter { it.endsWith(".pcm") }?.sorted() ?: emptyList() } catch (_: Throwable) { emptyList() }
 
-    /** 녹음 파일 → 말(글자). "명령 음성 만들기" 가 함께 만든 voice_test/index.txt("파일<TAB>말")를 읽고, 없으면 이름으로 짐작. */
+    /** 녹음 파일 → 말(글자). voice_test/index.txt("파일<TAB>말")가 있으면 읽고, 없으면 파일 이름으로 짐작. */
     private val labels: Map<String, String> by lazy {
         try {
             app.assets.open("$VOICE_TEST_DIR/index.txt").use { it.readBytes().toString(Charsets.UTF_8) }

@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 편집기 없이 bat 으로 3단계: 안드로이드 라이브러리 내보내기, 4단계: 화면 캡처)
+// 담당: S (3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 3단계: 안드로이드 라이브러리 내보내기, 4단계: 화면 캡처)
 // 내보내기: Unity.exe -batchmode -quit -buildTarget Android -projectPath <프로젝트> -executeMethod DriveCoach.EditorTools.DcBuild.ExportAndroid -dcOut <폴더>
 // 캡처:     Unity.exe -batchmode -quit -buildTarget Android -projectPath <프로젝트> -executeMethod DriveCoach.EditorTools.DcBuild.Shots -dcOut <폴더>
 using System;
@@ -115,7 +115,7 @@ namespace DriveCoach.EditorTools
                 string outDir = Path.GetFullPath(Arg("-dcOut", "../shots"));
                 Directory.CreateDirectory(outDir);
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-                // 사진은 그래픽 "높게"로(기기에서는 설정대로). 소리는 내지 않는다(PC 는 독서실에 있다 — 11/8 대표)
+                // 사진은 그래픽 "높게"로(기기에서는 설정대로). 소리는 내지 않는다.
                 Prefs.QualityOverride = int.TryParse(Arg("-dcQuality", "2"), out var q) ? q : 2;
                 AudioListener.volume = 0f;
                 AudioListener.pause = true;
@@ -630,7 +630,7 @@ namespace DriveCoach.EditorTools
         /// (11/14 대표: "주차 튜토리얼 영상 … 단계마다") 실제 차 직각 주차 7단계를 단계별 영상 장면으로: unity/video/video_park/s단계_번호.jpg (1280x720, 초당 plan.video 장).
         /// 차는 운전해서가 아니라 회전 반경으로 계산한 자리에 장면마다 놓는다(뒤축 가운데가 도는 반지름 r, 핸들 끝까지 = 원호).
         ///   1 접근(직진) → 2 왼쪽 끝까지 돌리고 45° 전진 → 3 R·오른쪽 끝까지(제자리) → 4 후진해 칸과 나란히 → 5 핸들 풀기 → 6 똑바로 뒤로 → 7 P
-        /// 좌표: 목표 칸 x 5~7.5, y 3~8(통로 y -3~3), 차 방향 0° = +x, 오른쪽 = +y. 가 잘라서 글을 얹고 mp4 로 묶는다.
+        /// 좌표: 목표 칸 x 5~7.5, y 3~8(통로 y -3~3), 차 방향 0° = +x, 오른쪽 = +y.
         /// </summary>
         static void ParkVideo(Plan plan, World world, SceneRig scene, Camera cam, RenderTexture rt, string outDir)
         {
@@ -687,7 +687,7 @@ namespace DriveCoach.EditorTools
         ///   1 앞차 옆 0.8 m 띄워 나란히, 뒤 범퍼를 맞춰 정지 → 2 R, 똑바로 1.5 m 후진(앞차 뒤 끝이 내 뒷좌석 창) → 3 핸들 오른쪽 끝 →
         ///   4 후진해 45° → 5 핸들 가운데, 똑바로 후진(내 오른쪽 앞 끝이 앞차 뒤 끝을 지날 때까지) → 6 핸들 왼쪽 끝, 후진해 길과 나란히 → 7 핸들 가운데, D 로 앞뒤 가운데, P
         /// 좌표(ParallelStage 14): 칸 x 6~12, 주차 차로 가운데 y 2.2, 연석 y 3.2, 앞차 뒤 끝 x 12.65, 뒤차 앞 끝 x 5.35. 차 방향 0° = +x, 오른쪽 = +y(연석).
-        /// 연석에서 0.3 m 에 서도록 45° 직진 후진 길이를 정한다(아반떼 CN8: 원호 동안 뒤차 0.35 m·앞차 0.69 m·연석 0.16 m 이상 떨어짐, 파이썬으로 확인).
+        /// 연석에서 0.3 m 에 서도록 45° 직진 후진 길이를 정한다(아반떼 CN8: 원호 동안 뒤차 0.35 m·앞차 0.69 m·연석 0.16 m 이상 떨어짐을 계산으로 확인).
         /// </summary>
         static void ParVideo(Plan plan, World world, SceneRig scene, Camera cam, RenderTexture rt, string outDir)
         {

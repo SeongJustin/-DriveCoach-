@@ -1,5 +1,4 @@
 // 담당: S (앱 연결 — 코칭 두뇌·신호 소스·TTS 를 Activity 밖 포그라운드 서비스로. 11/3 에뮬레이터: 기어 D 에서 Pleos 런처가 앱 화면을 덮어도 음성 코칭은 계속돼야 함)
-// 주의: 이 환경에서는 Android 빌드가 불가하다. 로 Android 최소 스텁(Service/Notification/Binder)에 대해 타입 검사만 했다.
 package kr.drivecoach.app
 
 import android.app.Notification
@@ -49,7 +48,7 @@ import kr.drivecoach.core.signal.CarSpec
  * 왜 서비스인가:
  *  기어를 D 로 두면 Pleos 런처가 앱 창 전체를 "주행 중에는 사용할 수 없습니다" 로 덮고 MainActivity 는 onPause 된다
  *  (AAOS CarPackageManager 는 우리 액티비티를 허용했고 차단 로그도 비어 있다 — 런처 자체 가림이라 매니페스트로 풀 수 없다).
- *  기획 0장/1장은 "주행 중에는 화면 학습 없이 **음성만**" 이므로, 신호 구독·판정·발화는 화면이 가려지거나 닫혀도 돌아야 한다.
+ *  주행 중에는 화면 학습 없이 **음성만** 안내하므로, 신호 구독·판정·발화는 화면이 가려지거나 닫혀도 돌아야 한다.
  *  그래서 이 셋을 서비스로 옮기고, Activity 는 바인딩해서 같은 StateFlow 를 보여 주기만 한다.
  *
  * 생명주기:
@@ -120,7 +119,7 @@ class CoachService : Service() {
         val courseSource: CourseSource = directions?.let { DifficultyCourseGenerator(it, maxApiCalls = COURSE_MAX_API_CALLS) }
             ?: OffsetCourseProvider()
         Log.i(TAG, "코스 소스: ${if (directions != null) "Naver Directions (키 있음)" else "OffsetCourseProvider (키 없음)"}")
-        // 제한속도 기본값은 시연 빌드에서만(local.properties DEMO_SPEED_LIMIT_KMH=50). 0 이면 끔 — 
+        // 제한속도 기본값은 시연 빌드에서만(local.properties DEMO_SPEED_LIMIT_KMH=50). 0 이면 끔.
         val demoLimit = BuildConfig.DEMO_SPEED_LIMIT_KMH.takeIf { it > 0 }?.toDouble()
         coach = CoachController(signals, speaker, scope, speaker.activeName, navi = navi, courseSource = courseSource, routeDiag = directions?.diag,
             defaultSpeedLimitKmh = demoLimit)

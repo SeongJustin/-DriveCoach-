@@ -1,5 +1,4 @@
 // 담당: S (앱 연결 — 차량 신호 → core 모듈 → 발화 정책 → TTS, 그리고 화면용 상태. 코스 주행(5장)은 NaviPort 이벤트도 같은 길로 보낸다)
-// 주의: 이 환경에서는 Android 빌드가 불가하다. 로 core + 실제 TTS jar + Android/코루틴 스텁에 대해 타입 검사만 했다.
 package kr.drivecoach.app
 
 import android.util.Log
@@ -87,7 +86,7 @@ class CoachController(
     /** 차량 내비 접점(CoachService 가 소유). null 이면 코스 주행 메뉴가 ERROR 로 안내한다. */
     internal val navi: NaviPort? = null,
     /**
-     * 코스 소스. 키가 있으면 CoachService 가 GeneratedCourseSource(CourseGenerator(NaverDirectionsProvider)) 를 넣고(실제 길찾기, 백그라운드 호출),
+     * 코스 소스. 키가 있으면 CoachService 가 DifficultyCourseGenerator(NaverDirectionsProvider) 를 넣고(실제 길찾기, 백그라운드 호출),
      * 없으면 기본값인 오프셋 코스(OffsetCourseProvider).
      */
     internal val courseSource: CourseSource = OffsetCourseProvider(),
@@ -298,7 +297,7 @@ class CoachController(
         speaker.setListener(null)
     }
 
-    /** 차종 인식 결과(기획 0장). 환영 한마디는 인트로가 끝나고 메뉴가 보일 때 한다(11/4 대표 요청) — [onIntroFinished]. */
+    /** 차종 인식 결과. 환영 한마디는 인트로가 끝나고 메뉴가 보일 때 한다(11/4 대표 요청) — [onIntroFinished]. */
     fun onCarSpec(spec: CarSpec) {
         carName = spec.name
         carDetected = spec.detected

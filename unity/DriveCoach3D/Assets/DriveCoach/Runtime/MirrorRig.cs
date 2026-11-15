@@ -66,7 +66,7 @@ namespace DriveCoach.Unity
             center.enabled = active && k == 2;
         }
 
-        /// <summary>bat 캡처용: 셋 다 지금 바로 그린다</summary>
+        /// <summary>화면 사진(DcBuild.Shots)용: 셋 다 지금 바로 그린다</summary>
         public void RenderNow()
         {
             DcRender.Now(left, texL);

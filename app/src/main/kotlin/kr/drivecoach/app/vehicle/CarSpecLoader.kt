@@ -13,7 +13,7 @@ import android.util.Log
 import kr.drivecoach.core.signal.CarSpec
 
 /**
- * 시작 시 차종을 알아내 [CarSpec] 을 만든다 (기획 0장: "앱은 시작할 때 차종과 옵션을 자동으로 읽어 첫 화면에 보여준다").
+ * 시작 시 차종을 알아내 [CarSpec] 을 만든다(첫 화면에 차종 이름을 보여 준다).
  *
  * javap 확인 결과 Pleos CarInfo 도메인의 공개 API 는 VIN/CRN 조회뿐이다
  * (checkVINInfoCapabilities / getVINInfo / checkCRNInfoCapabilities / getCRNInfo). getCapabilityInfo 는 PRIVATE_CAR_INFO 권한(비공개).
@@ -30,7 +30,7 @@ class CarSpecLoader(private val context: Context, private val vehicle: Vehicle) 
     /**
      * 알려진 차종 제원 테이블. 모델명 키워드(소문자) → CarSpec.
      * 전장·전폭·축거·윤거: 현대닷컴 디지털 카탈로그(2026-11). 오버행: 측면도 비율 추정(그랜저만 카탈로그 값).
-     * 최소회전반경: 차급 일반값(추정). 조향비: 핸들 480° 와 최소회전반경에서 역산. 근거는 
+     * 최소회전반경: 차급 일반값(추정). 조향비: 핸들 480° 와 최소회전반경에서 역산.
      */
     private val knownSpecs: List<Pair<List<String>, CarSpec>> = listOf(
         listOf("avante", "아반떼", "elantra", "cn7", "cn8") to CarSpec.AVANTE_CN8,

@@ -346,7 +346,7 @@ namespace DriveCoach.Unity
             if (postVolume != null) postVolume.SetActive(heavy);
         }
 
-        /// <summary>bat 캡처용: 보조 카메라(거울·후방·지도)를 지금 바로 그린다(게임 루프가 없으므로)</summary>
+        /// <summary>화면 사진(DcBuild.Shots)용: 보조 카메라(거울·후방·지도)를 지금 바로 그린다(게임 루프가 없으므로)</summary>
         public void RenderAuxNow(World w)
         {
             mirrors.RenderNow();

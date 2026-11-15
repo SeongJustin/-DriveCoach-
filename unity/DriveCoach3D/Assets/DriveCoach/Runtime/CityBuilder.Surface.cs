@@ -16,7 +16,7 @@ namespace DriveCoach.Unity
         public const float WalkH = 0.14f;
 
         /// <summary>
-        /// make_surface.py 가 만든 노면을 그대로: 아스팔트(큰길·동네길), 보도(연석 높이로 올림 + 바깥 옆면), 연석(윗면 + 길 쪽 면),
+        /// 노면 파일(<지역>_surface.bytes)을 그대로: 아스팔트(큰길·동네길), 보도(연석 높이로 올림 + 바깥 옆면), 연석(윗면 + 길 쪽 면),
         /// 실제 칠(흰·노랑·파랑, 색마다 높이를 조금 달리해 겹친 곳이 깜빡이지 않게). 160 m 칸으로 나눠 먼 칸은 그리지 않는다.
         /// </summary>
         static void BuildRealSurface(RoadSurface s, float h, Transform node, List<(V2 c, V2 n, float L, float W)> xw)
@@ -193,7 +193,7 @@ namespace DriveCoach.Unity
             foreach (var a in rg.areas)
             {
                 var mk = a.kind == "water" ? water : (a.kind == "forest" ? forest : park);
-                // 11/9: 하천(양재천 등)은 땅을 판 둑 아래 낮은 물 — 노면 파일 땅 구멍(add_water_cut.py)과 짝. 둘레에 돌 옹벽
+                // 11/9: 하천(양재천 등)은 땅을 판 둑 아래 낮은 물 — 노면 파일의 땅 구멍과 짝. 둘레에 돌 옹벽
                 if (a.kind == "water" && rg.waterCut > 0f && Math.Abs(PolyArea(a.poly)) > 300f)
                 {
                     float depth = rg.waterCut;
@@ -213,7 +213,7 @@ namespace DriveCoach.Unity
                     continue;
                 }
                 mk.PolygonEar(a.poly, h + (a.kind == "water" ? 0.004f : 0.006f));
-                // 실제 노면이 있으면 공원 나무는 make_surface.py 가 하나씩 검사해 놓은 자리(소품)를 쓴다
+                // 실제 노면이 있으면 공원 나무는 노면 파일에 하나씩 검사해 넣어 둔 자리(소품)를 쓴다
                 if (a.kind == "water" || (Current != null && Current.props.Count > 0)) continue;
                 // 나무: 넓이 600 m² 마다 하나(숲은 250), 길 가까운 쪽 위주로 최대 1500그루
                 float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;

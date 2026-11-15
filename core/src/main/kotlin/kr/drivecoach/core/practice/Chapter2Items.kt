@@ -1,4 +1,4 @@
-// 담당: D (기획서 2장 2-1~2-9 연습 항목 데이터)
+// 담당: D (차량 조작법 2-1~2-9 연습 항목 데이터)
 package kr.drivecoach.core.practice
 
 import kr.drivecoach.core.signal.Gear
@@ -9,8 +9,8 @@ import kr.drivecoach.core.signal.Wiper
 import kr.drivecoach.core.tts.PhraseId
 
 /**
- * 차량 옵션(capability) 이름. 앱 시작 시 Vehicle SDK capability 조회 결과를 이 문자열 집합으로 바꿔
- * [Chapter2Items.itemsFor] 에 넘긴다. 없는 옵션의 항목은 아예 보여주지 않는다(기획서 0장).
+ * 차량 옵션(capability) 이름. 앱은 기준 차량의 옵션 집합([Chapter2Items.AVANTE_CN8_MODERN])을
+ * [Chapter2Items.itemsFor] 에 넘긴다. 없는 옵션의 항목은 아예 보여주지 않는다.
  */
 object Capability {
     const val SEAT_POWER = "seat.power"             // 전동 시트(시트 위치 신호 감지 가능)
@@ -62,7 +62,7 @@ class GearSequenceCheck : StatefulCheck {
     }
 }
 
-/** 기획서 2장 전 항목 데이터. 감지 가능/불가는 [PracticeItem.detectable] 로 표기된다. */
+/** 차량 조작법 전 항목 데이터. 감지 가능/불가는 [PracticeItem.detectable] 로 표기된다. */
 object Chapter2Items {
 
     private fun p(itemId: String, kind: String) = PhraseId("practice_${itemId.replace('-', '_')}_$kind")
@@ -273,7 +273,7 @@ object Chapter2Items {
         "2-9-cruise" to listOf("크루즈", "정속", "스마트크루즈"),
     )
 
-    /** 장 번호 → 화면 제목(기획 3장 소제목). 연습 선택 화면의 묶음 제목·검색에 쓴다. */
+    /** 장 번호 → 화면 제목. 연습 선택 화면의 묶음 제목·검색에 쓴다. */
     val chapterTitles: Map<String, String> = linkedMapOf(
         "2-1" to "운전석 체형 맞추기",
         "2-2" to "안전벨트",
@@ -290,7 +290,7 @@ object Chapter2Items {
     fun chapter(chapter: String, capabilities: Set<String>? = null): List<PracticeItem> =
         (capabilities?.let { itemsFor(it) } ?: all).filter { it.chapter == chapter }
 
-    /** 기준 차량 아반떼 CN8 모던 트림의 기본 옵션 가정. 실제 값은 capability 조회로 덮어쓴다. */
+    /** 기준 차량 아반떼 CN8 모던 트림의 기본 옵션 가정. 앱은 이 집합으로 보여 줄 항목을 고른다. */
     val AVANTE_CN8_MODERN: Set<String> = setOf(
         Capability.STEERING_TILT, Capability.STEERING_TELESCOPIC, Capability.EPB, Capability.AUTO_HOLD,
         // 세단이라 뒷유리 와이퍼 없음, 안개등·후측방 경고·전동시트는 모던 트림 기본 아님 → 제외

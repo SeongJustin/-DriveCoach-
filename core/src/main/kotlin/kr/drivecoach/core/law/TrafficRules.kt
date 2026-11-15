@@ -1,4 +1,4 @@
-// 담당: S (도로 법규 설명, 기획 4장 "도로 법규·상식" — 11/4 대표 결정: 퀴즈는 다음 빌드, 이번엔 중요한 것 위주 설명만)
+// 담당: S (도로 법규 설명 — 11/4 대표 결정: 퀴즈는 다음 빌드, 이번엔 중요한 것 위주 설명만)
 package kr.drivecoach.core.law
 
 import kr.drivecoach.core.tts.PhraseId

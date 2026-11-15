@@ -11,7 +11,7 @@ import android.util.Log
 
 /**
  * 플랫폼이 주는 주행 규제(CarUxRestrictions)를 구독한다.
- * core 의 DriveModeDetector(속도/기어 기반)와 별개로, 플랫폼 규제가 켜지면 화면을 한 줄 요약으로 강제한다(기획 0장 안전 원칙).
+ * core 의 DriveModeDetector(속도/기어 기반)와 별개로, 플랫폼 규제가 켜지면 화면을 한 줄 요약으로 강제한다(안전 원칙).
  * [onChanged] 는 (DO 필요 여부, 활성 제한 비트마스크) 를 받는다.
  */
 class UxRestrictionsMonitor(context: Context, private val onChanged: (requiresDo: Boolean, activeRestrictions: Int) -> Unit) {

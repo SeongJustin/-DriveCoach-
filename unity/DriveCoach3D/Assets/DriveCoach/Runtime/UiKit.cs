@@ -37,7 +37,7 @@ namespace DriveCoach.Unity
         }
 
         /// <summary>
-        /// 화면 캔버스(기준 1920×1080, 높이 맞춤). cam 이 있으면 그 카메라 앞에 그린다(bat 캡처에 글자까지 찍히게),
+        /// 화면 캔버스(기준 1920×1080, 높이 맞춤). cam 이 있으면 그 카메라 앞에 그린다(화면 사진에 글자까지 찍히게),
         /// 없으면 화면 맨 위(게임 중).
         /// </summary>
         public static Canvas ScreenCanvas(string name, Transform parent, Camera cam, int order)
@@ -63,7 +63,7 @@ namespace DriveCoach.Unity
             return c;
         }
 
-        /// <summary>bat 캡처용: 화면 크기와 관계없이 정해진 배율(그림 높이/1080)로 그린다</summary>
+        /// <summary>화면 사진(DcBuild.Shots)용: 화면 크기와 관계없이 정해진 배율(그림 높이/1080)로 그린다</summary>
         public static void FixScale(Canvas c, float scale)
         {
             var sc = c.GetComponent<CanvasScaler>();

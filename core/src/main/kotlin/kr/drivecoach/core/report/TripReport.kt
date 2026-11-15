@@ -3,7 +3,7 @@ package kr.drivecoach.core.report
 
 /**
  * 리포트에 쓰는 지표 키. 각 키는 [Metrics] 를 0~1 점수(높을수록 좋음)로 바꾸는 규칙을 가진다.
- * [practiceStage] 는 약한 항목일 때 추천할 기획서 단계 번호, [phraseKey] 는 tts 멘트 ID 의 꼬리말.
+ * [practiceStage] 는 약한 항목일 때 추천할 단계 번호, [phraseKey] 는 tts 멘트 ID 의 꼬리말.
  */
 enum class MetricKey(val practiceStage: String, val phraseKey: String) {
     /** 방향지시등 사용률. */
@@ -19,7 +19,7 @@ enum class MetricKey(val practiceStage: String, val phraseKey: String) {
 
     /**
      * 0~1 점수. 해당 상황이 한 번도 없었으면 null(평가 불가).
-     * 기준값은 단순 기본 규칙이며 기획 확정 후 조정한다.
+     * 기준값은 단순 기본 규칙이다.
      */
     fun score(m: Metrics): Double? = when (this) {
         SIGNAL_USAGE -> m.signalUsageRate
@@ -40,10 +40,10 @@ enum class MetricKey(val practiceStage: String, val phraseKey: String) {
 }
 
 /**
- * 주행 1회의 리포트(5-4). 문구 구조는 기획 미정이라 "잘한 것 1 / 나아진 점 1 / 고칠 것 1" 슬롯만 둔다.
+ * 주행 1회의 리포트(5-4). 문구는 "잘한 것 1 / 나아진 점 1 / 고칠 것 1" 슬롯만 둔다.
  * 각 슬롯에는 사용자에게 보일 문장이 아니라 지표 이름 멘트 ID(예: "report_item_signal_usage") 가 들어간다.
  * app 은 이것을 tts 카탈로그의 report_good / report_improved / report_next 의 {item} 자리에 넣어 읽는다.
- * 실수 횟수를 나열하는 리포트는 만들지 않는다(기획 1장: 지적은 짧게, 정차 후).
+ * 실수 횟수를 나열하는 리포트는 만들지 않는다(지적은 짧게, 정차 후).
  */
 data class TripReport(
     val summary: Metrics,

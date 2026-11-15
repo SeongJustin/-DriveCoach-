@@ -1,4 +1,4 @@
-// 담당: I (직각 주차 공식 데이터 — 기획 4-5 사전 학습/슬로우 모드의 단계표)
+// 담당: I (직각 주차 공식 데이터 — 사전 학습/슬로우 모드의 단계표)
 package kr.drivecoach.core.parking
 
 import kr.drivecoach.core.signal.Gear

@@ -1,5 +1,4 @@
 // 담당: S (11/8) 게임 프로세스 쪽 GameLink 수신기(3D 게임용). CoachService 에 바인딩해 차량 신호·제원을 Messenger 로 받는다.
-// 2D(GameActivity)는 같은 일을 자기 안에서 한다(바꾸지 않음).
 package kr.drivecoach.app.game
 
 import android.content.ComponentName

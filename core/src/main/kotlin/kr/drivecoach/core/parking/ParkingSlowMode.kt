@@ -1,4 +1,4 @@
-// 담당: I (직각 주차 슬로우 모드 상태 머신 — 기획 4-4 후진 경고, 4-5 실행/확인)
+// 담당: I (직각 주차 슬로우 모드 상태 머신 — 후진 경고, 실행/확인)
 package kr.drivecoach.core.parking
 
 import kr.drivecoach.core.signal.Gear
@@ -257,7 +257,7 @@ class ParkingSlowMode(
         enterStep(index, nowMs)
     }
 
-    /** 단계에 들어가며 문장을 내보낸다. 이미 센서 기대치를 만족하고 있으면 설명 없이 바로 통과(기획 0장). */
+    /** 단계에 들어가며 문장을 내보낸다. 이미 센서 기대치를 만족하고 있으면 설명 없이 바로 통과. */
     private fun enterStep(index: Int, nowMs: Long) {
         cursor = index
         stepStartedMs = nowMs

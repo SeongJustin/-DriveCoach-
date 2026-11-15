@@ -1,6 +1,5 @@
-// 게임 프로세스(:game) ↔ CoachService(메인 프로세스) 연결.
-// Godot 엔진은 화면을 닫을 때 자기 프로세스를 끝내 버린다(Godot.onDestroy → ProcessPhoenix.forceQuit → killProcess).
-// 그래서 GameActivity 는 별도 프로세스(:game)에서 돌리고, 차량 신호·제원은 Messenger 로 받는다.
+// 게임 프로세스(:game3d) ↔ CoachService(메인 프로세스) 연결.
+// Unity 는 화면을 닫을 때 자기 프로세스를 끝내므로 3D 화면(Game3DActivity)은 별도 프로세스(:game3d)에서 돌리고, 차량 신호·제원은 Messenger 로 받는다.
 // 이 파일의 GameLink 는 메인 프로세스(CoachService) 쪽 송신기, GameLink.Receiver 는 게임 쪽 수신기 규약(상수·번들 키)이다.
 package kr.drivecoach.app.game
 
@@ -82,7 +81,7 @@ class GameLink(
     companion object {
         private const val TAG = "GameLink"
 
-        /** GameActivity 가 CoachService 에 바인딩할 때 쓰는 액션(LocalBinder 대신 Messenger 를 받는다). */
+        /** 게임 쪽(GameLinkClient)이 CoachService 에 바인딩할 때 쓰는 액션(LocalBinder 대신 Messenger 를 받는다). */
         const val ACTION = "kr.drivecoach.app.action.GAME_LINK"
         const val MSG_REGISTER = 1
         const val MSG_UNREGISTER = 2

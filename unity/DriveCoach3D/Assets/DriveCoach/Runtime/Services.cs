@@ -56,7 +56,7 @@ namespace DriveCoach.Unity
         }
     }
 
-    /// <summary>주차 센서 경고음: 가까울수록 빨리, 30 cm 안이면 거의 계속(Godot 판과 같은 간격)</summary>
+    /// <summary>주차 센서 경고음: 가까울수록 빨리, 30 cm 안이면 거의 계속</summary>
     public class Beeper
     {
         readonly AudioSource src;

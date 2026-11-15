@@ -71,7 +71,7 @@ namespace DriveCoach.Core
         public float tauDown = 0f;                   // 액셀을 떼어 느려질 때 시간상수(0 = tauCreep 과 같음, 주차)
         public float maxBrake = 0f;                  // 브레이크 최대 감속(m/s², 0 = 제한 없음: 주차 판과 같음)
 
-        /// <summary>주차 연습(Godot 판과 같은 값)</summary>
+        /// <summary>주차 연습</summary>
         public static DriveModel Parking() => new DriveModel();
 
         /// <summary>

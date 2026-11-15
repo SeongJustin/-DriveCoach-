@@ -73,7 +73,7 @@ namespace DriveCoach.Core
         List<ParkStart> parkStarts;
 
         /// <summary>
-        /// 동 안 주차장마다 길로 바로 나갈 수 있는 빈 칸 하나. 칸은 주차칸 선 세 개(왼쪽·오른쪽·안쪽 끝)씩 묶여 있다(add_facilities.py).
+        /// 동 안 주차장마다 길로 바로 나갈 수 있는 빈 칸 하나. 칸은 주차칸 선 세 개(왼쪽·오른쪽·안쪽 끝)씩 묶여 있다.
         /// 차는 칸 가운데에 통로(열린 쪽)를 보고 선다. 열린 쪽에서 가장 가까운 땅 위 길이 40 m 안이고 그 사이(폭 2.4 m)에 건물이 없는 칸만,
         /// 그중 길에 가장 가까운 칸. 세워 둔 차가 있는 칸은 뺀다.
         /// </summary>
@@ -226,9 +226,9 @@ namespace DriveCoach.Core
         public List<(V2 c, V2 n, float L, float W)> crosswalks = new List<(V2, V2, float, float)>();
         /// <summary>(11/13) 노면에 칠해진 정지선(차로마다 그 차로를 가로막는 자리의 가운데). JSON "stl". 신호 정지선을 이 자리에 맞춘다</summary>
         public List<V2> stopPaint = new List<V2>();
-        /// <summary>중앙선 무단횡단 방지 울타리(11/9 낮, add_medians.py "medf"): 황색 실선 겹선 위 선(점 목록)</summary>
+        /// <summary>중앙선 무단횡단 방지 울타리(11/9 낮, 지역 JSON "medf"): 황색 실선 겹선 위 선(점 목록)</summary>
         public List<V2[]> medianFences = new List<V2[]>();
-        /// <summary>하천 깊이(11/9 낮, add_water_cut.py "water_cut"): 0 이면 물은 땅 높이 평면(예전)</summary>
+        /// <summary>하천 깊이(11/9 낮, 지역 JSON "water_cut"): 0 이면 물은 땅 높이 평면(예전)</summary>
         public float waterCut;
 
         /// <summary>p 가 들어 있는 어린이보호구역 번호(없으면 -1)</summary>

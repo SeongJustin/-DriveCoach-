@@ -1,5 +1,4 @@
-// 담당: J → T (코스 자동 생성 — 네이버 Directions 어댑터. T 가 11/3 완성: 일일 호출 상한, 실패 이유, 진단 줄, 엔드포인트 상수.
-// 이 환경에서는 Android 빌드 불가. 로 core + Android 스텁(SharedPreferences/Log)에 대해 타입 검사만 했다.)
+// 담당: J → T (코스 자동 생성 — 네이버 Directions 어댑터. T 가 11/3 완성: 일일 호출 상한, 실패 이유, 진단 줄, 엔드포인트 상수.)
 package kr.drivecoach.app.navi
 
 import android.content.Context

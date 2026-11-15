@@ -38,7 +38,7 @@ fun testOtherModulesPhraseIdsExist() {
         assertNotNull(ph, "경고등 행동 멘트 없음: ${lamp.actionPhraseId.id}")
         assertEquals(lamp.action, ph.text, "경고등 행동 멘트가 WarningLamp.action 과 다름: ${lamp.id}")
     }
-    // 소스 안의 PhraseId("...") 리터럴 (run_tests.sh 는 프로젝트 루트에서 실행된다)
+    // 소스 안의 PhraseId("...") 리터럴 (프로젝트 루트에서 실행할 때만 검사하고, 폴더가 없으면 건너뛴다)
     val root = java.io.File("core/src/main/kotlin/kr/drivecoach/core")
     if (!root.isDirectory) return
     val literal = Regex("PhraseId\\(\"([^\"$]+)\"\\)")
@@ -248,7 +248,7 @@ fun testNoInputReminderSpokenOnceOnly() {
     assertEquals(Decision.SPEAK, policy.decide(req(p), 500, parked).decision)
 }
 
-/** 모든 멘트 ID 가 클립 목록에 있는지 — 빠지면 에뮬레이터에서 무음(베타 A-01/D-01). run_tests.sh 는 프로젝트 루트에서 실행된다. */
+/** tts_clips/phrases.json(멘트 목록)이 있으면 모든 멘트 ID 가 그 목록에 있는지 본다. 이 저장소에는 그 파일이 없어 건너뛴다. */
 fun testEveryPhraseHasClipEntry() {
     val f = java.io.File("tts_clips/phrases.json")
     if (!f.isFile) return

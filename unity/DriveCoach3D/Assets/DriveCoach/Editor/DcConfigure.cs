@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 편집기 없이 bat 으로 프로젝트 준비 2단계: URP·재질·가져오기 설정·장면·안드로이드 설정)
+// 담당: S (3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 프로젝트 준비 2단계: URP·재질·가져오기 설정·장면·안드로이드 설정)
 // 실행: Unity.exe -batchmode -quit -buildTarget Android -projectPath <프로젝트> -executeMethod DriveCoach.EditorTools.DcConfigure.Run
 using System;
 using System.IO;

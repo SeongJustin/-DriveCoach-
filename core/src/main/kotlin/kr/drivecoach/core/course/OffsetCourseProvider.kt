@@ -5,7 +5,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * 기획서 5-1 의 "가장 무서운 것 / 목적" 선택지 하나. 화면 라벨은 app 의 strings.xml 에서 이 ID 로 찾는다(여기에는 문장을 두지 않는다).
+ * 코스 선택 화면의 "가장 무서운 것 / 목적" 선택지 하나. 화면 라벨은 app 의 strings.xml 에서 이 ID 로 찾는다(여기에는 문장을 두지 않는다).
  * 각 선택지는 코스 조건([CourseSpec] 프리셋)과, API 키 없이 만들 때 쓰는 모양([OffsetShape])을 가진다.
  */
 enum class CourseOptionId {
@@ -30,7 +30,7 @@ enum class CourseOptionId {
 /** 오프셋 코스의 모양: 경유지를 진행 방향 기준 어느 쪽에 둘지. */
 enum class OffsetShape { STRAIGHT, RIGHT, LEFT }
 
-/** 선택지 ID → 코스 조건·모양. 기획서 5-1 의 추천 표와 1:1. */
+/** 선택지 ID → 코스 조건·모양. */
 object CourseOptions {
     /** 화면에 보여 주는 순서. 2열 격자 기준으로 왼쪽 위부터. */
     val ALL: List<CourseOptionId> = CourseOptionId.values().toList()
@@ -85,7 +85,7 @@ class GeneratedCourseSource(private val generator: CourseGenerator) : CourseSour
 }
 
 /**
- * 길찾기 API 없이 현재 위치에서 단순 위경도 오프셋으로 짧은 연습 코스를 만든다 (기획서 5-1 의 임시 구현).
+ * 길찾기 API 없이 현재 위치에서 단순 위경도 오프셋으로 짧은 연습 코스를 만든다(길찾기 키가 없는 빌드의 코스 소스).
  *
  * 모양(진행 방향 기준, 단위 km. (앞, 오른쪽)):
  *  - STRAIGHT: 경유지 (0.5, 0) → (1.0, 0), 목적지 (1.5, 0). 회전 없음.

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 담당: A → R (권한 문자열을 실제 SDK jar 의 상수와 대조해 수정). 근거: §2, §10-1.
+<!-- 담당: A → R (권한 문자열을 실제 SDK jar 의 상수와 대조해 수정).
      Pleos Vehicle SDK 권한은 protectionLevel "normal" (샘플 앱 매니페스트 주석) 이라 런타임 요청 없이 선언만으로 쓴다.
-     android.car.permission.* 중 CAR_SPEED 는 dangerous(런타임 요청 필요), 나머지(CAR_POWERTRAIN 등)는
-     AOSP 기준 signature|privileged 라 서드파티 앱에 허용되는지 미확인 → 거부돼도 앱이 죽지 않게 PleosSignalSource 에서 try/catch. -->
+     아래에 선언한 android.car.permission.* 중 CAR_SPEED·READ_CAR_PEDALS 는 dangerous(런타임 요청), CAR_POWERTRAIN·CAR_INFO 는 normal 이다.
+     signature|privileged 등급은 선언하지 않는다. 거부되거나 속성이 없는 차량에서도 앱이 죽지 않게 PleosSignalSource·CarSpecLoader 에서 try/catch. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -45,7 +45,7 @@
          이 권한·속성이 없는 기기에서는 거부되고 게임은 자동 속도(핸들만)로 달린다. -->
     <uses-permission android:name="android.car.permission.READ_CAR_PEDALS" />
 
-    <!-- STT 는 Pleos 서비스가 차량 마이크를 쓰므로 RECORD_AUDIO 는 불필요(문서: sendAudio 는 대안 경로). 네트워크는 TTS/STT SERVER 모드·길찾기 API 용 -->
+    <!-- STT 는 Pleos 서비스가 차량 마이크를 쓰므로 RECORD_AUDIO 는 불필요(문서: sendAudio 는 대안 경로). 네트워크는 길찾기 API(네이버 Directions, 키를 넣은 빌드만) 용 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- 진단용 QUERY_ALL_PACKAGES 는 제거(베타 D-27/C-31). 진단 화면의 패키지 조회는 보이는 범위(queries 없이)만 보여 준다. -->
 
@@ -100,9 +100,9 @@
         </activity>
 
         <!-- (S, 11/8) 3D 주차·핸들 연습(Unity). 별도 프로세스(:game3d): Unity 는 화면을 닫을 때 자기 프로세스를 끝낸다.
-             15초 안에 열리지 않으면 2D(Godot)로 바꿔 연다(GameLauncher). Unity 가 빌드에 없으면 같은 이름의 대체 화면이 2D 를 연다.
+             준비 신호가 제한 시간 안에 오지 않으면 안내를 띄우고 닫는다(Game3DActivity). Unity 가 빌드에 없으면 같은 이름의 대체 화면이 안내만 띄운다.
              Unity 권장값: 하드웨어 가속 끔(Unity 가 자기 화면을 직접 그림), 설정 변화에 다시 만들지 않음.
-             11/8 Pleos 창 정책: 방향을 정하지 않으면 세로 반쪽 창으로 뜬다 → 가로 전용 게임으로(앱 영역 전체, 2D 게임과 같게). -->
+             11/8 Pleos 창 정책: 방향을 정하지 않으면 세로 반쪽 창으로 뜬다 → 가로 전용 게임으로(앱 영역 전체). -->
         <activity
             android:name=".game3d.Game3DActivity"
             android:process=":game3d"

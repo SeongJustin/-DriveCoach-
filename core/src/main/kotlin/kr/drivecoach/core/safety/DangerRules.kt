@@ -9,9 +9,9 @@ import kr.drivecoach.core.tts.PhraseId
 import kotlin.math.abs
 
 /**
- * 위험 이벤트 종류 (기획 1장 "위험 상황에 대한 피드백은 바로 해준다").
+ * 위험 이벤트 종류(위험 상황 피드백은 바로 한다).
  *
- * 기획 결정으로 **늦은 브레이크(LATE_BRAKE)는 규칙에 넣지 않는다.**
+ * **늦은 브레이크(LATE_BRAKE)는 규칙에 넣지 않는다.**
  * 정지선·앞차 거리를 앱이 알 수 없어 정확히 잡을 수 없으므로, 정차 후 리포트에서
  * [HARD_BRAKE] 횟수로 간접 평가한다. (리포트 모듈은 [DangerRules.eventCount] 를 쓰면 된다.)
  */
@@ -22,7 +22,7 @@ enum class DangerType {
     HARD_BRAKE,
     /** 30km/h 이상에서 조향각 변화율이 임계 이상(급차로변경·급조향). */
     ABRUPT_LANE_CHANGE,
-    /** R 기어에서 RPM 이 공회전보다 크게 오름 = 후진 중 엑셀을 밟은 것으로 추정 (기획 4-4). */
+    /** R 기어에서 RPM 이 공회전보다 크게 오름 = 후진 중 엑셀을 밟은 것으로 추정. */
     REVERSE_THROTTLE,
 }
 
@@ -96,11 +96,11 @@ data class DangerConfig(
     val laneChangeSteerRateDegPerS: Double = 120.0,
     /** 창 안에서 핸들이 최소 이만큼(deg)은 움직여야 한다. 작은 각의 순간 잡음(몇 도가 20ms 에 튐)이 큰 변화율로 잡히는 것을 막는다. */
     val laneChangeMinDeltaDeg: Double = 20.0,
-    /** 조향 전 이 시간(ms) 안에 방향지시등이 켜져 있었으면 '신호 있음'. 기획 4-7 "깜빡이 3초" 에서 가져옴. */
+    /** 조향 전 이 시간(ms) 안에 방향지시등이 켜져 있었으면 '신호 있음'("깜빡이 3초" 기준). */
     val turnSignalLookbackMs: Long = 3_000L,
 
     // ── REVERSE_THROTTLE ──
-    /** 공회전 대비 RPM 상승 임계. 크리핑 후진은 idle 그대로이고, 엑셀을 살짝만 밟아도 +300 은 넘는다 (기획 4-4). */
+    /** 공회전 대비 RPM 상승 임계. 크리핑 후진은 idle 그대로이고, 엑셀을 살짝만 밟아도 +300 은 넘는다. */
     val reverseRpmRise: Double = 300.0,
     /** 이 값 이상 오르면 HIGH (확실히 밟은 것). */
     val reverseRpmHighRise: Double = 600.0,
@@ -127,7 +127,7 @@ data class DangerConfig(
 }
 
 /**
- * 차량 상태 스트림에서 위험 이벤트를 뽑는 순수 Kotlin 엔진 (기획 1장, 4-4, 5-3).
+ * 차량 상태 스트림에서 위험 이벤트를 뽑는 순수 Kotlin 엔진.
  *
  * 사용: `signalSource.addListener(rules)`, `rules.addListener { event -> tts.speak(event.phraseId) }`.
  * 제한속도는 내비/지도에서 알게 될 때 [speedLimitKmh] 에 넣는다. 모르면 null 이고 SPEEDING 규칙은 꺼진다.
@@ -310,7 +310,7 @@ class DangerRules(
     // ───────────────────────── 규칙 4: REVERSE_THROTTLE ─────────────────────────
 
     private fun checkReverseThrottle(s: VehicleState) {
-        // 기획 4-4: 엑셀 페달은 감지 불가 → R 기어에서 RPM 이 공회전보다 오르면 밟은 것으로 본다.
+        // 엑셀 페달은 감지 불가 → R 기어에서 RPM 이 공회전보다 오르면 밟은 것으로 본다.
         // 속도 기준은 쓰지 않는다 (크리핑 속도에서 수시로 지적하면 스트레스).
         val rpm = s.rpm
         if (s.gear != Gear.R || rpm == null) { active.remove(DangerType.REVERSE_THROTTLE); return }

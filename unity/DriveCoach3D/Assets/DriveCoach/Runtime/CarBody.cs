@@ -81,7 +81,7 @@ namespace DriveCoach.Unity
             }
         }
 
-        /// <summary>재질 번호(make_car.py 의 M_ 순서)별 Unity 재질</summary>
+        /// <summary>재질 번호(차 모델 파일의 재질 순서)별 Unity 재질</summary>
         static Material Mat(int id, Color paint, Material brake, Material reverse)
         {
             switch (id)

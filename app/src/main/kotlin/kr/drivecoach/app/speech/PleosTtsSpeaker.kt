@@ -1,6 +1,5 @@
 // 담당: S (앱 연결 — Pleos TextToSpeech SDK 어댑터)
-// 검증: TextToSpeech-3.3.1.jar 를 javap 로 읽어 시그니처를 맞췄고,
-// 로 실제 jar + Android 스텁에 대해 kotlinc 타입 검사를 통과시켰다. 소리가 실제로 나는지는 에뮬레이터에서 확인할 것.
+// 검증: TextToSpeech-3.3.1.jar 를 javap 로 읽어 시그니처를 맞췄다. 소리가 실제로 나는지는 에뮬레이터에서 확인할 것.
 package kr.drivecoach.app.speech
 
 import ai.pleos.playground.tts.TextToSpeech
@@ -60,7 +59,7 @@ class PleosTtsSpeaker(
 
     private val initTimeout = Runnable { if (!ready) fail("초기화 응답 없음(${INIT_TIMEOUT_MS}ms)") }
 
-    /** speak 뒤 [START_TIMEOUT_MS] 안에 onStart 가 없으면 음성 서비스가 멈춘 것으로 보고 녹음 클립으로 넘어간다(문장은 클립이 다시 말함). */
+    /** speak 뒤 [START_TIMEOUT_MS] 안에 onStart 가 없으면 음성 서비스가 멈춘 것으로 보고 실패로 처리한다(SpeakerFactory 가 화면 글씨 안내로 바꾸고 나중에 다시 시도). */
     private var started = false
     private val startWatch = Runnable { if (current != null && !started) fail("onStart 응답 없음(${START_TIMEOUT_MS}ms)") }
     /** onStart 뒤 문장 길이에 비해 너무 오래 onDone 이 없으면 끝난 것으로 본다(서비스가 끝 알림을 빠뜨린 경우 코칭이 멈추지 않게). */
@@ -118,7 +117,7 @@ class PleosTtsSpeaker(
                     try { engine.addEventListener(events) } catch (t: Throwable) { Log.w(TAG, "addEventListener 실패: ${t.message}") }
                     // Pleos 엔진은 "ko-KR"(Locale.KOREA)만 받는다. Locale.KOREAN("ko")을 주면 엔진 오류가 나고 caas 를 다시 시작할 때까지 계속 ON_DEVICE_ENGINE_ERROR(11/7 확인, 다른 참가 팀 실측과 같음).
                     try { engine.setLocale(Locale.KOREA) } catch (t: Throwable) { Log.w(TAG, "setLocale 실패: ${t.message}") }
-                    // 출력 용도: 녹음 클립(MediaPlayer)과 같은 내비 안내 음성.
+                    // 출력 용도: 내비 안내 음성(GuidanceAudioFocus.ATTRIBUTES 와 같은 값).
                     try {
                         engine.setAudioAttributes(
                             AudioAttributes.Builder()

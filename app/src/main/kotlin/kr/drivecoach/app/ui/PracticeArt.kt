@@ -1,17 +1,15 @@
-// 담당: UI-ART (2장 연습 항목 50개 ↔ 클러스터 픽토그램풍 일러스트 drawable 매핑)
-// 이미지 생성: scratchpad/illus/gen_illus.py. 이 파일은 그 스크립트의 ITEM_IDS 와 1:1.
+// 담당: UI-ART (차량 조작법 연습 항목 52개 ↔ 그림 drawable 매핑)
 package kr.drivecoach.app.ui
 
 import kr.drivecoach.app.R
 
 /**
  * 연습 항목 ID([kr.drivecoach.core.practice.Chapter2Items] 의 id, 예: "2-6-turn-signal-right") 를
- * `res/drawable-nodpi/practice_<id 의 하이픈→밑줄>.png` 리소스 ID 로 바꾼다.
+ * `res/drawable-nodpi/practice_<id 의 하이픈→밑줄>`(.webp/.png) 리소스 ID 로 바꾼다.
  *
- * (11/13) 44장은 현대자동차 아반떼(CN8) 2027 취급설명서 그림,
- * 나머지 6장(사각지대·안전벨트 틀린 예·페달·급가속·안개등·뒷유리 와이퍼)은 아래 규격의 우리 그림.
- * 그림 규격: 800x500, 흰 배경, 선화(#2B2B2B 6px) + 파란(#1E6FE8) 동작 화살표. 글자는 실제 조작부에 인쇄된 것만
- * (START, AUTO HOLD, A/C, P R N D, 게이지 숫자).
+ * (11/13) .webp 47개 항목은 현대자동차 아반떼(CN8) 2027 취급설명서 그림(경고등 3색은 설명서 그림에 색 설명을 덧붙임),
+ * .png 5개 항목(사각지대·안전벨트 틀린 예·페달·안개등·뒷유리 와이퍼)은 우리 그림. 출처는 docs/manual_figs/출처.md.
+ * 그림 크기: 800x500.
  */
 object PracticeArt {
 
