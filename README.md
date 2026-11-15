@@ -35,6 +35,7 @@
 | 항목 | 값 |
 |---|---|
 | 검증 환경 | Pleos Connect Emulator v2.1.0(API 34), Virtual Console v2.1.0. 실차 검증은 수행하지 않았습니다 |
+| 화면 규격 | 2560 x 1440(가로) |
 | SDK | minSdk 28, targetSdk 34, AGP 8.8.2, Kotlin 2.0, Jetpack Compose |
 | 기준 차종 | 현대 아반떼 CN8 |
 | 권한 | Pleos Vehicle SDK 읽기 권한, NaviHelper, TTS, STT, FusedLocation, Android Automotive 표준 속성(`CAR_SPEED`, `CAR_POWERTRAIN`, `CAR_INFO`, `READ_CAR_PEDALS`), 인터넷, 포그라운드 서비스와 알림 |
