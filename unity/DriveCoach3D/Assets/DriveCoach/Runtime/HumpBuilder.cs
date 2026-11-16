@@ -1,4 +1,3 @@
-// 담당: S (11/9 새벽, 조사 P1 "과속방지턱 높이대로 차가 튐")
 // 과속방지턱: 원호형 단면(길이 3.6 m · 높이 10 cm, 작은 것 7.5 cm)을
 // 실제로 솟게 그린다. 윗면은 노랑 바탕에 흰 빗금(우리나라 방지턱 도색), 양 옆은 단면 모양으로 막는다.
 // 노면 칠(평평한 방지턱 무늬)은 그 밑에 그대로 있지만 솟은 면이 덮는다(가장자리는 아스팔트보다 2 cm 위 — 칠과 겹쳐 깜빡이지 않게).
@@ -26,7 +25,7 @@ namespace DriveCoach.Unity
                 var hp = d.humps[hi];
                 var ax = hp.dir;                       // 진행 방향
                 var ay = new V2(-ax.y, ax.x);          // 가로
-                // (11/11 낮, 바닥 검사) 자료의 자리·폭이 길과 어긋나 한쪽은 보도 위로 올라가고 한쪽은 길이 비었다
+                // (바닥 검사) 자료의 자리·폭이 길과 어긋나 한쪽은 보도 위로 올라가고 한쪽은 길이 비었다
                 //   → 가운데에서 양옆으로 아스팔트가 끝나는 곳을 찾아, 연석에서 12 cm 안쪽까지 길 폭에 맞춘다(자리·폭을 고쳐 차가 들리는 계산도 같이 맞는다).
                 if (surf != null && surf.Asphalt(hp.c))
                 {
@@ -63,19 +62,25 @@ namespace DriveCoach.Unity
                     }
                 }
             }
-            top.ToObject("humps", DcAssets.LitTex("hump", Tex(), 0.25f), node, false, true);
+            var cs = CountryStyle.Current;
+            top.ToObject("humps", cs.IsKorea ? DcAssets.LitTex("hump", Tex(), 0.25f) : DcAssets.LitTex("hump-" + cs.code, Tex(cs), 0.25f), node, false, true);   // 도색은 나라 표
             side.ToObject("hump-sides", DcAssets.Lit(DcAssets.Hex("#3E4146"), 0.15f), node, false, true);
             Debug.Log($"HumpBuilder: 과속방지턱 {d.humps.Count}");
         }
 
         /// <summary>노랑 바탕 + 흰 빗금(0.9 m 마다 절반이 흰색, 비스듬히) — 1.8 m × 1.8 m 한 장, 되풀이</summary>
-        static Texture2D Tex()
+        static Texture2D Tex() => Tex(CountryStyle.KR);
+
+        static readonly System.Collections.Generic.Dictionary<string, Texture2D> texOther = new System.Collections.Generic.Dictionary<string, Texture2D>();
+
+        static Texture2D Tex(CountryStyle cs)
         {
-            if (tex != null) return tex;
+            if (cs.IsKorea) { if (tex != null) return tex; }
+            else if (texOther.TryGetValue(cs.code, out var t0) && t0 != null) return t0;
             const int S = 128;
             var px = new Color32[S * S];
-            var yellow = new Color32(226, 179, 60, 255);
-            var white = new Color32(236, 236, 230, 255);
+            var yellow = cs.humpBase;      // 한국: 노랑(226,179,60) 바탕
+            var white = cs.humpStripe;     // 흰 빗금
             for (int y = 0; y < S; y++)
                 for (int x = 0; x < S; x++)
                 {
@@ -84,10 +89,11 @@ namespace DriveCoach.Unity
                     float t = (mx + my * 0.5f) % 0.9f;
                     px[y * S + x] = t < 0.45f ? white : yellow;
                 }
-            tex = new Texture2D(S, S, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat, name = "dc-hump" };
-            tex.SetPixels32(px);
-            tex.Apply(true, true);
-            return tex;
+            var made = new Texture2D(S, S, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat, name = cs.IsKorea ? "dc-hump" : "dc-hump-" + cs.code };
+            made.SetPixels32(px);
+            made.Apply(true, true);
+            if (cs.IsKorea) tex = made; else texOther[cs.code] = made;
+            return made;
         }
     }
 }

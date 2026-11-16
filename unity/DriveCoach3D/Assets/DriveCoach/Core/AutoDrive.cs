@@ -1,4 +1,4 @@
-// 담당: S (11/13 대표: "검수를 위해 자동운전을 넣어줘 … 앱 시연 영상 만들기 위해서도 필요") 자동 운전(핸들).
+// 자동 운전(핸들).
 // 차로 가운데선을 따라간다: 지금 차로에서 앞쪽 한 점(속도에 따라 5~12 m)을 겨냥해 핸들을 돌린다(순수 추종). 속도는 AutoSpeed 가 낸다.
 // 차로가 끝나면 다음 차로를 고른다 — 경로 글자(S 곧장·L 왼쪽·R 오른쪽, 차례로 한 글자씩)가 있으면 그대로, 없거나 다 쓰면 씨앗 난수로(대개 곧장).
 using System;
@@ -17,7 +17,12 @@ namespace DriveCoach.Core
         float stuckT;
         /// <summary>검수 기록: 지나온 차로 수·다시 잡은 횟수·막다른 곳 횟수</summary>
         public int lanesDone, reacquired, deadEnds, backedUp;
-        /// <summary>(11/13) 부딪혀 서면 잠깐 뒤로 물러난다 — 이 동안 부르는 쪽이 기어를 R 로 두고 살짝 밟는다. 끝나면 D 로</summary>
+        /// <summary>지도 끝(데이터 없는 옆 동)에서 돌아 나온 횟수</summary>
+        public int uTurns;
+        /// <summary>돌아 나오는 중: 돌아 들어갈 맞은편 차로(−1 이면 아님)</summary>
+        int uLane = -1;
+        float uT, uTry;
+        /// <summary>부딪혀 서면 잠깐 뒤로 물러난다 — 이 동안 부르는 쪽이 기어를 R 로 두고 살짝 밟는다. 끝나면 D 로</summary>
         public bool Reverse => reverseT > 0f;
         float reverseT, biasM, biasLeft, lastBumpAge = 99f;
         /// <summary>다음 차로로 넘어갈 때 꺾는 각(도, + 오른쪽). 방향지시등·신호(좌회전 화살표)·굽은 길 속도에 쓴다</summary>
@@ -33,7 +38,7 @@ namespace DriveCoach.Core
 
         public AutoDrive(int seed = 1, string plan = "") { rnd = new Random(seed); this.plan = (plan ?? "").ToUpperInvariant(); }
 
-        // ── 정해 둔 경로 따라가기(시연 코스, 11/13) ─────────────────────────────────────────────
+        // ── 정해 둔 경로 따라가기(시연 코스) ─────────────────────────────────────────────
         // 경로 = 차로 가운데선을 이어 만든 점들: 꺾는 곳은 원호, 차로 변경은 S 자. 깜빡이 구간도 경로가 준다.
         V2[] route; float[] routeCum; (float s0, float s1, int dir, bool turn, float at)[] routeBlink;
         public bool HasRoute => route != null;
@@ -237,7 +242,7 @@ namespace DriveCoach.Core
             }
             nextTurn = 0f;
             if (opts.Count == 0) { nextLi = -1; deadEnds++; return; }
-            // (11/13 저녁) 고른 차로가 몇 m 뒤 끝나고 곧장 다음 차로로 이어지면(T 자 골목: 건너편 차로의 마지막 3 m 에 닿음) 그 다음 차로를 바로 고른다.
+            // 고른 차로가 몇 m 뒤 끝나고 곧장 다음 차로로 이어지면(T 자 골목: 건너편 차로의 마지막 3 m 에 닿음) 그 다음 차로를 바로 고른다.
             //   안 그러면 겨냥점이 그 3 m 끝에 묶여 늦게 꺾고, 맞은편 건물에 부딪혔다(양재2동 강남대로2길).
             for (int oi = 0; oi < opts.Count; oi++)
             {
@@ -251,12 +256,12 @@ namespace DriveCoach.Core
             }
             for (int oi = opts.Count - 1; oi > 0; oi--)
                 for (int oj = 0; oj < oi; oj++) if (opts[oj].lane == opts[oi].lane) { opts.RemoveAt(oi); break; }
-            // (11/13) 데이터가 없는 옆 동으로 나가는 길은 고르지 않는다(동 경계에서 멈춰 서 버린다). 남는 길이 없으면 그대로 둔다.
+            // 데이터가 없는 옆 동으로 나가는 길은 고르지 않는다(동 경계에서 멈춰 서 버린다). 남는 길이 없으면 그대로 둔다.
             var rg = road.region;
             if (opts.Count > 1 && rg != null && rg.boundary.Length >= 3)
             {
                 var keep = new List<(int lane, float s, float turn)>();
-                foreach (var o in opts) if (!LeavesRegion(road, rg, o.lane, o.s, 90f)) keep.Add(o);
+                foreach (var o in opts) if (!LeavesRegion(road, rg, o.lane, o.s, 250f)) keep.Add(o);
                 if (keep.Count > 0 && keep.Count < opts.Count) opts = keep;
             }
             // 끝이 막힌 차로(지도 끝·막다른 골목)는 다른 길이 있으면 고르지 않는다
@@ -266,7 +271,7 @@ namespace DriveCoach.Core
                 foreach (var o in opts) if (HasOnward(road, o.lane)) keep.Add(o);
                 if (keep.Count > 0 && keep.Count < opts.Count) opts = keep;
             }
-            // (11/13) 신호 교차로 안의 짧은 차로(정지선을 이미 지난 뒤)에서는 좌회전을 고르지 않는다:
+            // 신호 교차로 안의 짧은 차로(정지선을 이미 지난 뒤)에서는 좌회전을 고르지 않는다:
             //   정지선에서는 "직진"으로 보고 직진 초록불에 들어온 뒤 안에서 왼쪽으로 꺾어 '좌회전 화살표 신호' 위반이 됐다.
             if (opts.Count > 1 && cum != null && cum[cum.Length - 1] < 30f)
             {
@@ -308,7 +313,7 @@ namespace DriveCoach.Core
         }
 
         /// <summary>
-        /// (11/13 대표: "차가 차선 안으로 다니고 교통법규를 지키며") 핸들 + 속도를 함께 낸다.
+        /// 핸들 + 속도를 함께 낸다.
         /// 속도는 AutoSpeed(제한속도·앞차·횡단보도 보행자·과속방지턱·어린이보호구역)에 더해:
         ///   · 신호: 앞 60 m 안 내 차로의 정지선이 빨강·노랑이면 그 1.5 m 앞에 선다(왼쪽으로 꺾을 때는 좌회전 화살표를 본다)
         ///   · 빨간불 우회전: 정지선에서 완전히 섰다가(1.2초) 간다
@@ -322,6 +327,7 @@ namespace DriveCoach.Core
             if (Reverse) { accel = 0.35f; return steer; }
             if (stop || road == null || (li < 0 && route == null)) { brake = true; brakeAmount = RouteDone ? 0.5f : 1f; return steer; }
             float cap = cruiseKmh / 3.6f;
+            if (uLane >= 0) cap = Math.Min(cap, 8f / 3.6f);      // 돌아 나오는 중
             var dir = car.Dir; var front = car.FrontBumperCenter;
             // 굽은 길: 지금 방향과 12 m·25 m 앞 길 방향의 차이
             float turnAhead = Math.Max(HeadingChange(road, 12f, dir), HeadingChange(road, 25f, dir) * 0.6f);
@@ -353,11 +359,11 @@ namespace DriveCoach.Core
                         if (redStopped) must = false;
                         else if (ahead < 4.0f && Math.Abs(car.speed) < 0.3f) { redStopT += dt; if (redStopT > 1.2f) { redStopped = true; redStopT = 0f; must = false; } }
                     }
-                    if (must) { stopAt = Math.Min(stopAt, ahead - 2.6f); redNow = true; }      // (11/13 저녁) 1.5 → 2.6 m: 사진에서 앞 범퍼가 정지선 칠 위에 걸쳐 섰다(멈추며 1 m 남짓 더 나감)
+                    if (must) { stopAt = Math.Min(stopAt, ahead - 2.6f); redNow = true; }      // 1.5 → 2.6 m: 사진에서 앞 범퍼가 정지선 칠 위에 걸쳐 섰다(멈추며 1 m 남짓 더 나감)
                 }
-            // (11/13) 경로 주행: 내가 지나갈 길(꺾는 곳 포함) 위의 횡단보도에 건너는 사람·막 들어서는 사람이 있으면 그 앞 3 m 에 서서 다 건널 때까지 기다린다
+            // 경로 주행: 내가 지나갈 길(꺾는 곳 포함) 위의 횡단보도에 건너는 사람·막 들어서는 사람이 있으면 그 앞 3 m 에 서서 다 건널 때까지 기다린다
             //   (AutoSpeed 는 곧은 앞만 본다 → 우회전 직후 횡단보도의 사람을 못 보고 10 km/h 로 지나갔다)
-            //   (11/13 저녁) 경로 없이 차로를 따라 달릴 때도 같다: 지금 차로 + 고른 다음 차로를 따라 본다.
+            //   경로 없이 차로를 따라 달릴 때도 같다: 지금 차로 + 고른 다음 차로를 따라 본다.
             if ((route != null || (li >= 0 && cum != null)) && w.crossPeds != null && w.crossPeds.peds.Count > 0)
             {
                 var cp = w.crossPeds; float fo = car.Center.DistanceTo(front);
@@ -385,7 +391,7 @@ namespace DriveCoach.Core
                 if (pedAt > -1.0f && !float.IsInfinity(pedAt))
                 {
                     float stopP = pedAt - 3f;
-                    // (11/13 저녁, 법 제27조① "횡단보도 앞(정지선이 있는 곳에서는 그 정지선)") 횡단보도 앞 14 m 안에 칠해진 정지선이 내 길 위에 있으면 그 1.5 m 앞에 선다.
+                    // (법 제27조① "횡단보도 앞(정지선이 있는 곳에서는 그 정지선)") 횡단보도 앞 14 m 안에 칠해진 정지선이 내 길 위에 있으면 그 1.5 m 앞에 선다.
                     //   사진에서 횡단보도 3 m 앞에 서느라 정지선을 반쯤 넘어 서 있었다. 이미 정지선을 지났으면 그대로(횡단보도 3 m 앞).
                     var rgp = road.region;
                     if (rgp != null && rgp.stopPaint.Count > 0)
@@ -419,27 +425,29 @@ namespace DriveCoach.Core
                 }
             }
             else wasRed = false;
-            // (11/13 밤) 시연 경로 안전장치: 신호·보행자 때문이 아닌데 앞에 선 차에 막혀 15초 넘게 못 가면, 앞 14 m 안에 서 있는 다른 차를 치운다.
+            // 시연 경로 안전장치: 신호·보행자 때문이 아닌데 앞에 선 차에 막혀 15초 넘게 못 가면, 앞 14 m 안에 서 있는 다른 차를 치운다.
             // 큰 교차로에서 다른 차들이 서로 기다리다 멈추면(역삼역, 드물게) 시연이 그 뒤에서 2분 넘게 서 버렸다. 근본 원인은 
             Why = $"red={(redNow ? 1 : 0)} stopAt={(float.IsInfinity(stopAt) ? 99f : stopAt):0} ped={(wasPed ? 1 : 0)} follow={(w.traffic != null ? Math.Min(99f, AutoSpeed.FollowLimit(w) * 3.6f) : -1f):0} cap={cap * 3.6f:0} blk={blockedT:0} cleared={clearedAhead}";
-            // (11/13 밤 늦게) 조건을 넓힘: PC 빌드에서 교차로 한가운데 115초 서 있었는데 이 장치가 걸리지 않았다(앞차 거리 조건·빨간불 조건 때문으로 봄).
+            // 조건을 넓힘: PC 빌드에서 교차로 한가운데 115초 서 있었는데 이 장치가 걸리지 않았다(앞차 거리 조건·빨간불 조건 때문으로 봄).
             //   이제 "앞 45 m 안의 빨간불·보행자 대기"가 아닌데 15초 넘게 서 있으면 건다. 치우는 범위도 앞 18 m·옆 8 m(가로로 선 버스).
-            if (route != null && !NoClear && w.traffic != null && !(redNow && stopAt < 45f) && !wasPed && Math.Abs(car.speed) < 0.2f && !RouteDone)
+            // 경로 없는 자유 자동 운전에도 건다: 내 차를 기다리는 다른 차와 서로 마주 서서(내 차는 앞차를, 그 차는 내 차를 기다림) 영영 섰다(양재1동 바우뫼로43길)
+            if (!NoClear && w.traffic != null && !(redNow && stopAt < 45f) && !wasPed && Math.Abs(car.speed) < 0.2f && !RouteDone && uLane < 0)
             {
-                blockedT += dt;
+                blockedT += dt; blockedAll += dt;
                 if (blockedT > 15f)
                 {
                     int n = 0;
                     for (int i = w.traffic.cars.Count - 1; i >= 0; i--)
                     {
                         var tc = w.traffic.cars[i]; var rel = tc.pos - front; float ah = rel.Dot(dir);
-                        if (tc.speed < 0.3f && ah > -2f && ah < 18f && Math.Abs(rel.x * dir.y - rel.y * dir.x) < 8f && Math.Abs(tc.z - car.z) < 2.5f) { w.traffic.cars.RemoveAt(i); n++; }
+                        if (tc.speed < 0.3f && ah > -2f && ah < 18f && Math.Abs(rel.x * dir.y - rel.y * dir.x) < 8f && Math.Abs(tc.z - car.z) < 2.5f
+                            && (route != null || WaitsForMe(tc, blockedAll))) { w.traffic.cars.RemoveAt(i); n++; }
                     }
                     clearedAhead += n; blockedT = 8f;
                     Log?.Invoke($"막힘 풀기: 앞에 선 차 {n}대 치움 ({front.x:0},{front.y:0})");
                 }
             }
-            else blockedT = 0f;
+            else { blockedT = 0f; blockedAll = 0f; }
             w.autoSpeed = true;
             var o = AutoSpeed.Control(w, Math.Max(1f, cap * 3.6f));
             accel = o.accel; brake = o.brake; brakeAmount = o.brakeAmount;
@@ -462,7 +470,20 @@ namespace DriveCoach.Core
         public string Why = "";
         /// <summary>검수용: 막힘 풀기를 끈다(다른 차끼리 막히는지 그대로 보려고)</summary>
         public static bool NoClear;
-        float blockedT;
+        float blockedT, blockedAll;
+
+        /// <summary>
+        /// 경로 없는 자유 자동 운전에서 치워도 되는 차: 기다림 사슬(waitBy)이 내 차에서 끝나는 차(서로 마주 서 기다림)만.
+        /// 빨간불·보행자·버스 정류장 줄(사슬 끝이 신호·보행자·버스)은 치우지 않는다 — 정지선이 45 m 넘게 먼 신호 줄 뒤에서 15초마다 앞차가 사라졌다.
+        /// 다른 차끼리 얽힌 고리(사슬이 16대를 넘거나 돈다)는 Traffic 의 고리 풀기가 45~90초 안에 푸므로 120초 넘게 막혔을 때만.
+        /// </summary>
+        static bool WaitsForMe(TrafficCar tc, float blocked)
+        {
+            var x = tc;
+            for (int n = 0; n < 16 && x.waitBy != null; n++) { x = x.waitBy; if (x == tc) break; }
+            if (x.waitBy != null) return blocked > 120f;      // 고리·긴 사슬
+            return x.waitWhy == "me" || (x.waitWhy == "box" && x.speed < 0.3f);      // 내 차 때문에 섬(막은 차 없는 box = 앞이 내 차라 붙는 구간에 못 들어감)
+        }
 
         /// <summary>내 길을 따라 ahead m 앞의 길 방향이 지금 차 방향과 이루는 각(도)</summary>
         float HeadingChange(RoadDef road, float ahead, V2 dir)
@@ -477,6 +498,92 @@ namespace DriveCoach.Core
             return (float)(Math.Acos(Geom.Clamp(d.Dot(dir), -1f, 1f)) * Geom.Rad2Deg);
         }
 
+        /// <summary>
+        /// 데이터가 없는 옆 동 쪽으로 경계 밖 14 m 넘게 나와 바깥으로 가고 있는가. 22 m(+4 m)를 넘으면 World 가 차를 세워
+        /// 자동 운전이 지도 끝에서 영영 서 있었다 → 그 전에 맞은편 차로로 돌아 나온다.
+        /// </summary>
+        static bool NearEdgeOut(RoadDef road, Vehicle car)
+        {
+            var rg = road.region;
+            if (rg == null || rg.boundary.Length < 3) return false;
+            var c = car.Center;
+            if (Geom.PointInPolygon(c, rg.boundary)) return false;
+            float dist = Geom.DistPointPoly(c, rg.boundary, out var edge);
+            if (dist < RegionData.BorderSlack - 8f) return false;
+            var nb = rg.NeighborAt(c);
+            // 옆 동 데이터가 있으면 넘어가 그 지도로 바뀐다(GameMain) — 바뀌지 않고 지도 그림 끝(여유 폭 − 60 m)까지 오면 그때는 돌아 나온다
+            if (nb != null && nb.file != "" && dist < rg.margin - 60f) return false;
+            return car.Dir.Dot((c - edge).Normalized) > 0.2f;
+        }
+
+        /// <summary>
+        /// 돌아 나올 차로: 차 둘레 25 m 안의 거꾸로 가는(차 방향과 120° 넘게) 차로 가운데 가깝고, 그 길로 30 m 가면 지도 안쪽으로 다가가는 것
+        /// (막다른 길이면 안쪽 조건 없이, 좁은 골목의 맞은편 차로도)
+        /// </summary>
+        void StartUTurn(RoadDef road, Vehicle car, bool deadEnd = false)
+        {
+            var p = car.Center; var d = car.Dir; var rg = road.region;
+            bool hasB = rg != null && rg.boundary.Length >= 3;      // 동네 지도가 아니면(연습 코스) 막다른 길에서만 쓴다
+            if (!hasB && !deadEnd) return;
+            float dNow = !hasB || Geom.PointInPolygon(p, rg.boundary) ? 0f : Geom.DistPointPoly(p, rg.boundary, out _);
+            int best = -1; float bestScore = float.MaxValue, bestS = 0f;
+            for (int k = 0; k < road.lanes.Count; k++)
+            {
+                var c = road.lanes[k].center;
+                if (c == null || c.Length < 2 || (road.lanes[k].shared && !deadEnd)) continue;
+                float acc = 0f;
+                for (int i = 0; i + 1 < c.Length; i++)
+                {
+                    float segL = c[i + 1].DistanceTo(c[i]);
+                    if (Math.Abs(c[i].x - p.x) < 25f + segL && Math.Abs(c[i].y - p.y) < 25f + segL)
+                    {
+                        var q = Geom.ClosestPointOnSegment(p, c[i], c[i + 1]);
+                        float dd = q.DistanceTo(p);
+                        var ld = (c[i + 1] - c[i]).Normalized;
+                        if (dd < 25f && ld.Dot(d) < -0.5f && Math.Abs(road.lanes[k].ZAt(i, 0.5f) - car.z) < 2.5f)
+                        {
+                            float sq = acc + q.DistanceTo(c[i]);
+                            var cu = Cum(c);
+                            if (cu[cu.Length - 1] - sq > 30f)
+                            {
+                                var ahead = At(c, cu, sq + 30f, out _);
+                                float dA = !hasB || Geom.PointInPolygon(ahead, rg.boundary) ? 0f : Geom.DistPointPoly(ahead, rg.boundary, out _);
+                                if ((deadEnd || dA < dNow - 5f) && dd < bestScore) { bestScore = dd; best = k; bestS = sq; }
+                            }
+                        }
+                    }
+                    acc += segL;
+                }
+            }
+            uTry = 3f;      // 못 찾으면 3초 뒤 다시(차로를 다 훑으므로 매 장 하지 않는다)
+            if (best < 0) return;
+            uLane = best; uT = 0f; uTurns++;
+            li = best; cum = Cum(road.lanes[best].center); s = bestS; nextLi = -2; biasLeft = 0f;
+            Log?.Invoke($"{(deadEnd ? "막다른 길" : "지도 끝")}: 맞은편 차로 {best}({road.lanes[best].name})로 돌아 나옴 ({p.x:0},{p.y:0})");
+        }
+
+        /// <summary>돌아 나오기: 왼쪽 끝까지 감고 천천히 돈다(닿으면 오른쪽으로 감고 물러났다 다시). 차로 방향과 25° 안으로 맞으면 보통 주행으로(60초 넘으면 그만)</summary>
+        float UTurnSteer(RoadDef road, Vehicle car, float dt, out bool stop)
+        {
+            stop = false;
+            uT += dt;
+            var c = road.lanes[uLane].center;
+            s = Project(c, cum, car.Center, Math.Max(0f, s - 10f), s + 30f, out float off);
+            var target = At(c, cum, Math.Min(cum[cum.Length - 1], s + 8f), out var ld);
+            if ((ld.Dot(car.Dir) > 0.9f && off < 2.5f) || uT > 60f) { uLane = -1; if (uT > 60f) li = -1; return 0f; }
+            if (w0Touching && car.gear == Gear.D) { reverseT = 1.5f; backedUp++; return car.maxSteerDeg; }
+            // 차 방향이 차로 방향과 60° 안으로 들어오면 겨냥점을 따라간다(그 전에는 왼쪽 끝까지)
+            if (ld.Dot(car.Dir) > 0.5f)
+            {
+                var v = target - car.pos; float L = Math.Max(0.5f, v.Length); var dd = car.Dir;
+                float sinA = (dd.x * v.y - dd.y * v.x) / L;
+                float wheel = (float)Math.Atan2(2f * car.wheelbase * sinA, L) * Geom.Rad2Deg;
+                return Geom.Clamp(wheel * car.ratio, -car.maxSteerDeg, car.maxSteerDeg);
+            }
+            return -car.maxSteerDeg;
+        }
+        bool w0Touching;
+
         /// <summary>이번 프레임의 핸들 각(도, + 오른쪽). stop = 갈 곳이 없어 서야 함</summary>
         public float Steer(World w, float dt, out bool stop)
         {
@@ -485,12 +592,13 @@ namespace DriveCoach.Core
             if (road == null || road.lanes.Count == 0) { stop = true; return 0f; }
             if (route != null) return RouteSteer(w, dt, out stop);
             lastBumpAge += dt;
+            w0Touching = w.Touching && w.BumpDir > 0;
             if (reverseT > 0f)
             {
                 reverseT -= dt;
                 if (w.Touching && w.BumpDir < 0) reverseT = 0f;      // 물러나다 뒤가 닿았다: 더 물러나지 않고 바로 앞으로 간다
-                if (reverseT <= 0f) { li = -1; biasLeft = 22f; }      // 다시 갈 때 22 m 동안 옆으로 비켜 간다
-                return 0f;
+                if (reverseT <= 0f && uLane < 0) { li = -1; biasLeft = 22f; }      // 다시 갈 때 22 m 동안 옆으로 비켜 간다
+                return uLane >= 0 ? car.maxSteerDeg : 0f;      // 돌아 나오는 중이면 오른쪽 끝까지 감고 물러난다(세 번 꺾어 돌기)
             }
             if (w.Touching && car.gear == Gear.D && w.BumpDir > 0)      // 뒤가 닿은 상태(BumpDir < 0)에서는 다시 물러나지 않는다
             {
@@ -499,6 +607,9 @@ namespace DriveCoach.Core
                 lastBumpAge = 0f; reverseT = 1.8f; backedUp++;
                 return 0f;
             }
+            if (uTry > 0f) uTry -= dt;
+            if (uLane < 0 && li >= 0 && uTry <= 0f && NearEdgeOut(road, car)) StartUTurn(road, car);
+            if (uLane >= 0) return UTurnSteer(road, car, dt, out stop);
             if (li < 0 || cum == null) { Acquire(road, car); if (li < 0) { stop = true; return 0f; } }
             var c = road.lanes[li].center;
             s = Project(c, cum, car.Center, s - 3f, s + 30f, out float off);
@@ -514,7 +625,13 @@ namespace DriveCoach.Core
             else
             {
                 if (nextLi == -2) Choose(road);
-                if (nextLi < 0) { target = c[c.Length - 1]; if (len - s < 3f) stop = true; }
+                if (nextLi < 0)
+                {
+                    target = c[c.Length - 1];
+                    // 막다른 길: 끝 12 m 앞에서 맞은편 차로로 돌아 나온다(없으면 선다)
+                    if (len - s < 12f && Math.Abs(car.speed) < 3f && uTry <= 0f) { StartUTurn(road, car, true); if (uLane >= 0) return UTurnSteer(road, car, dt, out stop); }
+                    if (len - s < 3f) stop = true;
+                }
                 else
                 {
                     var nc = road.lanes[nextLi].center; var ncu = Cum(nc);

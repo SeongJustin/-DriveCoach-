@@ -1,4 +1,4 @@
-// MenuScreen 의 설정 부분(11/15 코드 정리로 MenuScreen.cs 에서 나눈 파일). 전체 설명은 MenuScreen.cs 맨 위.
+// MenuScreen 의 설정 부분(MenuScreen.cs 에서 나눈 파일). 전체 설명은 MenuScreen.cs 맨 위.
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -17,7 +17,7 @@ namespace DriveCoach.Unity
         public void OpenSettings()
         {
             settingsGo.SetActive(true);
-            // (11/15 베타 7i: 주행 화면 위에 띄우면 뒤 버튼·글이 창 가장자리에 반쯤 잘려 보였다) 주행 중에는 뒤를 더 어둡게
+            // (주행 화면 위에 띄우면 뒤 버튼·글이 창 가장자리에 반쯤 잘려 보였다) 주행 중에는 뒤를 더 어둡게
             var dim = settingsGo.GetComponent<Image>(); if (dim != null) dim.color = new Color(0f, 0f, 0f, inGame ? 0.62f : 0.35f);
             ClearSettings();
             var t = UiKit.Label(settingsCard, "설정", 40, DcAssets.UiText, true, TextAnchor.MiddleLeft);
@@ -25,7 +25,7 @@ namespace DriveCoach.Unity
             if (false)
             {
                 // 주행 중에 바꾸면 바로 바뀌는 것(화면 조작·속도·거울·센서음)과 판을 다시 지어야 바뀌는 것을 알린다
-                // (11/15 베타 7i: 날씨를 비로 바꾸자 '다시' 전에 빗줄기가 내렸다) 하늘·비·눈은 바로, 판을 다시 지어야 하는 것만 '다시'
+                // (날씨를 비로 바꾸자 '다시' 전에 빗줄기가 내렸다) 하늘·비·눈은 바로, 판을 다시 지어야 하는 것만 '다시'
                 var note = UiKit.Label(settingsCard, "날씨와 시간은 바로 바뀝니다.\n그래픽, 교통, 보행자는 '리셋'을 누르면 바뀝니다.", 20, DcAssets.UiText, false, TextAnchor.MiddleRight);
                 UiKit.Place(note.rectTransform, new Vector2(1, 1), new Vector2(-48, -30), new Vector2(560, 60));
             }
@@ -36,20 +36,20 @@ namespace DriveCoach.Unity
                 new[] { "따라가기", "운전석", "위에서" },
                 () => Prefs.StartCam == CamMode.Driver ? 1 : (Prefs.StartCam == CamMode.Top ? 2 : 0),
                 v => Prefs.StartCam = v == 1 ? CamMode.Driver : (v == 2 ? CamMode.Top : CamMode.Chase));
-            // (11/15 대표) 속도: 먼저 자동/수동, 그 아래에서 자동 속도 단계(수동 = 실제 가속 페달)
+            // 속도: 먼저 자동/수동, 그 아래에서 자동 속도 단계(수동 = 실제 가속 페달)
             if (Prefs.SpeedChoice != 3) autoLevel = Mathf.Clamp(Prefs.SpeedChoice, 0, 2);
             Seg(ref y, "속도", "", new[] { "자동", "수동" }, () => Prefs.SpeedChoice == 3 ? 1 : 0, v => Prefs.SpeedChoice = v == 1 ? 3 : autoLevel);
             y += 14f;
             Seg(ref y, "", "", new[] { "느림", "보통", "빠름" }, () => autoLevel, v => { autoLevel = v; if (Prefs.SpeedChoice != 3) Prefs.SpeedChoice = v; });
             Seg(ref y, "주차 센서음", "", new[] { "켬", "끔" }, () => Prefs.SensorSound ? 0 : 1, v => Prefs.SensorSound = v == 0);
             Seg(ref y, "그래픽", "", new[] { "낮음", "중간", "높음" }, () => Prefs.Quality, v => Prefs.Quality = v);
-            // 운전석 시야(11/8): 앞뒤·위아래·좌우로 눈 위치 옮기기 → 따로 한 장
+            // 운전석 시야: 앞뒤·위아래·좌우로 눈 위치 옮기기 → 따로 한 장
             ActionRow(ref y, "운전석 시야", SeatPanel.Summary(),
                 new[] { ("맞추기", (Action)OpenSeatPage), ("초기화", (Action)(() => { Prefs.ResetSeat(); OpenSettings(); })) });
-            // 11/8 밤: 날씨·시간(바깥 판: 내 동네·서킷·도로. 지하 주차장은 늘 실내등)
+            // 날씨·시간(바깥 판: 내 동네·서킷·도로. 지하 주차장은 늘 실내등)
             ActionRow(ref y, "날씨, 시간, 교통", WeatherNames[Prefs.Weather] + ", " + TimeNames[Prefs.TimeOfDay] + ", 교통 " + new[] { "적게", "보통", "많게" }[Prefs.TrafficLevel] + ", 보행자 " + new[] { "없음", "적게", "보통", "많게" }[Prefs.PedLevel],
                 new[] { ("바꾸기", (Action)OpenWeatherPage) });
-            // 11/13: 화면 조작(가상 운전대·액셀·브레이크)·자동 운전
+            // 화면 조작(가상 운전대·액셀·브레이크)·자동 운전
             ActionRow(ref y, "화면 조작 및 자동 운전", "스티어링 휠 " + OnOff(Prefs.VWheel) + ", 가속 페달 " + OnOff(Prefs.VAccel) + ", 브레이크 " + (Prefs.VBrake ? "누르는 동안" : "켜고 끄기") + ", 자동 운전 " + OnOff(Prefs.AutoDrive),
                 new[] { ("바꾸기", (Action)OpenControlPage) });
             BottomButton("닫기", CloseSettings);
@@ -57,7 +57,7 @@ namespace DriveCoach.Unity
 
         static string OnOff(bool b) => b ? "켬" : "끔";
 
-        /// <summary>설정 안 한 장(11/13): 화면을 눌러 운전하기 — 가상 운전대·액셀·브레이크를 따로 켜고 끈다. 자동 운전(검수·시연)</summary>
+        /// <summary>설정 안 한 장: 화면을 눌러 운전하기 — 가상 운전대·액셀·브레이크를 따로 켜고 끈다. 자동 운전</summary>
         void OpenControlPage()
         {
             ClearSettings();
@@ -67,8 +67,8 @@ namespace DriveCoach.Unity
                 "",
                 22, DcAssets.UiSub, false, TextAnchor.UpperLeft);
             UiKit.Place(h.rectTransform, new Vector2(0, 1), new Vector2(48, -104), new Vector2(944, 110));
-            float y = -230f;
-            // (11/14 베타: 브레이크 버튼 방식이 설정에 따라 바뀌는데 이름으로는 모른다) 무엇이 바뀌는지 그대로 쓴다
+            float y = -100f;   // 설명 줄이 비어 생긴 빈칸 없이 제목 바로 아래부터(첫 화면과 같은 자리)
+            // (브레이크 버튼 방식이 설정에 따라 바뀌는데 이름으로는 모른다) 무엇이 바뀌는지 그대로 쓴다
             Seg(ref y, "화면 스티어링 휠", "", new[] { "끔", "켬" }, () => Prefs.VWheel ? 1 : 0, v => Prefs.VWheel = v == 1);
             Seg(ref y, "화면 가속 페달", "누르는 동안 가속", new[] { "끔", "켬" }, () => Prefs.VAccel ? 1 : 0, v => Prefs.VAccel = v == 1);
             Seg(ref y, "브레이크 버튼", "한 번 누르면 밟은 채로 / 누르는 동안만 밟음", new[] { "켜고 끄기", "누르는 동안" }, () => Prefs.VBrake ? 1 : 0, v => Prefs.VBrake = v == 1);
@@ -95,7 +95,7 @@ namespace DriveCoach.Unity
         static readonly string[] WeatherNames = { "맑음", "흐림", "비", "안개", "눈" };
         static readonly string[] TimeNames = { "아침", "낮", "해질녘", "밤" };
 
-        /// <summary>설정 안 한 장: 날씨·시간(11/8 밤 대표 요청)</summary>
+        /// <summary>설정 안 한 장: 날씨·시간</summary>
         void OpenWeatherPage()
         {
             ClearSettings();
@@ -105,7 +105,7 @@ namespace DriveCoach.Unity
                 "",
                 22, DcAssets.UiSub, false, TextAnchor.UpperLeft);
             UiKit.Place(h.rectTransform, new Vector2(0, 1), new Vector2(48, -104), new Vector2(944, 110));
-            float y = -230f;
+            float y = -100f;   // 제목 바로 아래부터
             Seg(ref y, "날씨", "", WeatherNames, () => Prefs.Weather, v => Prefs.Weather = v);
             Seg(ref y, "시간", "", TimeNames, () => Prefs.TimeOfDay, v => Prefs.TimeOfDay = v);
             Seg(ref y, "교통량", "다른 차", new[] { "적게", "보통", "많게" }, () => Prefs.TrafficLevel, v => Prefs.TrafficLevel = v);
@@ -132,18 +132,18 @@ namespace DriveCoach.Unity
         /// <summary>설정 한 줄: 이름·설명 + 오른쪽 버튼들(누르면 바로 동작, 고르는 줄이 아님)</summary>
         void ActionRow(ref float y, string label, string help, (string name, Action act)[] buttons)
         {
-            var l = UiKit.Label(settingsCard, label, 30, DcAssets.UiText, true, TextAnchor.UpperLeft);
-            UiKit.Place(l.rectTransform, new Vector2(0, 1), new Vector2(48, y), new Vector2(300, 44));
+            var l = UiKit.Label(settingsCard, label, 30, DcAssets.UiText, true, TextAnchor.MiddleLeft);   // 버튼 가운데 높이에
+            UiKit.Place(l.rectTransform, new Vector2(0, 1), new Vector2(48, y + 4f), new Vector2(360, 68));
             const float bw = 170f, gap = 10f;
             float buttonsW = buttons.Length * bw + (buttons.Length - 1) * gap;
-            help = "";   // (11/15 대표) 회색 설명 글은 뺐다
+            help = "";   // 회색 설명 글은 뺐다
             var hl = UiKit.Label(settingsCard, help, 20, DcAssets.UiSub, false, TextAnchor.UpperLeft);
             UiKit.Place(hl.rectTransform, new Vector2(0, 1), new Vector2(48, y - 46), new Vector2(Mathf.Min(560f, 1040f - 96f - buttonsW - 24f), 54));
             float x = -48f;
             for (int i = buttons.Length - 1; i >= 0; i--)
             {
                 var act = buttons[i].act;
-                // (11/15 베타 7i: 첫 버튼만 라임이라 "기본 자리"인데 "맞추기"가 골라진 상태로 보였다) 고르는 칸(Seg)과 헷갈리지 않게 모두 흰 버튼
+                // (첫 버튼만 라임이라 "기본 자리"인데 "맞추기"가 골라진 상태로 보였다) 고르는 칸(Seg)과 헷갈리지 않게 모두 흰 버튼
                 var b = UiKit.Btn(settingsCard, buttons[i].name, 26, UiKit.Kind.Plain, () => act(), out _);
                 UiKit.Place((RectTransform)b.transform, new Vector2(1, 1), new Vector2(x, y + 4f), new Vector2(bw, 68));
                 x -= bw + gap;
@@ -152,16 +152,17 @@ namespace DriveCoach.Unity
         }
 
         static int autoLevel = 1;
-        const float RowStep = 88f;   // 11/8 밤: 날씨·시간 줄을 더하며 108 → 96
+        const float RowStep = 88f;   // 날씨·시간 줄을 더하며 108 → 96
 
         void Seg(ref float y, string label, string help, string[] options, Func<int> get, Action<int> set)
         {
-            var l = UiKit.Label(settingsCard, label, 30, DcAssets.UiText, true, TextAnchor.UpperLeft);
-            UiKit.Place(l.rectTransform, new Vector2(0, 1), new Vector2(48, y), new Vector2(300, 44));
+            // 이름을 버튼(높이 68)의 가운데 높이에 맞춘다(전에는 버튼 위쪽에 붙어 보였다)
+            var l = UiKit.Label(settingsCard, label, 30, DcAssets.UiText, true, TextAnchor.MiddleLeft);
+            UiKit.Place(l.rectTransform, new Vector2(0, 1), new Vector2(48, y + 4f), new Vector2(300, 68));
             float bw = options.Length > 4 ? 136f : (options.Length > 3 ? 150f : 170f);
             const float gap = 10f;
             float buttonsW = options.Length * bw + (options.Length - 1) * gap;
-            help = "";   // (11/15 대표) 설정의 회색 설명 글은 모두 뺐다
+            help = "";   // 설정의 회색 설명 글은 모두 뺐다
             var h = UiKit.Label(settingsCard, help, 20, DcAssets.UiSub, false, TextAnchor.UpperLeft);
             UiKit.Place(h.rectTransform, new Vector2(0, 1), new Vector2(48, y - 46), new Vector2(Mathf.Min(420f, 1040f - 96f - buttonsW - 24f), 54));
             var row = new SegRow { get = get, set = set, btns = new Button[options.Length], texts = new Text[options.Length] };

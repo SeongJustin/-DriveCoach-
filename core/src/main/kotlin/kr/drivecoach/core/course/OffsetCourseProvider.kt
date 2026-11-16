@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — 길찾기 API 키가 없을 때 현재 위치 기준 오프셋으로 짧은 연습 코스를 만드는 임시 코스 소스. T 가 실제 Directions API 로 교체)
+// 앱 연결 — 길찾기 API 키가 없을 때 현재 위치 기준 오프셋으로 짧은 연습 코스를 만드는 임시 코스 소스(키가 있으면 실제 Directions API 를 쓴다)
 package kr.drivecoach.core.course
 
 import kotlin.math.cos
@@ -75,11 +75,11 @@ interface CourseSource {
 
 /**
  * CourseGenerator(실제 길찾기 API)를 [CourseSource] 로 감싼다. 진행 방향은 쓰지 않는다(생성기가 8방위를 전부 시도).
- * 네트워크 호출(동기)이므로 앱은 백그라운드 스레드에서 부른다. 실패 이유는 [CourseResult.failure] 로 올라온다(T, 11/3).
+ * 네트워크 호출(동기)이므로 앱은 백그라운드 스레드에서 부른다. 실패 이유는 [CourseResult.failure] 로 올라온다.
  * 내비에 넘길 점은 [NaviHandoff.toNaviRequest] 가 경로 path 위의 점으로 만든다.
  */
 class GeneratedCourseSource(private val generator: CourseGenerator) : CourseSource {
-    // (11/14 베타: "재시험 대비"와 "시내 입문"이 같은 코스) 조건마다 첫 경유지 방위를 다르게 돌려 서로 다른 후보부터 본다
+    // ("재시험 대비"와 "시내 입문"이 같은 코스) 조건마다 첫 경유지 방위를 다르게 돌려 서로 다른 후보부터 본다
     override fun generate(start: LatLon, headingDeg: Double?, spec: CourseSpec): CourseResult =
         generator.generate(start, spec, ((spec.hashCode() and 0x7fffffff) % 8) * 22.5)
 }

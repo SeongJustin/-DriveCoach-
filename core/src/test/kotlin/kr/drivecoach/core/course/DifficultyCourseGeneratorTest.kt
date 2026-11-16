@@ -133,7 +133,7 @@ fun main() {
         assertFailsWith<IllegalArgumentException> { DifficultyCourseGenerator(FakeRouteProvider { null }, 0) }
         assertFailsWith<IllegalArgumentException> { DifficultyCourseGenerator(FakeRouteProvider { null }).generate(LatLon(100.0, 0.0), null, spec) }
     }
-    // (11/15 오류 검수) 직진 위주(페달 헷갈림): 편도 후보, 회전 2번 넘으면 탈락
+    // 직진 위주(페달 헷갈림): 편도 후보, 회전 2번 넘으면 탈락
     test("pedal confusion candidates go straight without side waypoints") {
         val pedal = spec.copy(fearFocus = Fear.PEDAL_CONFUSION, difficulty = 1, loop = false)
         val c = DifficultyCourseGenerator(FakeRouteProvider { null }).candidates(origin, 0.0, pedal)

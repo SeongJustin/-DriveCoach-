@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — 음성 엔진: Pleos TextToSpeech SDK(ON_DEVICE) 하나만. 안 되면 화면 글씨만(소리 없음))
+// 앱 연결 — 음성 엔진: Pleos TextToSpeech SDK(ON_DEVICE) 하나만. 안 되면 화면 글씨만(소리 없음)
 package kr.drivecoach.app.speech
 
 import android.content.Context
@@ -11,12 +11,12 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * 쓸 수 있는 TTS 엔진을 순서대로 시도한다.
- *  - 11/7 Pleos 서포트 답변: TTS·STT 는 공모전용으로 에뮬레이터에서도 제공됨. 같은 날 에뮬레이터에서 동작 확인(로캘은 ko-KR 이어야 함)
+ *  - Pleos 서포트 답변: TTS·STT 는 공모전용으로 에뮬레이터에서도 제공됨. 같은 날 에뮬레이터에서 동작 확인(로캘은 ko-KR 이어야 함)
  *    → **Pleos TextToSpeech SDK(ON_DEVICE)만 쓴다.**
- *  - 11/13 사무국 메일: "음성 읽어 주기 기능은 개발 문서에 안내된 방식으로 구현 … 문서에 안내되지 않은 방식은 사용할 수 없습니다"
+ *  - 공모전 사무국 안내: "음성 읽어 주기 기능은 개발 문서에 안내된 방식으로 구현 … 문서에 안내되지 않은 방식은 사용할 수 없습니다"
  *    → 예비로 두었던 사전 녹음 클립(assets/tts 527개)·Android TTS 를 모두 뺐다. Pleos TTS 가 실패하면 소리 없이 화면 글씨로만 안내하고([NoopSpeaker]),
  *      [RETRY_MS] 부터 간격을 늘려 가며 Pleos TTS 를 다시 시도한다.
- *  - SERVER/HYBRID 모드는 쓰지 않는다(11/7 에뮬레이터에서 우리 프로젝트 자격 증명으로 UNAUTHENTICATED). 앱에 Pleos 키도 넣지 않는다.
+ *  - SERVER/HYBRID 모드는 쓰지 않는다(에뮬레이터에서 우리 프로젝트 자격 증명으로 UNAUTHENTICATED). 앱에 Pleos 키도 넣지 않는다.
  *
  * 엔진 초기화는 비동기라 "지금 어떤 엔진인지"가 나중에 바뀔 수 있다. 그래서 호출자에게는 [FallbackSpeaker] 하나를 돌려주고,
  * 그 안에서 엔진을 갈아끼운다. 진단 화면은 [FallbackSpeaker.activeName] 으로 현재 엔진 이름을 본다.
@@ -37,7 +37,7 @@ class FallbackSpeaker(context: Context) : Speaker {
     private val focus = GuidanceAudioFocus(appContext) { onFocusLost() }
 
     /**
-     * (11/16) 포커스를 잃었을 때 컨트롤러가 줄에 남은 안내를 비우게 알린다(통화·음성 비서가 끝나도 남은 안내가 이어 나오지 않게,
+     * 포커스를 잃었을 때 컨트롤러가 줄에 남은 안내를 비우게 알린다(통화·음성 비서가 끝나도 남은 안내가 이어 나오지 않게,
      * Pleos 오디오 포커스 가이드: Resume 때 자동 재생 금지). 위험·경고등 안내와 새 버튼 응답은 그대로 나온다.
      */
     var onFocusLostListener: (() -> Unit)? = null
@@ -92,7 +92,7 @@ class FallbackSpeaker(context: Context) : Speaker {
 
     /**
      * Pleos TTS 를 못 쓸 때: 소리 없이(화면 글씨만) 두고, 조금 뒤 다시 시도한다(5초 → 10초 → … 최대 30초 간격).
-     * 다른 음성 방식(녹음·Android TTS)으로 바꾸지 않는다(11/13 사무국: 문서에 안내된 방식만).
+     * 다른 음성 방식(녹음·Android TTS)으로 바꾸지 않는다(사무국: 문서에 안내된 방식만).
      */
     private fun afterPleos() {
         installNoop()
@@ -102,7 +102,7 @@ class FallbackSpeaker(context: Context) : Speaker {
     }
 
     private fun tryPleos() {
-        // 11/7: ON_DEVICE 고정(서포트: 에뮬레이터에서 ON_DEVICE 정상). 실패하면 소리 없이 두고 다시 시도.
+        // ON_DEVICE 고정(서포트: 에뮬레이터에서 ON_DEVICE 정상). 실패하면 소리 없이 두고 다시 시도.
         val pleos = PleosTtsSpeaker(appContext) { reason -> onFailed("Pleos TTS", reason) { afterPleos() } }
         install(pleos)
         pleos.start()
@@ -134,7 +134,7 @@ class FallbackSpeaker(context: Context) : Speaker {
     }
 
     /**
-     * Pleos "TTS / 음성 안내 선행 묵음" 가이드(11/9): 새 음성 세션(포커스를 새로 받은 때)의 첫 문장 앞에 150~200 ms 묵음.
+     * Pleos "TTS / 음성 안내 선행 묵음" 가이드: 새 음성 세션(포커스를 새로 받은 때)의 첫 문장 앞에 150~200 ms 묵음.
      *  - Pleos TTS 는 엔진이 직접 소리를 내 데이터에 묵음을 넣을 수 없다 → [PREROLL_MS] 만큼 늦게 넘긴다(가이드 3순위, 출력 경로·포커스는 먼저 잡은 상태).
      *  - 포커스를 쥔 채 이어지는 문장(이어 말하기)에는 넣지 않는다.
      */

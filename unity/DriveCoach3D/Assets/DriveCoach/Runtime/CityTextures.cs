@@ -1,4 +1,4 @@
-// 건물 외벽 무늬 질감(11/15 코드 정리로 CityBuilder.cs 에서 나눈 파일).
+// 건물 외벽 무늬 질감(CityBuilder.cs 에서 나눈 파일).
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -116,7 +116,7 @@ namespace DriveCoach.Unity
                     break;
             }
             t.SetPixels32(px);
-            t.Apply(true, true);   // (11/13) 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
+            t.Apply(true, true);   // 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
             cache["f" + kind] = t;
             return t;
         }
@@ -147,12 +147,12 @@ namespace DriveCoach.Unity
                 x += cw + 8;
             }
             t.SetPixels32(px);
-            t.Apply(true, true);   // (11/13) 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
+            t.Apply(true, true);   // 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
             cache["s" + n] = t;
             return t;
         }
 
-        /// <summary>(11/11 낮) 연석: 밝은 화강석(잔 얼룩) 1 m × 1 m, 왼쪽 끝에 어두운 이음매 한 줄 — 가로(u)로 1 m 마다 되풀이된다</summary>
+        /// <summary>연석: 밝은 화강석(잔 얼룩) 1 m × 1 m, 왼쪽 끝에 어두운 이음매 한 줄 — 가로(u)로 1 m 마다 되풀이된다</summary>
         public static Texture2D Curb()
         {
             if (cache.TryGetValue("curb", out var t)) return t;
@@ -170,12 +170,12 @@ namespace DriveCoach.Unity
             Fill(px, W, 0, 0, 3, H, C("#77766F"));      // 이음매
             Fill(px, W, 3, 0, 5, H, C("#A9A8A2"));
             t.SetPixels32(px);
-            t.Apply(true, true);   // (11/13) 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
+            t.Apply(true, true);   // 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
             cache["curb"] = t;
             return t;
         }
 
-        /// <summary>(11/11 낮) 어린이보호구역 빨간 미끄럼 방지 포장: 짙은 벽돌빛 바탕에 굵은 알갱이(단색 페인트처럼 번들거리지 않게)</summary>
+        /// <summary>어린이보호구역 빨간 미끄럼 방지 포장: 짙은 벽돌빛 바탕에 굵은 알갱이(단색 페인트처럼 번들거리지 않게)</summary>
         public static Texture2D RedPave()
         {
             if (cache.TryGetValue("redpave", out var t)) return t;
@@ -189,7 +189,7 @@ namespace DriveCoach.Unity
                 px[i] = new Color32((byte)Mathf.Clamp(134 + dn, 0, 255), (byte)Mathf.Clamp(44 + dn / 2, 0, 255), (byte)Mathf.Clamp(38 + dn / 2, 0, 255), 255);
             }
             t.SetPixels32(px);
-            t.Apply(true, true);   // (11/13) 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
+            t.Apply(true, true);   // 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
             cache["redpave"] = t;
             return t;
         }
@@ -202,7 +202,7 @@ namespace DriveCoach.Unity
             var px = new Color32[W * H];
             Fill(px, W, 0, 0, W, H, C("#9C9C98"), new System.Random(3), 8);
             t.SetPixels32(px);
-            t.Apply(true, true);   // (11/13) 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
+            t.Apply(true, true);   // 그린 뒤 다시 읽지 않는다 → 일반 메모리의 사본을 내린다
             cache["roof"] = t;
             return t;
         }

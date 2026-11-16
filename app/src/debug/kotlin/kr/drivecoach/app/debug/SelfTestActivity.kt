@@ -1,4 +1,4 @@
-// 담당: S (debug 전용 자가 검사, 11/7) — adb 로 띄워 사람 없이 Pleos 연결·음성·음성 명령을 확인한다.
+// debug 전용 자가 검사 — adb 로 띄워 사람 없이 Pleos 연결·음성·음성 명령을 확인한다.
 // 결과는 화면과 logcat(태그 DCTEST)에 "PASS/FAIL/INFO 이름 | 내용" 으로 남고, 마지막 줄은 "DONE pass=N fail=M".
 package kr.drivecoach.app.debug
 
@@ -127,7 +127,7 @@ class SelfTestActivity : Activity() {
         val recordings = svc.lab.commandRecordings()
         if (recordings.isEmpty()) line("INFO", "녹음 인식", "녹음 없음")
         val recognizer = CommandRecognizer()
-        // 녹음 인식은 항상 듣기를 잠시 끄고 잰다(11/8: 듣던 세션을 끊고 바로 넣으면 앞부분이 잘리는지 가려내려고).
+        // 녹음 인식은 항상 듣기를 잠시 끄고 잰다(듣던 세션을 끊고 바로 넣으면 앞부분이 잘리는지 가려내려고).
         // 항상 듣기와 함께 쓰는 경로는 아래 4) "다음 → 법규 다음 주제" 에서 따로 본다.
         val alwaysWasOn = svc.voice.alwaysOn.value
         if (alwaysWasOn) { svc.voice.setAlwaysOn(false); waitUntil(3_000) { svc.voice.state.value == VoiceCommandListener.State.READY } }
@@ -168,7 +168,7 @@ class SelfTestActivity : Activity() {
             svc.coach.endLaw()
         }
 
-        // 5) Pleos TTS 문장 길이(회전 안내 시점 보정용, 11/7): 안내 문장을 직접 말하게 하고
+        // 5) Pleos TTS 문장 길이(회전 안내 시점 보정용): 안내 문장을 직접 말하게 하고
         //    말하라고 한 때 → 소리가 나기 시작한 때 → 소리가 멈춘 때 → 끝 알림(onDone)을 잰다.
         //    끝 알림이 소리보다 먼저 오면(음수) 코치가 "다 말했다" 고 보고 마이크를 다시 여는 시점이 이르다는 뜻이다.
         measureTts(svc)
@@ -177,10 +177,10 @@ class SelfTestActivity : Activity() {
         line("INFO", "주행 중 화면(DO)", "adb 설치 앱은 에뮬레이터(user 빌드)에서 인정되지 않는 것이 정상")
         svc.coach.lawUi.value?.let { svc.coach.endLaw() }
 
-        // 7) 3D 주차·핸들 연습(Unity, 11/8): 켜지는지(준비 신호). 8단계를 운전석 시점(거울 3개 + 화면 거울)으로 25초 돌린 뒤 스스로 닫힌다.
-        //    초당 화면 수는 게임이 logcat 에 "DC3D fps=…" 로 남기고, 자동 검수가 보고서에 옮긴다.
+        // 7) 3D 주차·핸들 연습: 켜지는지(준비 신호). 8단계를 운전석 시점(거울 3개 + 화면 거울)으로 25초 돌린 뒤 스스로 닫힌다.
+        //    초당 화면 수는 게임이 logcat 에 "DC3D fps=…" 로 남긴다.
         if (BuildConfig.HAS_UNITY) {
-            // 기기 CPU 종류: Unity 6.5+ 는 x86_64 를 못 만든다(11/8) → 에뮬레이터(x86_64)에서 3D 가 안 켜지면 먼저 이것을 본다
+            // 기기 CPU 종류: Unity 6.5+ 는 x86_64 를 못 만든다 → 에뮬레이터(x86_64)에서 3D 가 안 켜지면 먼저 이것을 본다
             line("INFO", "기기 CPU", android.os.Build.SUPPORTED_ABIS.joinToString(", "))
             val before = GameLauncher.fails(this)
             val t0 = SystemClock.elapsedRealtime()
@@ -206,7 +206,7 @@ class SelfTestActivity : Activity() {
             startActivity(Intent(this, SelfTestActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
             delay(1_500)
 
-            // 8) 실제 동네(도로 주행) 열기(11/11): 지도가 커서 메모리가 가장 많이 든다. 11/11 새벽 에뮬레이터(3 GB)에서 메모리 부족으로
+            // 8) 실제 동네(도로 주행) 열기: 지도가 커서 메모리가 가장 많이 든다. 에뮬레이터(3 GB)에서 메모리 부족으로
             //    시스템이 재시작된 뒤 넣은 검사. 첫 동네를 운전석 시점으로 열어 40초 뒤에도 살아 있는지와 그때의 메모리(PSS)를 적는다.
             if (ok) {
                 line("INFO", "실제 동네 여는 중", "첫 동네(운전석 시점) — 여기서 멈추면 메모리 부족")
@@ -218,8 +218,8 @@ class SelfTestActivity : Activity() {
                 check("실제 동네 열림(40초 뒤에도 실행 중)", p3 != null,
                     if (p3 != null) "3D 메모리(PSS) ${pss ?: -1} MB · 기기 남은 메모리 ${mi.availMem / 1048576} / ${mi.totalMem / 1048576} MB" + (if (mi.lowMemory) " · 기기 메모리 부족 상태" else "")
                     else "게임 프로세스가 없음(메모리 부족으로 꺼졌을 수 있음)")
-                // 9) 동 사이 이동(11/11): 44초에 게임이 차를 옆 동(앱에 든 동) 안쪽 길로 옮긴다 → 평소와 같은 길로 그 동 지도로 바뀐다.
-                //    바뀐 뒤에도 살아 있는지와 메모리를 본다(바뀌었는지는 로그의 DCCROSS 줄 — 검수 스크립트가 옮겨 적는다).
+                // 9) 동 사이 이동: 44초에 게임이 차를 옆 동(앱에 든 동) 안쪽 길로 옮긴다 → 평소와 같은 길로 그 동 지도로 바뀐다.
+                //    바뀐 뒤에도 살아 있는지와 메모리를 본다(바뀌었는지는 로그의 DCCROSS 줄).
                 delay(38_000)
                 val p4 = am.runningAppProcesses?.firstOrNull { it.processName.endsWith(":game3d") }
                 val pss4 = p4?.let { runCatching { am.getProcessMemoryInfo(intArrayOf(it.pid))[0].totalPss / 1024 }.getOrNull() }

@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — 차량 신호 → core 모듈 → 발화 정책 → TTS, 그리고 화면용 상태. 코스 주행(5장)은 NaviPort 이벤트도 같은 길로 보낸다)
+// 앱 연결 — 차량 신호 → core 모듈 → 발화 정책 → TTS, 그리고 화면용 상태. 코스 주행(5장)은 NaviPort 이벤트도 같은 길로 보낸다
 package kr.drivecoach.app
 
 import android.util.Log
@@ -134,19 +134,23 @@ class CoachController(
     /** 결과가 바뀔 때마다 서비스가 저장(SharedPreferences). */
     var onPracticeResultsChanged: ((Map<String, Phase>) -> Unit)? = null
     var onQuietChanged: ((Boolean) -> Unit)? = null
-    /** (11/14 베타: 내비로 보낸 뒤 "닫기"를 눌러도 내비 화면에 남는다) 경로를 취소한 뒤 앱 화면을 앞으로 */
+    /** (내비로 보낸 뒤 "닫기"를 눌러도 내비 화면에 남는다) 경로를 취소한 뒤 앱 화면을 앞으로 */
     var onBringToFront: (() -> Unit)? = null
 
     internal val _subMode = MutableStateFlow(SubMode.NONE)
     /** 지금 열려 있는 하위 활동(연습/핸들/주차). 화면이 어떤 카드를 그릴지 정한다. */
     val subMode: StateFlow<SubMode> = _subMode.asStateFlow()
     internal val _lawUi = MutableStateFlow<LawUi?>(null)
+    /** 지금 보는 나라의 법규 묶음(기본 한국). */
+    internal var lawSet: kr.drivecoach.core.law.LawSet = kr.drivecoach.core.law.LawSets.korea.also {
+        kr.drivecoach.core.law.LawSets.all   // 다른 나라 법규 멘트 등록을 앱 시작 때(메인 스레드) 끝내 둔다
+    }
     /** 도로 법규 화면. null 이면 닫힘. */
     val lawUi: StateFlow<LawUi?> = _lawUi.asStateFlow()
     internal val _parkingUi = MutableStateFlow<ParkingUi?>(null)
     /** 직각 주차 화면 상태. 슬로우 모드가 열려 있지 않으면 null. */
     val parkingUi: StateFlow<ParkingUi?> = _parkingUi.asStateFlow()
-    // (11/15 대표) 주차 배우기: 따라 하지 않고 단계 영상과 설명만 한 장씩 본다
+    // 주차 배우기: 따라 하지 않고 단계 영상과 설명만 한 장씩 본다
     internal val _parkLearnUi = MutableStateFlow<ParkLearnUi?>(null)
     val parkLearnUi: StateFlow<ParkLearnUi?> = _parkLearnUi.asStateFlow()
     internal var parkLearnPages: List<ParkLearnPage> = emptyList()
@@ -194,7 +198,7 @@ class CoachController(
     // ───────── 발화 상태 ─────────
     internal data class Speaking(
         val id: PhraseId, val category: PhraseCategory, val utteranceId: String, val startedMs: Long,
-        /** 이 문장이 끝나기까지 걸릴 것으로 보는 시간(ms). 긴 설명(최대 200자)을 감시견이 끊지 않게 글자 수로 계산한다(베타 D-18). */
+        /** 이 문장이 끝나기까지 걸릴 것으로 보는 시간(ms). 긴 설명(최대 200자)을 감시견이 끊지 않게 글자 수로 계산한다. */
         val expectedMs: Long = SPEAK_WATCHDOG_MS,
         val vars: Map<String, String> = emptyMap(),
     )
@@ -204,25 +208,25 @@ class CoachController(
     internal var lastPhraseSpoken: Pair<PhraseId, Map<String, String>>? = null
     internal var restricted = false
     internal var coachingPaused = false
-    /** "세울래요" 뒤 아직 서지 않음. 속도 0 이 되면 호흡 안내 한 번(베타 D-06). */
+    /** "세울래요" 뒤 아직 서지 않음. 속도 0 이 되면 호흡 안내 한 번. */
     internal var pullOverPending = false
     internal var carName: String? = null
-    /** 차가 차종을 알려 줬는지. 못 알아내면 기본 제원(아반떼)으로 동작하고 환영 문장도 그렇게 말한다(11/15 오류 검수). */
+    /** 차가 차종을 알려 줬는지. 못 알아내면 기본 제원(아반떼)으로 동작하고 환영 문장도 그렇게 말한다. */
     internal var carDetected = false
     internal var lastStepWasNotDetected = false
-    /** 통과/건너뜀 뒤 자동으로 다음 항목으로 넘어간 시각. 직후의 '다음' 은 무시한다(설명을 못 보고 넘어가던 문제, 베타 2차 A-1). */
+    /** 통과/건너뜀 뒤 자동으로 다음 항목으로 넘어간 시각. 직후의 '다음' 은 무시한다(설명을 못 보고 넘어가던 문제). */
     internal var practiceAutoAdvancedAt = 0L
     internal var collectJob: Job? = null
     internal var tickJob: Job? = null
     // 직각 주차: 마지막으로 보여 준 일러스트·문장(선택/평가 단계에는 단계가 없어 직전 것을 유지)
     internal var parkingIllustration: String? = null
     internal var parkingText = ""
-    /** 직각 주차: 단계 문장 아래에 잠깐 보여 주는 안내(아직 감지 안 됨·먼저 정지·처음부터 등, 베타 2차 A-9). */
+    /** 직각 주차: 단계 문장 아래에 잠깐 보여 주는 안내(아직 감지 안 됨·먼저 정지·처음부터 등). */
     internal var parkingNotice: String? = null
     internal var parkingNoticeAt = 0L
     internal var parkingDone = false
     internal val _lessonsDone = MutableStateFlow<Set<String>>(emptySet())
-    /** 끝낸 레슨("parking", "law:…") — 선택 화면 버튼에 ✓(베타 B-14). 앱을 껐다 켜도 유지. */
+    /** 끝낸 레슨("parking", "law:…") — 선택 화면 버튼에 ✓. 앱을 껐다 켜도 유지. */
     val lessonsDone: StateFlow<Set<String>> = _lessonsDone.asStateFlow()
     var onLessonsDoneChanged: ((Set<String>) -> Unit)? = null
     fun restoreLessonsDone(done: Set<String>) { _lessonsDone.value = done }
@@ -255,11 +259,11 @@ class CoachController(
     internal var courseGenResult: CourseResult? = null
     /** 마지막 코스가 실제 길찾기(true)인지 오프셋 임시 코스(false)인지. */
     internal var courseGenerated = false
-    /** (11/15 베타 7h: 같은 목적을 다시 고르면 다른 코스) 목적별 마지막 결과. 같은 자리(300 m 안)·같은 방식이면 다시 쓴다. */
+    /** (같은 목적을 다시 고르면 다른 코스) 목적별 마지막 결과. 같은 자리(300 m 안)·같은 방식이면 다시 쓴다. */
     internal val courseCache = HashMap<CourseOptionId, Triple<LatLon, CourseResult, Boolean>>()
     /** 마지막 코스 생성이 길찾기 쪽에서 실패해 "임시 코스로 진행" 을 제안할 수 있는지. */
     internal var courseFallbackAvailable = false
-    /** (11/15 강명수) 코스 난이도 1~5 와 연습 시간(분). 키가 있을 때 난이도별 생성기가 쓴다. */
+    /** 코스 난이도 1~5 와 연습 시간(분). 키가 있을 때 난이도별 생성기가 쓴다. */
     internal var courseDifficulty = 2
     internal var courseTargetMinutes = 20
 
@@ -271,7 +275,7 @@ class CoachController(
         modeDetector.addListener { prev, next, state -> onModeChanged(prev, next, state) }
         danger.addListener { event ->
             _dangerCount.value = _dangerCount.value + 1
-            // 급제동은 그 자리에서 말하지 않고 P 복귀 뒤 리포트("급제동 N번")에서만 짚는다 — 즉시 지적은 질책처럼 들림(11/5 대표 결정)
+            // 급제동은 그 자리에서 말하지 않고 P 복귀 뒤 리포트("급제동 N번")에서만 짚는다 — 즉시 지적은 질책처럼 들림
             if (event.type == DangerType.HARD_BRAKE) log("HARD_BRAKE (리포트로)") else request(event.phraseId)
         }
         navi?.setListener(naviListener)
@@ -297,7 +301,7 @@ class CoachController(
         speaker.setListener(null)
     }
 
-    /** 차종 인식 결과. 환영 한마디는 인트로가 끝나고 메뉴가 보일 때 한다(11/4 대표 요청) — [onIntroFinished]. */
+    /** 차종 인식 결과. 환영 한마디는 인트로가 끝나고 메뉴가 보일 때 한다 — [onIntroFinished]. */
     fun onCarSpec(spec: CarSpec) {
         carName = spec.name
         carDetected = spec.detected
@@ -346,10 +350,10 @@ class CoachController(
     internal fun tick() {
         val now = clock()
         // 신호 소스는 값이 바뀔 때만 상태를 발행한다. 차가 가만히 서 있으면 새 상태가 안 와서
-        // DriveModeDetector 의 "2초 유지" 판정이 영영 끝나지 않으므로(에뮬레이터에서 UNKNOWN 에 머묾, 11/3 확인),
+        // DriveModeDetector 의 "2초 유지" 판정이 영영 끝나지 않으므로(에뮬레이터에서 UNKNOWN 에 머묾),
         // 틱마다 현재 상태를 지금 시각으로 다시 넣어 준다. 값이 같으면 다른 모듈에는 영향이 없다.
         modeDetector.onState(currentState().copy(timestampMs = now))
-        // (11/15 오류 검수) 주차 단계도 같다: 들어갈 때 이미 맞던 단계는 2.5초 뒤의 신호로 넘어가는데, 차가 서 있으면 새 신호가 없어 멈춰 있었다
+        // 주차 단계도 같다: 들어갈 때 이미 맞던 단계는 2.5초 뒤의 신호로 넘어가는데, 차가 서 있으면 새 신호가 없어 멈춰 있었다
         slowMode?.let { m -> val s = currentState().copy(timestampMs = now); m.onState(s); publishParkingUi(s) }
         handleNoInput(awaiting.tick(now, currentState()))
         if (slowMode != null && parkingNotice != null && now - parkingNoticeAt > PARKING_NOTICE_MS) {
@@ -374,7 +378,7 @@ class CoachController(
             prev == DriveMode.PARKED_LEARN && next != DriveMode.PARKED_LEARN -> {
                 val parking = _subMode.value == SubMode.PARKING
                 val courseOpen = _subMode.value == SubMode.COURSE
-                // 기어 순서(P→R→N→D)·급발진 드릴은 서 있는 채로 기어를 옮기는 것이 과제라, 속도 0 이면 연습을 접지 않는다(베타 A-02/D-11).
+                // 기어 순서(P→R→N→D)·급발진 드릴은 서 있는 채로 기어를 옮기는 것이 과제라, 속도 0 이면 연습을 접지 않는다.
                 // 실제로 움직이면(속도 > 0.5) onState 가 접는다.
                 val gearDrill = _subMode.value == SubMode.PRACTICE && isGearDrill(practice?.current) && (state.speedKmh ?: 0.0) <= STOPPED_SPEED_KMH
                 if (!parking && !courseOpen && !gearDrill) { endActivity(); awaiting.cancel() }
@@ -391,7 +395,7 @@ class CoachController(
                 val metrics = recorder.finish()
                 lastTripMetrics = metrics
                 val arrived = coursePhase == CoursePhase.ARRIVED
-                // (11/15 오류 검수) 변속 연습 중에 P 로 되돌린 것은 주행을 마친 것이 아니다(차는 내내 서 있었다) → 정차 멘트 생략
+                // 변속 연습 중에 P 로 되돌린 것은 주행을 마친 것이 아니다(차는 내내 서 있었다) → 정차 멘트 생략
                 val gearDrillBack = _subMode.value == SubMode.PRACTICE && metrics.distanceKm <= 0.0
                 if (_subMode.value != SubMode.PARKING && !gearDrillBack && (prev != DriveMode.UNKNOWN || metrics.distanceKm > 0.0)) {
                     if (arrived) {
@@ -430,15 +434,15 @@ class CoachController(
     }
 
     /**
-     * 음성 명령(Pleos STT 최종 문장, 11/7). core 의 동의어 사전으로 해석하고, 못 알아들으면 아무 반응도 하지 않는다(재촉 금지).
+     * 음성 명령(Pleos STT 최종 문장). core 의 동의어 사전으로 해석하고, 못 알아들으면 아무 반응도 하지 않는다(재촉 금지).
      * 입력 설정(휠 버튼 모드)과 관계없이 받는다 — 누르고 말하기라 오인식 위험이 낮다.
      */
     /**
-     * (11/14 베타 2차: 말하지 않았는데 단계가 넘어가고, 주변 말이 화면에 뜬다) 들은 문장 → 명령.
+     * (말하지 않았는데 단계가 넘어가고, 주변 말이 화면에 뜬다) 들은 문장 → 명령.
      * 명령은 짧게 말한다("다음", "다시 한 번", "확인했어요"). 항상 듣기는 차 안 대화·라디오도 받아 적는데, 그 긴 문장 속에
      * "다음"·"확인" 같은 낱말이 들어 있으면 명령으로 알아듣던 것을 막는다: 띄어쓰기를 뺀 글자 수가 [VOICE_COMMAND_MAX_CHARS] 를 넘으면 명령이 아니다.
      * "세울래요"(갓길 정차)는 안전 명령이라 길이와 상관없이 받는다. 단, 길이 예외는 "세울래", "세워" 처럼 분명한 말에만 준다
-     * (11/15 오류 검수: "잠깐만 저기 편의점 들렀다 가자" 같은 대화 속 "잠깐", "힘들어", "멈춰"로 정차 안내가 나가던 것).
+     * ("잠깐만 저기 편의점 들렀다 가자" 같은 대화 속 "잠깐", "힘들어", "멈춰"로 정차 안내가 나가던 것).
      */
     fun voiceCommand(transcript: String): Command? {
         val cmd = recognizer.recognizeVoice(transcript) ?: return null
@@ -451,7 +455,7 @@ class CoachController(
 
     fun onVoice(transcript: String) {
         val cmd = voiceCommand(transcript)
-        Log.i(COACH_TAG, if (kr.drivecoach.app.BuildConfig.DEBUG) "voice '$transcript' -> $cmd" else "voice ${transcript.length}자 -> $cmd")   // (11/15 보안 점검) 대화 원문은 debug 에서만
+        Log.i(COACH_TAG, if (kr.drivecoach.app.BuildConfig.DEBUG) "voice '$transcript' -> $cmd" else "voice ${transcript.length}자 -> $cmd")   // 대화 원문은 debug 에서만
         cmd?.let { onCommand(it) }
     }
 
@@ -470,7 +474,7 @@ class CoachController(
             Command.PULL_OVER -> {
                 awaiting.cancel()
                 speaker.stop()
-                // (11/15 오류 검수) 이미 P 에 서 있으면 정차 안내도, 코칭 멈춤도 필요 없다. 말하던 것만 멈춘다.
+                // 이미 P 에 서 있으면 정차 안내도, 코칭 멈춤도 필요 없다. 말하던 것만 멈춘다.
                 //   (전에는 여기서 멈춘 코칭을 풀 길이 없어, 차를 몰았다 다시 세울 때까지 연습 음성이 나오지 않았다)
                 val parkedNow = _mode.value == DriveMode.PARKED_LEARN && (currentState().speedKmh ?: 0.0) <= STOPPED_SPEED_KMH
                 if (parkedNow) {
@@ -496,11 +500,11 @@ class CoachController(
                         else -> parkLearnGo(0)
                     }
                 } else if (_lawUi.value != null) {
-                    // 도로 법규(11/7): 휠 버튼·음성 "다음/확인/건너뛰기" = 다음 주제, "이전" = 이전 주제, "다시" = 이 주제 다시 읽기
+                    // 도로 법규: 휠 버튼·음성 "다음/확인/건너뛰기" = 다음 주제, "이전" = 이전 주제, "다시" = 이 주제 다시 읽기
                     when (command) {
                         Command.NEXT, Command.CONFIRM, Command.SKIP -> lawNext()
                         Command.PREV -> lawPrev()
-                        else -> _lawUi.value?.let { u -> kr.drivecoach.core.law.TrafficRules.byId(u.topicId)?.let { showLaw(it) } }
+                        else -> _lawUi.value?.let { u -> lawSet.byId(u.topicId)?.let { showLaw(it) } }
                     }
                 } else if (command == Command.AGAIN) {
                     lastPhraseSpoken?.let { (id, vars) -> request(id, vars, force = true) }
@@ -545,13 +549,13 @@ class CoachController(
      * 위험 피드백(DANGER)은 이 줄을 거치지 않고 바로 request() 로 간다.
      */
     internal val subModeQueue = ArrayDeque<Pair<PhraseId, Map<String, String>>>()
-    /** 멘트가 실제로 나가는 순간 화면 문장을 바꾸는 콜백(직각 주차, 베타 B-11). */
+    /** 멘트가 실제로 나가는 순간 화면 문장을 바꾸는 콜백(직각 주차). */
     internal val screenTextWhenSpoken = HashMap<PhraseId, () -> Unit>()
     internal var subModeQueueBusy = false
 
-    // ═══════════════════════════ 기능별 동작은 다른 파일에 있다 (11/5 분리) ═══════════════════════════
+    // ═══════════════════════════ 기능별 동작은 다른 파일에 있다 ═══════════════════════════
     //  CoachPractice.kt  차량 조작법(2장) + 도로 법규
-    //  CoachParking.kt   직각 주차(4-5)                      CoachCourse.kt    코스 주행(5장, 팀원 담당)
+    //  CoachParking.kt   직각 주차(4-5)                      CoachCourse.kt    코스 주행(5장)
     //  CoachSpeech.kt    발화 파이프라인(request → SpeechPolicy → Speaker)
     //  CoachUiState.kt   화면 상태 데이터 클래스 + 상수
     // 모두 CoachController 의 확장 함수라서 이 클래스의 상태를 그대로 쓴다. 상태(필드)는 이 파일에만 둔다.
@@ -582,7 +586,7 @@ class CoachController(
         override fun onTbt(tbt: NaviTbt) {
             if (coursePhase != CoursePhase.DRIVING) return
             courseTbt = tbt
-            // 11/9 대표 결정: 회전 안내 음성은 차량 내비 한 곳에서만 한다(두 곳에서 말하면 겹침 + Pleos 단일 경로 정책: 경로 안내 음성은
+            // 회전 안내 음성은 차량 내비 한 곳에서만 한다(두 곳에서 말하면 겹침 + Pleos 단일 경로 정책: 경로 안내 음성은
             // Active Route 를 가진 내비 앱만). 우리 앱은 내비를 대신할 수 없으므로 "N m 앞 우회전" 같은 회전 안내를 말하지 않는다.
             // TBT 는 화면 표시(courseTbt)와 기록에만 쓴다. 되살리려면 SPEAK_ROUTE_TURNS 를 true 로.
             val a = tbtGuide.onTbt(tbt.maneuver, tbt.distanceM, tbt.key)
@@ -629,7 +633,7 @@ class CoachController(
 
     // ═══════════════════════════ 발화 상태(동작은 CoachSpeech.kt) ═══════════════════════════
 
-    /** 경고등이 새로 켜지면 "○○ 경고등이 켜졌습니다" + 행동 한마디(베타 B-30). 재발화 억제는 SpeechPolicy 가 한다. */
+    /** 경고등이 새로 켜지면 "○○ 경고등이 켜졌습니다" + 행동 한마디. 재발화 억제는 SpeechPolicy 가 한다. */
     internal var lastLampState: VehicleState? = null
 
     internal val speakerListener = object : SpeakerListener {
@@ -638,7 +642,7 @@ class CoachController(
     }
 }
 
-/** 차량 내비가 주는 회전(TBT)을 우리 코치도 말할지. 11/9 대표 결정으로 끔 — 회전 안내는 차량 내비 한 곳에서만. */
+/** 차량 내비가 주는 회전(TBT)을 우리 코치도 말할지. 끔 — 회전 안내는 차량 내비 한 곳에서만. */
 internal const val SPEAK_ROUTE_TURNS = false
 
 /** 긴 문장 속에서도 정차 명령으로 받는 분명한 말. */

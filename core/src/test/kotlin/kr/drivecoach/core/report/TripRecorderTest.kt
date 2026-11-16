@@ -1,4 +1,4 @@
-// 담당: M (리포트 · 모의 시험 · 성장 기록) — fun main 러너
+// 리포트 · 모의 시험 · 성장 기록 — fun main 러너
 package kr.drivecoach.core.report
 
 import kr.drivecoach.core.signal.FakeSignalSource
@@ -27,7 +27,7 @@ private class Sim(cfg: TripRecorderConfig) {
     fun hold(ms: Long, change: (VehicleState) -> VehicleState = { it }) { var left = ms; while (left > 0) { step(100, change); left -= 100 } }
 }
 
-/** (11/15 오류 검수) 속도 사이에 다른 신호가 몇 ms 간격으로 끼어도 부드러운 감속을 급제동으로 세지 않는다. */
+/** 속도 사이에 다른 신호가 몇 ms 간격으로 끼어도 부드러운 감속을 급제동으로 세지 않는다. */
 fun testInterleavedSignalsDoNotInflateDecel() {
     val s = Sim(config())
     s.hold(1_000) { it.copy(speedKmh = 40.0, brakePressed = true) }
@@ -40,7 +40,7 @@ fun testInterleavedSignalsDoNotInflateDecel() {
     assertEquals(0, s.rec.finish().hardBrakeCount)
 }
 
-/** (11/15 오류 검수) 주행 중 제한속도가 정해지면(내비) 리포트 과속도 그 값으로 센다. */
+/** 주행 중 제한속도가 정해지면(내비) 리포트 과속도 그 값으로 센다. */
 fun testSpeedLimitChangeCountsOverspeed() {
     val s = Sim(TripRecorderConfig(hardBrakeDecelMps2 = HARD_BRAKE, speedLimitKmh = null))
     s.hold(2_000) { it.copy(speedKmh = 70.0) }

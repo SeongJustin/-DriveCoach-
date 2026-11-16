@@ -1,5 +1,5 @@
 // 설정 화면 + 진단
-// (11/5 정리) MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
+// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -48,7 +48,7 @@ import kr.drivecoach.core.signal.VehicleState
 import kotlin.math.abs
 
 /**
- * 설정 화면(11/4 대표 요청): 코칭 음성(= 조용히) · 음성 속도 · 진단 보기 · 앱 버전 · 앱 종료(확인 대화상자).
+ * 설정 화면: 코칭 음성(= 조용히) · 음성 속도 · 진단 보기 · 앱 버전 · 앱 종료(확인 대화상자).
  * 연습 기록 초기화는 넣지 않기로 함. 진단을 켜면 이 화면 아래에 진단 내용이 붙는다(스크롤).
  */
 @Composable
@@ -60,9 +60,9 @@ internal fun MainActivity.SettingsScreen(svc: CoachService, state: VehicleState,
     var askExit by confirmExit
     Column(modifier = modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            HeaderChip(text = getString(R.string.btn_close_settings), selected = false, onClick = { settingsOpen.value = false })
+            HeaderChip(text = getString(R.string.btn_close_settings), selected = false, fontSize = CoachSize.Label, onClick = { settingsOpen.value = false })   // 뒤로 버튼 글씨 22 → 26sp
             Spacer(Modifier.width(20.dp))
-            Text(text = getString(R.string.settings_title), style = CoachType.Body, fontWeight = FontWeight.Bold)
+            Text(text = getString(R.string.settings_title), style = CoachType.Title, maxLines = 1)   // 다른 화면 제목(차량 조작법, 주차 연습)과 같은 크기
         }
         Spacer(Modifier.height(16.dp))
         SettingRow(getString(R.string.setting_voice)) {
@@ -71,13 +71,13 @@ internal fun MainActivity.SettingsScreen(svc: CoachService, state: VehicleState,
             HeaderChip(text = getString(R.string.setting_off), selected = quiet, onClick = { coach.setQuiet(true) })
         }
         SettingRow(getString(R.string.setting_rate)) {
-            // (11/15 베타 7h: 마지막 칩 뒤에도 간격이 붙어 '빠르게'가 다른 줄보다 안쪽에 섰다) 칩 사이에만 간격
+            // (마지막 칩 뒤에도 간격이 붙어 '빠르게'가 다른 줄보다 안쪽에 섰다) 칩 사이에만 간격
             listOf(0.85f to R.string.setting_rate_slow, 1f to R.string.setting_rate_normal, 1.2f to R.string.setting_rate_fast).forEachIndexed { i, (r, label) ->
                 if (i > 0) Spacer(Modifier.width(12.dp))
                 HeaderChip(text = getString(label), selected = kotlin.math.abs(rate - r) < 0.01f, onClick = { coach.setSpeechRate(r) })
             }
         }
-        // (11/15 베타 6f) 버튼 하나("꺼짐")라 지금 상태인지 누르는 버튼인지 헷갈리던 것 → 코칭 음성처럼 켜짐/꺼짐 두 개
+        // 버튼 하나("꺼짐")라 지금 상태인지 누르는 버튼인지 헷갈리던 것 → 코칭 음성처럼 켜짐/꺼짐 두 개
         SettingRow(getString(R.string.setting_diag)) {
             HeaderChip(text = getString(R.string.setting_on), selected = diagOpen, onClick = {
                 if (!diagOpen) {
@@ -93,7 +93,7 @@ internal fun MainActivity.SettingsScreen(svc: CoachService, state: VehicleState,
         }
         // Pleos 실험은 진단 보기 바로 아래(차 화면에서 스크롤 없이 보이게)
         if (diagOpen) PleosLabSection(svc)
-        // (11/14 베타: 설정에 개발용 항목이 대부분) Pleos 연결 상태 줄은 진단 보기를 켰을 때만
+        // (설정에 개발용 항목이 대부분) Pleos 연결 상태 줄은 진단 보기를 켰을 때만
         if (diagOpen) PleosStatus(svc)
         SettingRow(getString(R.string.setting_version)) {
             Text(text = BuildConfig.VERSION_NAME, style = CoachType.Body, color = CoachColors.Secondary)
@@ -136,7 +136,7 @@ internal fun MainActivity.SettingsScreen(svc: CoachService, state: VehicleState,
 }
 
 /**
- * "Pleos 연결"(11/6): 이 앱이 쓰는 Pleos Playground SDK 와 지금 연결 상태를 한눈에.
+ * "Pleos 연결": 이 앱이 쓰는 Pleos Playground SDK 와 지금 연결 상태를 한눈에.
  * 차량 신호는 Vehicle SDK 기능 13개 중 구독에 성공한 수, 내비는 NaviHelper 초기화 여부, 위치는 FusedLocation 구독 여부, 음성은 지금 쓰는 엔진 이름.
  */
 @Composable
@@ -181,7 +181,7 @@ internal fun MainActivity.PleosStatus(svc: CoachService) {
 }
 
 /**
- * "Pleos 실험"(11/7, 진단 보기를 켰을 때만): Pleos 쪽 문제를 앱 안에서 바로 시험한다.
+ * "Pleos 실험"(진단 보기를 켰을 때만): Pleos 쪽 문제를 앱 안에서 바로 시험한다.
  * DO 점검 = 설치 출처·CarPackageManager 판정·허용 설치 출처 목록, TTS = Pleos 음성으로 시험 문장, STT = 8초 동안 한 번 듣기.
  */
 @Composable
@@ -220,7 +220,7 @@ internal fun MainActivity.PleosLabSection(svc: CoachService) {
 /** 설정 한 줄: 왼쪽 이름, 오른쪽 조작. 아래 옅은 구분선. */
 @Composable
 internal fun MainActivity.SettingRow(label: String, content: @Composable () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {   // 줄 간격 14 → 18dp
         Text(text = label, style = CoachType.Body, maxLines = 1)
         Spacer(Modifier.weight(1f))
         content()
@@ -251,7 +251,7 @@ internal fun MainActivity.DiagSection(svc: CoachService, state: VehicleState) {
     Row {
         Text("기어 ${state.gear}", fontSize = big, fontFamily = mono, color = black); Spacer(Modifier.width(32.dp))
         Text("속도 ${state.speedKmh?.let { "%.1f".format(it) } ?: "-"} km/h", fontSize = big, fontFamily = mono, color = black)
-        // RPM 은 11/5 에 뺐다(ENGINE_RPM 은 signature|privileged 권한이라 사용 불가)
+        // RPM 은 뺐다(ENGINE_RPM 은 signature|privileged 권한이라 사용 불가)
     }
     Row {
         Text("조향 ${state.steeringAngleDeg?.let { "%.0f°".format(it) } ?: "-"}", fontSize = big, fontFamily = mono, color = black); Spacer(Modifier.width(32.dp))
@@ -293,7 +293,7 @@ internal fun MainActivity.DiagSection(svc: CoachService, state: VehicleState) {
 }
 
 /**
- * Pleos "IME 동작에 따른 window resize 처리" 가이드(11/9): 글 입력칸이 없는 대화상자는 키보드가 떠도 밀려 올라가면 안 된다.
+ * Pleos "IME 동작에 따른 window resize 처리" 가이드: 글 입력칸이 없는 대화상자는 키보드가 떠도 밀려 올라가면 안 된다.
  * 대화상자 창이 맞출 여백을 상태 표시줄·내비게이션 바로만 한정한다(IME 여백 제외, API 30+).
  */
 @Composable

@@ -1,4 +1,4 @@
-// 담당: M (리포트 · 모의 시험 · 성장 기록)
+// 리포트 · 모의 시험 · 성장 기록
 package kr.drivecoach.core.report
 
 import kr.drivecoach.core.signal.Gear
@@ -95,9 +95,9 @@ data class TripRecorderConfig(
     val hardBrakeDecelMps2: Double,
     /** 이 속도(km/h) 아래에서 시작한 감속은 급제동으로 세지 않는다(safety 의 hardBrakeMinSpeedKmh 와 같은 값). */
     val hardBrakeMinSpeedKmh: Double = 10.0,
-    /** 감속도는 이 시간(ms) 이상 떨어진 속도 값끼리만 계산한다. 다른 신호가 바뀌어 상태가 몇 ms 만에 다시 오면 dt 가 작아져 감속도가 부풀던 것(11/15 오류 검수). */
+    /** 감속도는 이 시간(ms) 이상 떨어진 속도 값끼리만 계산한다. 다른 신호가 바뀌어 상태가 몇 ms 만에 다시 오면 dt 가 작아져 감속도가 부풀던 것. */
     val hardBrakeMinWindowMs: Long = 200,
-    /** 코스 제한속도(km/h). 모르면 null — 과속 기록을 하지 않는다(11/5: 기본 50 은 시연 빌드에만). */
+    /** 코스 제한속도(km/h). 모르면 null — 과속 기록을 하지 않는다(기본 50 은 시연 빌드에만). */
     val speedLimitKmh: Double?,
     /** 코스 상의 정지선 좌표. */
     val stopLines: List<StopLine> = emptyList(),
@@ -314,7 +314,7 @@ class TripRecorder(private val config: TripRecorderConfig) : StateListener {
     // ---- 과속 ----
     /**
      * 지금 도로의 제한속도(km/h). 처음에는 [TripRecorderConfig.speedLimitKmh], 주행 중에는 내비가 주는 값으로 바뀐다
-     * (11/15 오류 검수: 내비 제한속도로 과속 경고는 나가는데 리포트는 늘 "과속 0곳"이던 것). 바뀌면 열린 과속 구간을 닫는다.
+     * (내비 제한속도로 과속 경고는 나가는데 리포트는 늘 "과속 0곳"이던 것). 바뀌면 열린 과속 구간을 닫는다.
      */
     var speedLimitKmh: Double? = config.speedLimitKmh
         set(value) {

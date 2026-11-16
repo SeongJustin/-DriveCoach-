@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 게임 전체 흐름. 규칙:
+// (3D 주차 연습 — 게임 전체 흐름. 규칙:
 // 앱(Kotlin Game3DActivity)이 실제 차의 핸들 각·기어·브레이크·속도·회전수를 보낸다. 실제 차는 P 에 둔 채로 하고,
 // 게임 속 차의 기어는 화면 버튼으로 바꾼다. 실제 차가 P 가 아니거나 움직이면 멈춘다.
 // PC·편집기 시험: ←→(A D) 핸들, 스페이스 브레이크, ↑(W) 가속, 1~4 기어(P R N D), V 시점, Q/E 고개, Esc 목록, Enter 다시.
@@ -20,7 +20,7 @@ namespace DriveCoach.Unity
         CarSpec spec = CarSpec.Default();
         bool connected;
         float realSteer, realSpeed, realRpm = -1f;
-        // (11/15 오류 검수) 화면 스티어링 휠이 켜져 있어도 실제 스티어링 휠을 5° 넘게 돌리면 그때부터 실제 각도를 따른다
+        // 화면 스티어링 휠이 켜져 있어도 실제 스티어링 휠을 5° 넘게 돌리면 그때부터 실제 각도를 따른다
         float realSteerBase = float.NaN;
         bool realSteerSeen;
         float realPedal = -1f;          // 실제 액셀 페달 0..1(차가 줄 때만, 모르면 -1)
@@ -28,7 +28,7 @@ namespace DriveCoach.Unity
         int speedChoice = 1;
         string realGear = "P";
         bool realBrake;
-        // 11/8 밤 실차 스위치(앱이 보내면): 방향지시등 -1/0/1, 비상등, 전조등·와이퍼·벨트(Vehicle 의 값 그대로)
+        // 실차 스위치(앱이 보내면): 방향지시등 -1/0/1, 비상등, 전조등·와이퍼·벨트(Vehicle 의 값 그대로)
         int realTurn, realLight = -1, realWiper = -1, realBelt = -1;
         bool realHazard, realTurnKnown;
         // 키보드·화면 방향지시등(차가 값을 안 줄 때): Z 왼쪽, C 오른쪽, X 비상등. 돌고 나면 저절로 꺼진다(실제 차처럼)
@@ -37,16 +37,16 @@ namespace DriveCoach.Unity
         float keyTurnHeading;
         float keySteer, steer;
         bool crossing;            // 옆 동으로 이어 달리는 중(핸들 각을 그대로 잇는다)
-        // (11/13) 자동 운전(검수·시연): 설정에서 켜거나 실행 인자 -dcAutoDrive <경로 글자|-> 로. 도로·내 동네·서킷에서만
+        // 자동 운전: 설정에서 켜거나 실행 인자 -dcAutoDrive <경로 글자|-> 로. 도로·내 동네·서킷에서만
         AutoDrive auto;
         bool autoArg;
         string autoPlan = "";
         bool autoStop;
         float autoAccel, autoBrakeAmount; bool autoBrake;
-        bool autoRoute;      // (11/14) 메뉴에서 시연 경로를 골랐다 → 설정과 상관없이 이 판은 자동 운전
+        bool autoRoute;      // 메뉴에서 시연 경로를 골랐다 → 설정과 상관없이 이 판은 자동 운전
         bool AutoOn => (autoArg || Prefs.AutoDrive || autoRoute) && world != null && world.st.mode != StageMode.Parking && world.st.road != null;
         bool screenBrake, brakeOn, paused;
-        bool settingsPaused;      // (11/15) 주행 중 설정 창을 연 동안 멈춤
+        bool settingsPaused;      // 주행 중 설정 창을 연 동안 멈춤
 
         World world;
         SceneRig scene;
@@ -120,9 +120,9 @@ namespace DriveCoach.Unity
             hudMirrorMode = Prefs.HudMirrors;
             sensorSound = Prefs.SensorSound;
             speedChoice = Prefs.SpeedChoice;
-            // (11/15 대표) 시점 버튼을 빼고 설정에서 바꾼다. 달리는 중에 바꾸면 바로 바뀐다
+            // 시점 버튼을 빼고 설정에서 바꾼다. 달리는 중에 바꾸면 바로 바뀐다
             if (world != null && scene != null && camMode != Prefs.StartCam) { camMode = Prefs.StartCam; lookYaw = lookPitch = 0f; scene.cameraRig.Snap(camMode, world); }
-            // (11/15 오류 검수) 달리는 중에 날씨, 시간을 바꾸면 화면만 바뀌고 판정(젖은 길 간격, 전조등)은 시작할 때 값 그대로였다
+            // 달리는 중에 날씨, 시간을 바꾸면 화면만 바뀌고 판정(젖은 길 간격, 전조등)은 시작할 때 값 그대로였다
             if (world != null)
             {
                 int wx = Prefs.Weather, tm = Prefs.TimeOfDay;

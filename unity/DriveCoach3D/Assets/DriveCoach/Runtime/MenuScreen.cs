@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 첫 화면: 탭 3개(핸들 감각 · 주차 · 도로 주행)와 설정.
+// (3D 주차 연습 — 첫 화면: 탭 3개(핸들 감각 · 주차 · 도로 주행)와 설정.
 // 핸들 감각 = 튜토리얼 1(핸들 감각) + 서킷 2개, 주차 = 튜토리얼 2·3 + 25단계, 도로 주행 = 미리보기(설정에서 켜야 보인다).
 // 새 모드는 Tabs 에 한 줄, Build 에 한 갈래를 더하면 된다.)
 using System;
@@ -17,19 +17,19 @@ namespace DriveCoach.Unity
         readonly RectTransform settingsCard;
         public Action<string> onPick;          // "tut:1", "circuit:2", "stage:7", "road:1", "close"
         public Action onSettingsChanged;
-        /// <summary>(11/15 대표: "도로 주행 중에도 설정") 주행 화면에서 연 설정을 닫을 때(주행을 이어 간다)</summary>
+        /// <summary>주행 화면에서 연 설정을 닫을 때(주행을 이어 간다)</summary>
         public Action onSettingsClosed;
         bool inGame;                                             // 주행 화면 위에 설정만 띄운 중
         readonly List<GameObject> pageParts = new List<GameObject>();   // 설정만 띄울 때 숨길 메뉴 화면 조각
         int tab;
 
         static readonly string[] TabNames = { "스티어링 휠 감각", "주차" };
-        // 11/10 대표: 도로 주행은 주차·핸들 연습에서 빼 앱 첫 화면에서 따로 연다. 맵은 나라 › 도시 › 구 › 동 순서로 고른다.
+        // 도로 주행은 주차·핸들 연습에서 빼 앱 첫 화면에서 따로 연다. 맵은 나라 › 도시 › 구 › 동 순서로 고른다.
         bool roadMode;
         readonly Text titleText;
         readonly List<string> roadPath = new List<string>();
         int pickedRegion = -1;                                   // 시작 위치를 고르는 동네(roadPath 5번째 단계)     // 고른 나라·도시·구
-        // 권역 › 나라. 완성차 제조사 공식 누리집의 "Global Distributors"(판매망이 있는 나라·지역) 목록을 따랐다(11/11 확인).
+        // 권역 › 나라. 완성차 제조사 공식 누리집의 "Global Distributors"(판매망이 있는 나라·지역) 목록을 따랐다.
         // 지금 달릴 수 있는 곳은 한국뿐이고 나머지는 "준비 중"(나라별 교통법을 반영해 추가할 예정).
         static readonly (string area, string[] countries)[] World =
         {
@@ -99,7 +99,7 @@ namespace DriveCoach.Unity
             Refresh();
         }
 
-        /// <summary>(11/15) 주행 화면 위에 설정 창만 띄운다(메뉴 화면은 숨김). 닫으면 onSettingsClosed</summary>
+        /// <summary>주행 화면 위에 설정 창만 띄운다(메뉴 화면은 숨김). 닫으면 onSettingsClosed</summary>
         public void OpenSettingsInGame()
         {
             inGame = true;
@@ -142,7 +142,7 @@ namespace DriveCoach.Unity
         public void Refresh()
         {
             if (tab >= TabCount) tab = 0;
-            titleText.text = roadMode ? "도로 주행 연습" : "주차 연습";   // (11/14 베타) 첫 화면 메뉴 이름과 같게
+            titleText.text = roadMode ? "도로 주행 연습" : "주차 연습";   // 첫 화면 메뉴 이름과 같게
             Clear(tabsRow);
             if (roadMode)
             {
@@ -152,7 +152,7 @@ namespace DriveCoach.Unity
                 BuildRoad();
                 return;
             }
-            // (11/15 대표) 스티어링 휠 감각 탭을 뺐다. 주차 단계 25개만 보인다
+            // 스티어링 휠 감각 탭을 뺐다. 주차 단계 25개만 보인다
             content.offsetMax = new Vector2(content.offsetMax.x, -150f);
             Clear(content);
             BuildParking();
@@ -173,7 +173,7 @@ namespace DriveCoach.Unity
             if (id.StartsWith("path:")) btn.onClick.AddListener(() => { roadPath.Add(id.Substring(5)); Refresh(); });
             else if (id.StartsWith("dong:")) btn.onClick.AddListener(() => { if (int.TryParse(id.Substring(5), out var ri)) { pickedRegion = ri; roadPath.Add(name); Refresh(); } });
             else if (!soon && !id.StartsWith("dong:")) btn.onClick.AddListener(() => onPick?.Invoke(id));
-            // (11/15 대표: "회색 글자는 다 필요 없다, 준비 중은 (준비 중) 검정으로, 별표 삭제") 이름과 (준비 중)만 검정으로
+            // 이름과 (준비 중)만 검정으로
             var n = UiKit.Label(c.transform, name, 34, DcAssets.UiText, true, TextAnchor.UpperLeft);
             UiKit.Stretch(n.rectTransform, 30, 28, 28, 0);
             if (!string.IsNullOrEmpty(desc))
@@ -217,8 +217,8 @@ namespace DriveCoach.Unity
             }
         }
 
-        // (11/15 대표: "모든 동을 쓰고 없는 곳은 (준비 중)") 나라 › 도시 › 구 › 동 의 전체 이름. 앱에 든 동네가 있는 곳만 누를 수 있다.
-        //   시·도 17곳, 서울 25개 구, 서초구 18개 동·강남구 22개 동(행정동, 구청 누리집 기준 11/15 확인 — 강남구 일원2동은 개포3동으로 이름이 바뀌었다)
+        // 나라 › 도시 › 구 › 동 의 전체 이름. 앱에 든 동네가 있는 곳만 누를 수 있다.
+        //   시·도 17곳, 서울 25개 구, 서초구 18개 동·강남구 22개 동(행정동, 구청 누리집 기준 — 강남구 일원2동은 개포3동으로 이름이 바뀌었다)
         static readonly string[] KoreaCities = { "서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종", "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주" };
         static readonly string[] SeoulGu = { "종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구",
             "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구" };
@@ -235,7 +235,7 @@ namespace DriveCoach.Unity
             int depth = roadPath.Count;
             if (depth >= 5 && pickedRegion >= 0 && pickedRegion < regions.Count)
             {
-                // (11/15 대표: "시작 장소는 카드가 아니라 동네 지도에서 고르기") 지도를 누르면 가장 가까운 길에 출발 자리를 찍는다
+                // 지도를 누르면 가장 가까운 길에 출발 자리를 찍는다
                 BuildStartMap(pickedRegion);
                 return;
             }
@@ -295,10 +295,13 @@ namespace DriveCoach.Unity
                 else cells.Add((nm, null));
             }
             GridCells(cells, 6);
-            Hint("지도 © OpenStreetMap contributors");
+            // 출처: 목록(index.json)의 attribution·license 에서(한국 동네처럼 없으면 예전 글 그대로)
+            var atts = new List<string>();
+            foreach (var e in regions) if (Under(e) && !string.IsNullOrEmpty(e.attribution) && !atts.Contains(e.attribution)) atts.Add(e.attribution);
+            Hint(atts.Count > 0 ? "지도 " + string.Join(" · ", atts) : "지도 © OpenStreetMap contributors");
         }
 
-        /// <summary>(11/15) 이름 칸 묶음: 누를 수 있는 곳은 이름만, 없는 곳은 이름 아래 검정 (준비 중). 모두 흰 칸</summary>
+        /// <summary>이름 칸 묶음: 누를 수 있는 곳은 이름만, 없는 곳은 이름 아래 검정 (준비 중). 모두 흰 칸</summary>
         void GridCells(List<(string label, Action click)> cells, int cols)
         {
             int rows = Mathf.Max(4, (cells.Count + cols - 1) / cols);
@@ -320,7 +323,9 @@ namespace DriveCoach.Unity
                 rt.anchorMax = new Vector2((float)(col + 1) / cols, 1f - (float)row / rows);
                 rt.offsetMin = new Vector2(col == 0 ? 0f : 6f, 6f);
                 rt.offsetMax = new Vector2(col == cols - 1 ? 0f : -6f, -6f);
-                var lab = UiKit.Label(card.transform, click != null ? label : label + "\n" + Soon, label.Length > 10 ? 22 : 26, DcAssets.UiText, click != null, TextAnchor.MiddleCenter);   // (11/15 베타 6g: "양재1동 Beta" 만 글씨가 작았다)
+                // 띄어쓰기 없는 긴 이름("샤를로텐부르크-빌머스도르프")은 붙임표 뒤에서 줄을 바꿔 보인다(한국 이름은 12자를 넘지 않아 그대로)
+                string shown = label.Length > 12 && label.IndexOf(' ') < 0 && label.IndexOf('-') > 0 ? label.Substring(0, label.IndexOf('-') + 1) + "\n" + label.Substring(label.IndexOf('-') + 1) : label;
+                var lab = UiKit.Label(card.transform, click != null ? shown : shown + "\n" + Soon, label.Length > 10 ? 22 : 26, DcAssets.UiText, click != null, TextAnchor.MiddleCenter);   // 10자 넘는 이름은 한 단계 작게
                 UiKit.Stretch(lab.rectTransform, 8, 4, 8, 4);
             }
         }

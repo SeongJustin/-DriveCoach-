@@ -1,4 +1,4 @@
-// 담당: T (실제 Directions API 연결 — 요청 URL·좌표 순서 변환·오류 문구. 순수 Kotlin 이라 여기서 단위 테스트한다. HTTP 자체는 app/navi/NaverDirectionsProvider)
+// 실제 Directions API 연결 — 요청 URL·좌표 순서 변환·오류 문구. 순수 Kotlin 이라 여기서 단위 테스트한다. HTTP 자체는 app/navi/NaverDirectionsProvider
 package kr.drivecoach.core.course
 
 import java.net.URLEncoder
@@ -19,7 +19,7 @@ object NaverDirectionsApi {
     const val ENDPOINT_DIRECTIONS_15_MAPS_HOST = "https://maps.apigw.ntruss.com/map-direction-15/v1/driving"
 
     /** 실제로 쓰는 엔드포인트. 기본 Directions 15. */
-    // 11/3 에뮬레이터: 구 호스트(naveropenapi)는 HTTP 401 Permission Denied → 2025년 이후 신규 앱은 maps.apigw.ntruss.com 호스트를 쓴다.
+    // 에뮬레이터 확인: 구 호스트(naveropenapi)는 HTTP 401 Permission Denied → 2025년 이후 신규 앱은 maps.apigw.ntruss.com 호스트를 쓴다.
     const val endpoint: String = ENDPOINT_DIRECTIONS_15_MAPS_HOST
 
     /** Directions 15 경유지 상한. */

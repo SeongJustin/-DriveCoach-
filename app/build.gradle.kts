@@ -1,13 +1,13 @@
 import java.util.Properties
 
-// 담당: A (Android 앱 모듈. Android Studio 에서 빌드하고 Pleos Connect Emulator 에서 실행한다)
+// Android 앱 모듈. Android Studio 에서 빌드하고 Pleos Connect Emulator 에서 실행한다
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-// (담당 S, 11/8) 3D 주차·도로 주행(Unity). unity/export/unityLibrary-release.aar 이 있을 때만 넣는다(없으면 3D 화면 없이 빌드, HAS_UNITY = false).
+// 3D 주차·도로 주행(Unity). unity/export/unityLibrary-release.aar 이 있을 때만 넣는다(없으면 3D 화면 없이 빌드, HAS_UNITY = false).
 val unityAar = rootProject.file("unity/export/unityLibrary-release.aar")
 val hasUnity = unityAar.exists()
 
@@ -31,12 +31,12 @@ android {
         release {
             // 공모전 제출용 release APK(실행 가능해야 함): 별도 키스토어 없이 디버그 키로 서명한다. 앱 마켓 출시 때는 출시용 키로 바꿀 것.
             signingConfig = signingConfigs.getByName("debug")
-            // 11/7: R8(쓰지 않는 코드 줄이기) + 쓰지 않는 리소스 빼기. Pleos SDK·Unity·우리 앱 코드는 이름째 전부 남기고(proguard-rules.pro),
+            // R8(쓰지 않는 코드 줄이기) + 쓰지 않는 리소스 빼기. Pleos SDK·Unity·우리 앱 코드는 이름째 전부 남기고(proguard-rules.pro),
             // AndroidX·Compose·Material·kotlin-reflect 같은 라이브러리에서 안 쓰는 부분만 뺀다. 난독화는 하지 않는다(-dontobfuscate).
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // 11/7 결정: 제출용 release APK 는 GitHub 저장소(apk/)에 올라가므로 API 키를 넣지 않는다(아래 defaultConfig 값을 빈 값으로 덮어씀).
+            // 제출용 release APK 는 GitHub 저장소(apk/)에 올라가므로 API 키를 넣지 않는다(아래 defaultConfig 값을 빈 값으로 덮어씀).
             // → release 에서는 코스 자동 생성(네이버 Directions)이 꺼진다. 키가 필요한 시연은 debug 빌드로 한다.
             buildConfigField("String", "NCP_KEY_ID", "\"\"")
             buildConfigField("String", "NCP_KEY", "\"\"")
@@ -48,7 +48,7 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
-            // (S, 11/8) 같은 C++ 표준 라이브러리(libc++_shared.so)가 여러 의존성에서 겹쳐 들어오면 하나만 넣는다.
+            // 같은 C++ 표준 라이브러리(libc++_shared.so)가 여러 의존성에서 겹쳐 들어오면 하나만 넣는다.
             pickFirsts += "lib/*/libc++_shared.so"
         }
         dex { useLegacyPackaging = true }
@@ -73,7 +73,7 @@ android {
         if (hasUnity) noCompress += listOf(".unity3d", ".ress", ".resource", ".obb", ".bundle", ".unityexp")
     }
 
-    // (담당 J) 네이버 클라우드 Directions 15 API 키. 루트 local.properties 의 NCP_KEY_ID / NCP_KEY 를 BuildConfig 로 넣는다.
+    // 네이버 클라우드 Directions 15 API 키. 루트 local.properties 의 NCP_KEY_ID / NCP_KEY 를 BuildConfig 로 넣는다.
     // 키가 없으면 빈 문자열이 되고 NaverDirectionsProvider.fromBuildConfig() 가 null 을 돌려줘 코스 생성이 비활성화된다. 키는 커밋하지 않는다.
     val localProps = Properties().apply {
         val f = rootProject.file("local.properties")
@@ -82,11 +82,11 @@ android {
     defaultConfig {
         buildConfigField("String", "NCP_KEY_ID", "\"${localProps.getProperty("NCP_KEY_ID", "")}\"")
         buildConfigField("String", "NCP_KEY", "\"${localProps.getProperty("NCP_KEY", "")}\"")
-        // Pleos TTS·STT 는 ON_DEVICE 만 쓰므로 Pleos Client ID/Secret 은 앱에 넣지 않는다(11/7, 서버 모드 제거).
+        // Pleos TTS·STT 는 ON_DEVICE 만 쓰므로 Pleos Client ID/Secret 은 앱에 넣지 않는다(서버 모드 제거).
         // 시연 빌드 전용: 제한속도를 모를 때 쓸 기본값(km/h). 시연 영상 찍을 때만 local.properties 에 DEMO_SPEED_LIMIT_KMH=50, 평소·제출은 0(끔).
         buildConfigField("int", "DEMO_SPEED_LIMIT_KMH", localProps.getProperty("DEMO_SPEED_LIMIT_KMH", "0").trim().ifEmpty { "0" })
         buildConfigField("boolean", "HAS_UNITY", hasUnity.toString())
-        // (S, 11/8) 3D 를 새로 만들면(AAR 시각이 바뀌면) 지난 3D 실패 기록을 잊고 다시 3D 를 연다(GameLauncher)
+        // 3D 를 새로 만들면(AAR 시각이 바뀌면) 지난 3D 실패 기록을 잊고 다시 3D 를 연다(GameLauncher)
         buildConfigField("String", "UNITY_STAMP", "\"${if (hasUnity) unityAar.lastModified() / 1000 else 0}\"")
     }
     // android.car (CarPropertyManager, CarUxRestrictionsManager) 는 AAOS 플랫폼 라이브러리라 별도 의존성이 없다.

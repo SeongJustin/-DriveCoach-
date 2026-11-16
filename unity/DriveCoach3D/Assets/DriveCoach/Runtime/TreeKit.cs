@@ -1,4 +1,3 @@
-// 담당: S (11/9 낮, 대표: "저 나무는 누가 만든 거야? 저런 나무도 외부 리소스로 할 수 있지 않나..? 최대한 외부 리소스 많이 쓸 것")
 // 가로수·공원 나무: EZ-Tree(MIT, eztree.dev)로 만든 나무.
 //   - 80 m 칸마다 가까이(LOD1, 약 6~8천 삼각형) / 멀리(LOD2, 약 4천) 두 메시로 합치고 LODGroup 으로 바꾼다(멀면 안 그림)
 //   - 껍질: 사진 질감(tree_bark), 잎: 투명 자르기(DC_LitCutout, 양면) — 가로수는 아래 잎을 친 모양(street)
@@ -22,12 +21,13 @@ namespace DriveCoach.Unity
         static readonly string[] StreetKinds = { "ash_medium", "oak_medium", "aspen_medium" };
         static readonly string[] ParkKinds = { "ash_medium", "oak_medium", "aspen_medium", "pine_medium" };
 
-        class Shape { public Mesh bark, leaves; }
+        /// <summary>both = 껍질(서브메시 0) + 잎(서브메시 1) 한 메시. 나무 하나가 LOD 마다 물체 하나(예전: 껍질·잎 둘)라 동네의 나무 물체가 절반</summary>
+        class Shape { public Mesh bark, leaves, both; }
         static readonly Dictionary<string, Shape> shapes = new Dictionary<string, Shape>();
         static readonly HashSet<string> missing = new HashSet<string>();
 
-        readonly Dictionary<(int tx, int ty), Dictionary<(int lod, Material m), List<CombineInstance>>> tiles =
-            new Dictionary<(int, int), Dictionary<(int, Material), List<CombineInstance>>>();
+        readonly Dictionary<(int tx, int ty), Dictionary<(int lod, Material bark, Material leaf), List<CombineInstance>>> tiles =
+            new Dictionary<(int, int), Dictionary<(int, Material, Material), List<CombineInstance>>>();
         public int count;
 
         public static bool Available => Load(Kinds[0] + "_street_lod1") != null;
@@ -38,9 +38,11 @@ namespace DriveCoach.Unity
             if (missing.Contains(name)) return null;
             var ta = Resources.Load<TextAsset>("DC/Trees/" + name);
             if (ta == null) { missing.Add(name); return null; }
+            var raw = ta.bytes;
+            Resources.UnloadAsset(ta);   // 모양은 shapes 에 남으니 파일(TextAsset)은 바로 내린다
             try
             {
-                s = Read(ta.bytes, name);
+                s = Read(raw, name);
             }
             catch (System.Exception e)
             {
@@ -86,6 +88,17 @@ namespace DriveCoach.Unity
                     if (pn == "leaves") s.leaves = mesh; else s.bark = mesh;
                 }
             }
+            if (s.bark != null && s.leaves != null)
+            {
+                var both = new Mesh { name = name };
+                if (s.bark.vertexCount + s.leaves.vertexCount > 65535) both.indexFormat = IndexFormat.UInt32;
+                both.CombineMeshes(new[] { new CombineInstance { mesh = s.bark }, new CombineInstance { mesh = s.leaves } }, false, false);
+                both.RecalculateBounds();
+                s.both = both;
+                // 따로 쓰는 곳이 없으니 두 조각은 지운다(점이 두 벌 남지 않게)
+                Dc.Kill(s.bark); Dc.Kill(s.leaves);
+                s.bark = null; s.leaves = null;
+            }
             return s;
         }
 
@@ -117,17 +130,13 @@ namespace DriveCoach.Unity
             }
             if (kind == null) return false;
             int tx = Mathf.FloorToInt(p.x / Tile), ty = Mathf.FloorToInt(p.y / Tile);
-            if (!tiles.TryGetValue((tx, ty), out var parts)) { parts = new Dictionary<(int, Material), List<CombineInstance>>(); tiles[(tx, ty)] = parts; }
+            if (!tiles.TryGetValue((tx, ty), out var parts)) { parts = new Dictionary<(int, Material, Material), List<CombineInstance>>(); tiles[(tx, ty)] = parts; }
             // 크기: 높이 그대로, 가로는 ±8 % (같은 나무가 줄지어 똑같아 보이지 않게)
             float wx = 1f + ((seed >> 4) % 17 - 8) * 0.01f;
             var M = Matrix4x4.TRS(Space3D.W(p, y), Quaternion.Euler(0f, yawDeg, 0f), new Vector3(height * wx, height, height * wx));
             var bark = BarkMat();
             var leaf = LeafMat(kind);
-            foreach (var (lod, s) in new[] { (0, near), (1, far) })
-            {
-                if (s.bark != null) AddPart(parts, lod, bark, s.bark, M);
-                if (s.leaves != null) AddPart(parts, lod, leaf, s.leaves, M);
-            }
+            foreach (var (lod, s) in new[] { (0, near), (1, far) }) AddShape(parts, lod, bark, leaf, s, M);
             count++;
             return true;
         }
@@ -139,23 +148,27 @@ namespace DriveCoach.Unity
             var far = Load("bush_1_park_lod2");
             if (near == null || far == null) return false;
             int tx = Mathf.FloorToInt(p.x / Tile), ty = Mathf.FloorToInt(p.y / Tile);
-            if (!tiles.TryGetValue((tx, ty), out var parts)) { parts = new Dictionary<(int, Material), List<CombineInstance>>(); tiles[(tx, ty)] = parts; }
+            if (!tiles.TryGetValue((tx, ty), out var parts)) { parts = new Dictionary<(int, Material, Material), List<CombineInstance>>(); tiles[(tx, ty)] = parts; }
             float wx = 1f + ((seed >> 9) % 21 - 10) * 0.015f;
             var M = Matrix4x4.TRS(Space3D.W(p, y), Quaternion.Euler(0f, yawDeg, 0f), new Vector3(height * wx * 1.15f, height, height * wx * 1.15f));
             var bark = BarkMat();
             var leaf = LeafMat("bush_1");
-            foreach (var (lod, s) in new[] { (0, near), (1, far) })
-            {
-                if (s.bark != null) AddPart(parts, lod, bark, s.bark, M);
-                if (s.leaves != null) AddPart(parts, lod, leaf, s.leaves, M);
-            }
+            foreach (var (lod, s) in new[] { (0, near), (1, far) }) AddShape(parts, lod, bark, leaf, s, M);
             count++;
             return true;
         }
 
-        static void AddPart(Dictionary<(int, Material), List<CombineInstance>> parts, int lod, Material m, Mesh mesh, Matrix4x4 M)
+        static void AddShape(Dictionary<(int, Material, Material), List<CombineInstance>> parts, int lod, Material bark, Material leaf, Shape s, Matrix4x4 M)
         {
-            if (!parts.TryGetValue((lod, m), out var l)) { l = new List<CombineInstance>(); parts[(lod, m)] = l; }
+            if (s.both != null) { AddPart(parts, lod, bark, leaf, s.both, M); return; }
+            if (s.bark != null) AddPart(parts, lod, bark, null, s.bark, M);
+            if (s.leaves != null) AddPart(parts, lod, leaf, null, s.leaves, M);
+        }
+
+        /// <summary>leaf 가 null 이면 서브메시 하나(재질 bark 하나), 아니면 서브메시 둘(껍질·잎)</summary>
+        static void AddPart(Dictionary<(int, Material, Material), List<CombineInstance>> parts, int lod, Material m0, Material m1, Mesh mesh, Matrix4x4 M)
+        {
+            if (!parts.TryGetValue((lod, m0, m1), out var l)) { l = new List<CombineInstance>(); parts[(lod, m0, m1)] = l; }
             l.Add(new CombineInstance { mesh = mesh, transform = M });
         }
 
@@ -172,9 +185,10 @@ namespace DriveCoach.Unity
                 var lodR = new List<Renderer>[] { new List<Renderer>(), new List<Renderer>() };
                 foreach (var pk in kv.Value)
                 {
-                    // (11/11) 나무마다 점을 복사해 한 메시로 합치던 것을 그만둔다(동네 하나에 메시 수 GB → 에뮬레이터 메모리 부족).
+                    // 나무마다 점을 복사해 한 메시로 합치던 것을 그만둔다(동네 하나에 메시 수 GB → 에뮬레이터 메모리 부족).
                     //   나무 모양 메시는 하나만 두고, 나무마다 그 메시를 가리키는 물체를 만든다.
-                    if (!pk.Key.Item2.enableInstancing) pk.Key.Item2.enableInstancing = true;
+                    var mats = pk.Key.Item3 != null ? new[] { pk.Key.Item2, pk.Key.Item3 } : new[] { pk.Key.Item2 };
+                    foreach (var mt in mats) if (mt != null && !mt.enableInstancing) mt.enableInstancing = true;
                     foreach (var ci in pk.Value)
                     {
                         var go = new GameObject(pk.Key.Item1 == 0 ? "near" : "far");
@@ -187,7 +201,7 @@ namespace DriveCoach.Unity
                         t.localScale = new Vector3(c0.magnitude, c1.magnitude, c2.magnitude);
                         go.AddComponent<MeshFilter>().sharedMesh = ci.mesh;
                         var r = go.AddComponent<MeshRenderer>();
-                        r.sharedMaterial = pk.Key.Item2;
+                        r.sharedMaterials = mats;
                         r.shadowCastingMode = pk.Key.Item1 == 0 ? ShadowCastingMode.On : ShadowCastingMode.Off;
                         lodR[pk.Key.Item1].Add(r);
                     }

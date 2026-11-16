@@ -1,4 +1,4 @@
-// 담당: J (코스 자동 생성)
+// 코스 자동 생성
 package kr.drivecoach.core.course
 
 import kotlin.math.asin

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 담당: A. 앱 이름 -->
+    <!-- 앱 이름 -->
     <string name="app_name">드라이브코치</string>
 
-    <!-- 담당: S. 화면 라벨(버튼·헤더). 음성으로 들리는 문장은 여기 두지 않고 core/tts/Phrases 의 ID 로만 쓴다. -->
+    <!-- 화면 라벨(버튼·헤더). 음성으로 들리는 문장은 여기 두지 않고 core/tts/Phrases 의 ID 로만 쓴다. -->
     <string name="header_car_unknown">인식 차종: 확인 중…</string>
     <string name="header_car_detected">인식 차종: %1$s</string>
     <string name="driving_caption">앱 화면은 P 기어일 때만 볼 수 있습니다.</string>
     <string name="menu_practice">차량 조작법</string>
     <string name="menu_parking">직각 주차</string>
-    <!-- (11/15 대표: 실제 차 주차는 직각·평행 둘 다, "실제 차로" 라는 말은 빼기) -->
+    <!-- 실제 차 주차: 직각·평행 둘 다 -->
     <string name="menu_parking_parallel">평행 주차</string>
-    <!-- (11/15) "주차·핸들 연습" 선택 화면: 3D 연습 / 직각 주차 / 평행 주차 -->
+    <!-- "주차·핸들 연습" 선택 화면: 3D 연습 / 직각 주차 / 평행 주차 -->
     <string name="parking_menu_title">주차 연습</string>
     <string name="menu_parking_learn">직각 주차 배우기</string>
     <string name="menu_parking_parallel_learn">평행 주차 배우기</string>
@@ -47,7 +47,7 @@
     <string name="setting_rate_fast">빠르게</string>
     <string name="setting_diag">진단 보기 (개발용)</string>
     <string name="setting_version">앱 버전</string>
-    <!-- 11/6: 설정 "Pleos 연결" — 이 앱이 쓰는 Pleos Playground SDK 와 지금 연결 상태 -->
+    <!-- 설정 "Pleos 연결" — 이 앱이 쓰는 Pleos Playground SDK 와 지금 연결 상태 -->
     <string name="setting_pleos">Pleos 연결</string>
     <string name="pleos_vehicle">차량 신호(Vehicle)</string>
     <string name="pleos_vehicle_value">%1$d / %2$d 연결</string>
@@ -76,7 +76,7 @@
     <string name="btn_no">아니요</string>
     <string name="btn_back_menu">← 메뉴로</string>
     <string name="practice_menu_title">차량 조작법</string>
-    <!-- 도로 법규 글 아래 근거 조문(11/15 대표) -->
+    <!-- 도로 법규 글 아래 근거 조문 -->
     <string name="law_basis">근거: %1$s</string>
     <string name="practice_search_hint">기능 검색</string>
     <string name="practice_no_match">검색 결과가 없습니다.</string>
@@ -94,7 +94,7 @@
     <string name="diag_sdk">SDK 진단</string>
     <string name="diag_perm">권한 진단(거부된 것만)</string>
 
-    <!-- 담당: S. 포그라운드 서비스(CoachService) 알림·연결 상태. 화면이 런처에 가려져도 음성 코칭이 계속되게 하는 서비스 -->
+    <!-- 포그라운드 서비스(CoachService) 알림·연결 상태. 화면이 런처에 가려져도 음성 코칭이 계속되게 하는 서비스 -->
     <string name="notif_channel_name">운전 코칭 실행 중</string>
     <string name="notif_channel_desc">주행 중 음성 코칭이 계속 동작하도록 유지하는 알림</string>
     <string name="notif_title">운전 코칭 실행 중</string>
@@ -103,7 +103,7 @@
     <string name="notif_mode_unknown">차량 신호를 기다리는 중</string>
     <string name="label_connecting_service">서비스 연결 중…</string>
 
-    <!-- 담당: S. 직각 주차(4-5) 화면 -->
+    <!-- 직각 주차(4-5) 화면 -->
     <!-- 캡션: "직각 주차 · 3/9 단계 · 2번째 시도". %1$d 단계, %2$d 전체, %3$d 시도 -->
     <string name="parking_caption">직각 주차, %1$d/%2$d 단계, %3$d번째 시도</string>
     <!-- 자리 바로잡기 중 캡션: "자리 바로잡기 · 비스듬함 · 2/4". %1$s 꼬임 이름, %2$d 단계, %3$d 전체 -->
@@ -121,7 +121,7 @@
     <string name="parking_tangle_angled_desc">차가 칸과 비스듬함</string>
     <string name="parking_tangle_too_far_desc">칸에서 너무 떨어짐</string>
     <string name="parking_caption_intro">직각 주차 > 시작 전 안내</string>
-    <!-- 평행 주차(11/15): 캡션·탈출 이름·자기평가 -->
+    <!-- 평행 주차: 캡션·탈출 이름·자기평가 -->
     <string name="parking_par_caption">평행 주차, %1$d/%2$d 단계, %3$d번째 시도</string>
     <string name="parking_par_caption_intro">평행 주차 > 시작 전 안내</string>
     <string name="parking_par_tangle_too_close">연석에 붙음</string>
@@ -140,9 +140,9 @@
     <string name="btn_parking_selfeval_submit">평가 끝</string>
     <!-- 주행 화면(R/D)에서 주차 단계 한 줄: "주차 5/9 · 살살 뒤로, 선 나란하면 정지." -->
 
-    <!-- 담당: S. 코스 주행(5-1~5-4, 내비 연동) 화면. 음성 문장은 Phrases(briefing_*/guide_*/report_*) 로만 -->
+    <!-- 코스 주행(5-1~5-4, 내비 연동) 화면. 음성 문장은 Phrases(briefing_*/guide_*/report_*) 로만 -->
     <string name="course_title">코스 주행</string>
-    <!-- (11/15 강명수) 난이도별 코스(길찾기 키가 있을 때만 보임) -->
+    <!-- 난이도별 코스(길찾기 키가 있을 때만 보임) -->
     <string name="course_difficulty_label">난이도(1 쉬움, 5 어려움)</string>
     <string name="course_minutes_label">연습 시간</string>
     <string name="course_minutes">%1$d분</string>
@@ -198,7 +198,7 @@
     <string name="course_err_network">길찾기 서비스에 연결하지 못했습니다. 다시 시도하십시오.</string>
     <string name="course_err_other">코스를 만들지 못했습니다. 다시 시도하십시오.</string>
     <string name="btn_course_retry">다시 시도</string>
-    <!-- (담당 T) 실제 길찾기 코스 생성 -->
+    <!-- 실제 길찾기 코스 생성 -->
     <string name="course_caption_generating">코스 주행 > %1$s, 코스 계산 중</string>
     <string name="course_status_generating">코스 계산 중… 길찾기로 도로 위 코스를 선택하고 있습니다.</string>
     <string name="course_summary_numbers">거리 %1$.1f km, 좌회전 %2$d, 차로 변경 %3$d, 비보호 좌회전 %4$d, 우회전 %5$d</string>

@@ -1,4 +1,4 @@
-// 담당: A+B → R (CarInfo 도메인 → core.signal.CarSpec. 실패하면 아반떼 CN8 기본값)
+// CarInfo 도메인 → core.signal.CarSpec. 실패하면 아반떼 CN8 기본값
 // 검증: Vehicle-2.3.2 jar 의 javap 시그니처로 재작성. checkVINInfoCapabilities 의 onComplete 는 (CapabilityConfig)->Unit 한 개 인자.
 package kr.drivecoach.app.vehicle
 

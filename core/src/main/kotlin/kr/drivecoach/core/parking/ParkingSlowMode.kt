@@ -1,4 +1,4 @@
-// 담당: I (직각 주차 슬로우 모드 상태 머신 — 후진 경고, 실행/확인)
+// 직각 주차 슬로우 모드 상태 머신 — 후진 경고, 실행/확인
 package kr.drivecoach.core.parking
 
 import kr.drivecoach.core.signal.Gear
@@ -128,7 +128,7 @@ class ParkingSlowMode(
             output.onOutput(SlowModeOutput.Say(ParkingProcedure.STOP_FIRST_PHRASE))
             return
         }
-        // 센서 단계(핸들 끝까지·가운데·기어)는 '확인' 으로 통과시키지 않는다 — 신호가 아직 안 맞으면 미감지 안내만(베타 B-23). 건너뛰려면 [skip].
+        // 센서 단계(핸들 끝까지·가운데·기어)는 '확인' 으로 통과시키지 않는다 — 신호가 아직 안 맞으면 미감지 안내만. 건너뛰려면 [skip].
         val sensorStep = step.expected is StepExpectation.SteeringAtLeast || step.expected is StepExpectation.SteeringCentered ||
             step.expected is StepExpectation.GearIs || step.expected is StepExpectation.ParkingBrakeOn
         if (sensorStep && lastState?.let { sensorSatisfied(step.expected, it) } != true) {
@@ -176,7 +176,7 @@ class ParkingSlowMode(
         )
     }
 
-    /** (11/15 베타 6f) 탈출법 고르기에서 "하던 단계로": 고르기 전에 하던 단계(공식 또는 탈출)로 돌아간다. */
+    /** 탈출법 고르기에서 "하던 단계로": 고르기 전에 하던 단계(공식 또는 탈출)로 돌아간다. */
     fun cancelHelp(nowMs: Long) {
         if (phase != SlowModePhase.RECOVERY_CHOICE) return
         val (ph, idx, rec) = helpFrom ?: Triple(SlowModePhase.STEP, 0, null)
@@ -233,7 +233,7 @@ class ParkingSlowMode(
         StepExpectation.StoppedThenConfirm, StepExpectation.ManualConfirm -> false
     }
 
-    /** 후진(R) 중 속도 초과를 1회 경고한다. 액셀(RPM 상승) 경고는 DangerRules 가 담당(같은 멘트가 두 곳에서 나가던 것 정리, 베타 B-35). */
+    /** 후진(R) 중 속도 초과를 1회 경고한다. 액셀(RPM 상승) 경고는 DangerRules 가 담당(같은 멘트가 두 곳에서 나가던 것 정리). */
     private fun checkReverseWarnings(s: VehicleState) {
         if (s.gear != Gear.R) return
         val v = s.speedKmh
@@ -263,7 +263,7 @@ class ParkingSlowMode(
         stepStartedMs = nowMs
         val step = currentStep ?: return
         output.onOutput(SlowModeOutput.Say(step.instructionPhrase, step.illustration))
-        // (11/14 베타: 이미 맞는 단계(핸들 가운데·기어 P)는 들어가자마자 넘어가 "단계가 사라졌다") 들어간 직후에는 넘기지 않고,
+        // (이미 맞는 단계(핸들 가운데·기어 P)는 들어가자마자 넘어가 "단계가 사라졌다") 들어간 직후에는 넘기지 않고,
         //   들어갈 때 이미 맞아 있던 단계는 안내를 볼 시간(MIN_SENSOR_DWELL_MS)이 지난 뒤의 차량 신호로 넘긴다
         val s = lastState
         satisfiedAtEntry = s != null && sensorSatisfied(step.expected, s)

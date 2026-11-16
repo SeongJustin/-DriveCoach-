@@ -1,4 +1,4 @@
-// 담당: L (경고등 데이터 + 퀴즈 테스트, fun main 러너)
+// 경고등 데이터 + 퀴즈 테스트, fun main 러너
 package kr.drivecoach.core.warning
 
 import kr.drivecoach.core.signal.Gear

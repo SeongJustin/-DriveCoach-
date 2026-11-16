@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 한 판의 움직이지 않는 것을 3D 로: 바닥·칠·벽·기둥·주차된 차·경사로·서킷·도로)
+// 3D 주차 연습 — 한 판의 움직이지 않는 것을 3D 로: 바닥·칠·벽·기둥·주차된 차·경사로·서킷·도로
 // 모양과 크기는 전부 Core(Stage) 의 실제 규격(m) 그대로. 3D 모델은 Kenney·Quaternius(CC0), 바닥 질감은 Poly Haven(CC0).
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -20,6 +20,7 @@ namespace DriveCoach.Unity
             var root = new GameObject("Stage " + st.id);
             root.transform.SetParent(parent, false);
             SignalHeads.Current = null;   // 앞 판(내 동네)의 실제 신호등이 남지 않게
+            CountryStyle.Current = CountryStyle.KR;   // 지역 판이면 BuildRoad 가 그 나라로 바꾼다
             NightLights.Reset();
             Dc.Lap(null);
             for (int fi = 0; fi < st.floors.Count; fi++) BuildFloor(st, st.floors[fi], el.floor[fi], root.transform);
@@ -40,7 +41,7 @@ namespace DriveCoach.Unity
             int iy0 = Mathf.FloorToInt(r.y / C), iy1 = Mathf.CeilToInt((r.y + r.h) / C) - 1;
             for (int iy = iy0; iy <= iy1; iy++)
             {
-                // (11/11) "이어지는 칸 없음" 표시는 int.MinValue. 예전에는 -1 / "run < 0" 이었는데 칸 번호가 지역 원점 서쪽에서는 음수라
+                // "이어지는 칸 없음" 표시는 int.MinValue. 예전에는 -1 / "run < 0" 이었는데 칸 번호가 지역 원점 서쪽에서는 음수라
                 //   서쪽 절반(x < 0)에는 땅이 한 칸도 깔리지 않았다 — 길 옆이 하늘빛으로 비어 보이고 건물·신호등이 떠 보이던 원인.
                 const int None = int.MinValue;
                 int run = None;
@@ -52,7 +53,7 @@ namespace DriveCoach.Unity
                     {
                         float x0 = Mathf.Max(r.x, run * C), x1 = Mathf.Min(r.x + r.w, ix * C);
                         float y0 = Mathf.Max(r.y, iy * C), y1 = Mathf.Min(r.y + r.h, (iy + 1) * C);
-                        // (11/11) 40 m 씩 끊어 깐다(수 km 짜리 긴 네모는 안개가 먼 꼭짓점에서만 계산돼 색이 틀어진다)
+                        // 40 m 씩 끊어 깐다(수 km 짜리 긴 네모는 안개가 먼 꼭짓점에서만 계산돼 색이 틀어진다)
                         if (y1 > y0)
                             for (float xa = x0; xa < x1 - 0.01f; xa += 2f * C)
                                 mk.Rect(new Core.Rect(xa, y0, Mathf.Min(2f * C, x1 - xa), y1 - y0), h);
@@ -72,8 +73,8 @@ namespace DriveCoach.Unity
                 case Surface.Grass: return DcAssets.Lit(DcAssets.Hex("#6F8F4E"), 0.05f);
                 case Surface.Block:
                     // 동네 땅(건물 사이): 무광 단색 회색. 하늘빛으로 비어 보이던 것은 재질 탓이 아니라 땅이 서쪽 절반에 안 깔린 탓이었다(GroundWithHoles 참고).
-                    // (11/11 낮) 단색 회색은 햇빛에서 하얗게 떠서 "빈 땅"처럼 보였다 → 닳은 콘크리트 질감(조금 어둡게)
-                    // (11/12 밤) 독립 평가: "땅색과 차도색이 거의 같아 도로 경계를 인도 띠로만 알 수 있다" → 땅을 밝고 따뜻한 모래빛으로(아스팔트와 뚜렷이 구분)
+                    // 단색 회색은 햇빛에서 하얗게 떠서 "빈 땅"처럼 보였다 → 닳은 콘크리트 질감(조금 어둡게)
+                    // 독립 평가: "땅색과 차도색이 거의 같아 도로 경계를 인도 띠로만 알 수 있다" → 땅을 밝고 따뜻한 모래빛으로(아스팔트와 뚜렷이 구분)
                     return DcAssets.Pbr("concrete_floor_worn_001", DcAssets.Hex("#B9B19E"), new Color(1.0f, 0.95f, 0.84f), 0.5f);
                 default: return DcAssets.Ground("asphalt_03", DcAssets.Hex("#55595F"), Color.white);
             }
@@ -85,7 +86,7 @@ namespace DriveCoach.Unity
             node.SetParent(root, false);
 
             var ground = new MeshKit { uvScale = 4f };
-            // 11/9 새벽: 지하차도 도랑이 있는 지역은 땅에 구멍 — 20 m 칸으로 깔되 도랑과 닿는 칸(GCEL)은 빼고 그 칸의 땅(GRND)으로
+            // 지하차도 도랑이 있는 지역은 땅에 구멍 — 20 m 칸으로 깔되 도랑과 닿는 칸(GCEL)은 빼고 그 칸의 땅(GRND)으로
             var surf = st.road?.region != null ? RoadSurface.Load(st.road.region.surfaceFile) : null;
             if (surf != null && surf.tris.TryGetValue("GCEL", out var cells) && cells.Length > 0 && surf.tris.TryGetValue("GRND", out var gt))
                 GroundWithHoles(ground, f.ground, h, cells, gt);
@@ -93,7 +94,9 @@ namespace DriveCoach.Unity
                 GroundWithHoles(ground, f.ground, h, new Vector2[0], new Vector2[0]);   // 동네(수 km): 구멍이 없어도 잘게 깐다(안개 계산)
             else
                 ground.Rect(f.ground, h);
-            ground.ToObject("ground", SurfaceMat(f), node);
+            var groundGo = ground.ToObject("ground", SurfaceMat(f), node);
+            // 동네 땅(점 15만 개)은 지은 뒤 다시 읽지 않는다 → 그래픽 장치에만 두고 일반 메모리 사본은 내린다
+            if (surf != null || f.surface == Surface.Block) groundGo.GetComponent<MeshFilter>().sharedMesh.UploadMeshData(true);
 
             // 보도(살짝 높고 밝은 콘크리트)·연석
             if (f.walks.Count > 0)
@@ -345,34 +348,35 @@ namespace DriveCoach.Unity
         {
             var node = new GameObject("Road").transform;
             node.SetParent(root, false);
+            CountryStyle.Current = CountryStyle.For(r.region);      // 나라별 모양(칠·표지·신호…) — 지역이 아니면 한국
             if (r.region != null)
             {
                 // 내 동네(지역 지도): 길·칠·건물·가로수·가로등은 CityBuilder, 신호등만 여기서
                 Dc.Lap(null);
                 CityBuilder.Build(r, h, node); Dc.Lap("city");
-                // (11/13 메모리) 건물·길 말고 나머지(신호등·표지·볼라드·고가·지하차도…)의 메시도 지은 뒤 다시 읽지 않는다 →
+                // 건물·길 말고 나머지(신호등·표지·볼라드·고가·지하차도…)의 메시도 지은 뒤 다시 읽지 않는다 →
                 //   그래픽 장치에만 두고 일반 메모리의 사본을 내린다(Android 가이드 "Read/Write 는 꺼 둔다 — 켜 두면 메모리가 두 배").
                 //   큰 동네를 짓는 동안 생긴 임시 배열은 단계 사이에 바로 치워, 관리 힙이 최고치까지 부풀지 않게 한다.
                 System.GC.Collect();
                 MeshKit.Built = new System.Collections.Generic.List<Mesh>();
                 try
                 {
-                    // 11/8 밤: 서울 T-GIS 실제 자리 신호등·안전표지가 있으면 그것으로(없으면 예전처럼 교차로마다 Kenney 신호등)
+                    // 서울 T-GIS 실제 자리 신호등·안전표지가 있으면 그것으로(없으면 예전처럼 교차로마다 Kenney 신호등)
                     if (!SignalHeads.Build(r, h, node)) PlaceSignals(r, h, node); Dc.Lap("signals");
-                    SignBuilder.Build(r, h, node); Dc.Lap("SignBuilder");
-                    FacilityBuilder.Build(r, h, node); Dc.Lap("FacilityBuilder");   // 11/8 밤: 주차장(칸·세운 차)·주유소·충전소
-                    BusStopBuilder.Build(r, h, node); Dc.Lap("BusStopBuilder");    // 11/9 아침: 버스정류장(길가 쉘터·표지, 중앙 섬 위 승강장)
-                    StreetFurniture.Build(r, h, node); Dc.Lap("StreetFurniture");   // 11/9 낮: 횡단보도 볼라드·큰길 보행자 울타리(어린이보호구역은 노랑)
-                    GradeBuilder.Build(r, h, node); Dc.Lap("GradeBuilder");      // 11/8 밤: 고가도로(상판·방호벽·교각·칠)
-                    HumpBuilder.Build(r, h, node); Dc.Lap("HumpBuilder");       // 11/9 새벽: 과속방지턱(솟은 원호형, 노랑·흰 빗금)
-                    SchoolZoneBuilder.Build(r, h, node); Dc.Lap("SchoolZoneBuilder"); // 11/9 새벽: 어린이보호구역 입구 빨간 노면
-                    UnderpassBuilder.Build(r, h, node); Dc.Lap("UnderpassBuilder");  // 11/9 새벽: 지하차도(파인 길·옹벽·난간·덮개 밑면)
+                    SignBuilder.Build(r, h, node); Dc.Trim(); Dc.Lap("SignBuilder");
+                    FacilityBuilder.Build(r, h, node); Dc.Lap("FacilityBuilder");   // 주차장(칸·세운 차)·주유소·충전소
+                    BusStopBuilder.Build(r, h, node); Dc.Lap("BusStopBuilder");    // 버스정류장(길가 쉘터·표지, 중앙 섬 위 승강장)
+                    StreetFurniture.Build(r, h, node); Dc.Trim(); Dc.Lap("StreetFurniture");   // 횡단보도 볼라드·큰길 보행자 울타리(어린이보호구역은 노랑)
+                    GradeBuilder.Build(r, h, node); Dc.Lap("GradeBuilder");      // 고가도로(상판·방호벽·교각·칠)
+                    HumpBuilder.Build(r, h, node); Dc.Lap("HumpBuilder");       // 과속방지턱(솟은 원호형, 노랑·흰 빗금)
+                    SchoolZoneBuilder.Build(r, h, node); Dc.Lap("SchoolZoneBuilder"); // 어린이보호구역 입구 빨간 노면
+                    UnderpassBuilder.Build(r, h, node); Dc.Lap("UnderpassBuilder");  // 지하차도(파인 길·옹벽·난간·덮개 밑면)
                 }
                 finally
                 {
                     var built = MeshKit.Built; MeshKit.Built = null;
                     long vtx = 0;
-                    foreach (var m in built) if (m != null && m.isReadable) { vtx += m.vertexCount; m.UploadMeshData(true); }
+                    foreach (var m in built) if (m != null) { vtx += m.vertexCount; if (m.isReadable) m.UploadMeshData(true); }   // 대부분 ToObject 에서 이미 내림
                     // MeshKit 를 거치지 않고 만든 메시(밤 창문 겹, 나무 등)도: 실행 중에 만든 것(InstanceID < 0)만 — 가져온 모델 메시는 다음 동네를 지을 때 다시 읽는다
                     int extra = 0;
                     foreach (var mf in node.GetComponentsInChildren<MeshFilter>(true))
@@ -383,6 +387,14 @@ namespace DriveCoach.Unity
                     Debug.Log("DC3D region extra meshes " + built.Count + " + " + extra + ", vertices " + vtx + " (사본 내림)");
                     System.GC.Collect();
                     Dc.Lap("region-upload");
+                    Dc.Census("region");   // 물체 수·메시 크기 한 줄(기기에서 무엇이 큰지)
+                    // 노면 자료(삼각형 60만 점·8 m 격자, 스크립트 힙 약 15 MB)는 짓는 동안에만 쓴다 → 다 지었으면 잊는다.
+                    //   같은 동네를 다시 열면 파일에서 다시 읽는다(1초 안쪽).
+                    CityBuilder.Forget();
+                    RoadSurface.Forget(r.region.surfaceFile);
+                    // 짓는 데만 쓴 파일(동네 JSON·노면·나무·차 모델 .bytes TextAsset)은 읽은 자리에서 바로 내린다
+                    //   (RegionCatalog.ReadText/ReadBytes, TreeKit.Load, FleetModels.Proto). 여기서 Resources.UnloadUnusedAssets() 를 부르면
+                    //   장면 전체를 훑는 일(수백 ms)이 가림막이 걷힌 뒤 첫 주행 프레임들에 걸린다(화면 수 관리기 Governor 가 화질을 내리는 원인 후보).
                 }
                 return;
             }
@@ -428,7 +440,7 @@ namespace DriveCoach.Unity
                 if (proto == null) break;
                 var go = Object.Instantiate(proto, node);
                 go.name = "signal";
-                // 실제 노면이 있으면 기둥이 아스팔트 위에 서지 않게(대표 요청 11/8) 가장 가까운 보도로 옮긴다
+                // 실제 노면이 있으면 기둥이 아스팔트 위에 서지 않게 가장 가까운 보도로 옮긴다
                 var pos = sg.pos;
                 float y = h;
                 var surf = CityBuilder.Current;
@@ -446,7 +458,7 @@ namespace DriveCoach.Unity
         // ───────────────────────── 모델 도구 ─────────────────────────
 
         /// <summary>Kenney 차 모델을 길이·폭에 맞춰 놓는다(높이는 폭 비율). 모델이 없으면 상자 차.</summary>
-        /// <param name="height">차 높이(m). 0 이하면 길이·폭 배율의 평균(예전 방식, 다른 차들). 내 차는 실제 높이(11/8 대표: "실측치로 만드는 게임")</param>
+        /// <param name="height">차 높이(m). 0 이하면 길이·폭 배율의 평균(예전 방식, 다른 차들). 내 차는 실제 높이</param>
         public static GameObject ModelCar(string path, float len, float wid, Transform parent, Color fallback, float height = -1f)
         {
             var proto = DcAssets.Model(path);
@@ -463,7 +475,7 @@ namespace DriveCoach.Unity
 
         static readonly System.Collections.Generic.Dictionary<Material, Material> glossy = new System.Collections.Generic.Dictionary<Material, Material>();
 
-        /// <summary>11/8 "유로트럭 느낌": 차 도장에 하늘이 비치게(매끈함·약한 금속감). 원래 재질마다 한 번만 복사.</summary>
+        /// <summary>차 도장에 하늘이 비치게(매끈함·약한 금속감). 원래 재질마다 한 번만 복사.</summary>
         public static void Glossy(GameObject inst)
         {
             foreach (var r in inst.GetComponentsInChildren<Renderer>())

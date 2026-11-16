@@ -1,4 +1,4 @@
-// 담당: C+G (P/주행 모드 판정, UI 정책)
+// P/주행 모드 판정, UI 정책
 package kr.drivecoach.core.mode
 
 import kr.drivecoach.core.signal.Gear
@@ -23,7 +23,7 @@ enum class DriveMode {
 /**
  * 모드별로 화면에 허용되는 것. 숫자는 "한 줄 요약 이상 띄우지 않는다" 원칙을 그대로 옮긴 것.
  *
- * AAOS `CarUxRestrictions` 와의 결합(앱 담당):
+ * AAOS `CarUxRestrictions` 와의 결합:
  *  - 앱은 `CarUxRestrictionsManager` 의 현재 제한과 이 정책을 **OR 조건**으로 합친다.
  *    즉 둘 중 더 엄격한 쪽을 따른다 → [stricter] 로 두 정책을 합치면 된다.
  *  - 예) 이 모듈이 PARKED_LEARN 이어도 `UX_RESTRICTIONS_NO_VIDEO`/`LIMIT_STRING_LENGTH` 등이 켜져 있으면

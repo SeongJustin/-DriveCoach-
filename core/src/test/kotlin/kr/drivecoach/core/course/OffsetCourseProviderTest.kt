@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — 오프셋 코스 소스 + TBT 안내 규칙 테스트)
+// 앱 연결 — 오프셋 코스 소스 + TBT 안내 규칙 테스트
 package kr.drivecoach.core.course
 
 import kr.drivecoach.core.tts.Phrases

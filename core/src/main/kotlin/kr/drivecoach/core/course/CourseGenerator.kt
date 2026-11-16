@@ -1,4 +1,4 @@
-// 담당: J (코스 자동 생성)
+// 코스 자동 생성
 package kr.drivecoach.core.course
 
 import kotlin.math.abs
@@ -339,7 +339,7 @@ class CourseGenerator(private val provider: RouteProvider, private val config: G
                     }
                 } else {
                     val goal = Geo.offset(start, b, 2 * r)
-                    // (11/14 베타: "직진만"인데 회전 6번) 직진 위주는 옆으로 꺾는 경유지를 두지 않고 곧장 목적지로
+                    // ("직진만"인데 회전 6번) 직진 위주는 옆으로 꺾는 경유지를 두지 않고 곧장 목적지로
                     if (spec.fearFocus == Fear.PEDAL_CONFUSION) { out += Candidate(emptyList(), goal, 0, r); continue }
                     val side = Geo.offset(start, b + (if (wantsLeft) -35.0 else 35.0), r)
                     out += Candidate(listOf(side), goal, 0, r)

@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 프로젝트 준비 2단계: URP·재질·가져오기 설정·장면·안드로이드 설정)
+// 3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 프로젝트 준비 2단계: URP·재질·가져오기 설정·장면·안드로이드 설정
 // 실행: Unity.exe -batchmode -quit -buildTarget Android -projectPath <프로젝트> -executeMethod DriveCoach.EditorTools.DcConfigure.Run
 using System;
 using System.IO;
@@ -77,7 +77,7 @@ namespace DriveCoach.EditorTools
                 if (r.postProcessData == null && ppd != null) r.postProcessData = ppd;
                 EditorUtility.SetDirty(r);
             }
-            // 0번 렌더러에 그늘(화면 공간 AO): 건물 모서리·차 밑이 어두워져 입체감(11/8 그래픽 높게)
+            // 0번 렌더러에 그늘(화면 공간 AO): 건물 모서리·차 밑이 어두워져 입체감(그래픽 높게)
             // (URP 판마다 이 형식의 공개 여부가 달라 이름으로 찾는다)
             var aoType = typeof(UniversalRendererData).Assembly.GetType("UnityEngine.Rendering.Universal.ScreenSpaceAmbientOcclusion");
             bool hasAo = aoType == null;
@@ -121,7 +121,7 @@ namespace DriveCoach.EditorTools
                     aso.ApplyModifiedPropertiesWithoutUndo();
                 }
             }
-            // 그림자: 2단(가까운 곳 선명하게), 100 m 까지. 11/8 "유로트럭 느낌"(예전 45 m·1단)
+            // 그림자: 2단(가까운 곳 선명하게), 100 m 까지(예전 45 m·1단)
             asset.shadowDistance = 100f;
             asset.shadowCascadeCount = 2;
             asset.cascade2Split = 0.22f;
@@ -219,8 +219,8 @@ namespace DriveCoach.EditorTools
                 {
                     // URP 를 켠 뒤 다시 가져와야 재질이 URP 재질로 만들어진다
                     mi.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
-                    // 거리 소품(Poly Haven)은 실행 중 한 메시로 합치므로 읽을 수 있게(11/8)
-                    // 가로등(Quaternius)도 실제 노면에서는 수백 개라 합친다(11/8)
+                    // 거리 소품(Poly Haven)은 실행 중 한 메시로 합치므로 읽을 수 있게
+                    // 가로등(Quaternius)도 실제 노면에서는 수백 개라 합친다
                     mi.isReadable = path.Contains("/PolyHaven/Models/") || path.Contains("/Streetlight");
                     mi.importAnimation = false;
                     mi.importCameras = false;
@@ -276,7 +276,7 @@ namespace DriveCoach.EditorTools
             var litT = new Material(lit);
             MakeTransparent(litT);
             SaveMat("DC_LitTransparent", litT);
-            // 11/9: 잎(EZ-Tree)·울타리 그물 — 알파 자르기 + 양면. 그림자 패스도 자르기(_ALPHATEST_ON 변형이 빌드에 남게)
+            // 잎(EZ-Tree)·울타리 그물 — 알파 자르기 + 양면. 그림자 패스도 자르기(_ALPHATEST_ON 변형이 빌드에 남게)
             var litC = new Material(lit);
             litC.SetFloat("_AlphaClip", 1f);
             litC.SetFloat("_Cutoff", 0.5f);
@@ -287,7 +287,7 @@ namespace DriveCoach.EditorTools
             var leafTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/DC/Trees/ash_medium_leaves.png");
             if (leafTex != null) litC.SetTexture("_BaseMap", leafTex);
             SaveMat("DC_LitCutout", litC);
-            // (11/11) 쓰는 하늘 한 장만. 예전 하늘 두 장(rooftop_day, homecoming_rooftop)은 쓰이지 않는데도 앱에 들어가 용량만 차지했다(release APK 106 MB → 100 MB 아래로)
+            // 쓰는 하늘 한 장만. 예전 하늘 두 장(rooftop_day, homecoming_rooftop)은 쓰이지 않는데도 앱에 들어가 용량만 차지했다(release APK 106 MB → 100 MB 아래로)
             foreach (var hdri in new[] { "sky_kloofendal_48d_2k" })
             {
                 var cube = AssetDatabase.LoadAssetAtPath<Cubemap>("Assets/Resources/DC/PolyHaven/HDRI/" + hdri + ".exr");

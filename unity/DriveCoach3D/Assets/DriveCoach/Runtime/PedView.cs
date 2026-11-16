@@ -1,4 +1,3 @@
-// 담당: S (11/9 새벽, 조사 P1 "보행자")
 // 내 동네 횡단보도를 건너는 사람(Core.CrossPeds)을 그린다: 몸통·머리·두 다리·두 팔(낮은 다각형), 옷 색 8 가지,
 // 걸을 때 다리·팔이 앞뒤로 흔들리고 몸이 살짝 위아래로. 사람 수가 적어(10 명 안팎) 하나씩 둔다.
 using System.Collections.Generic;
@@ -61,7 +60,7 @@ namespace DriveCoach.Unity
             var skin = DcAssets.Lit(DcAssets.Hex("#C9A184"), 0.3f);
             var hair = DcAssets.Lit(DcAssets.Hex("#1E1A17"), 0.2f);
             float s = 0.92f + (p.look % 3) * 0.05f;      // 키 조금씩 다르게
-            // (11/13 저녁 대표: 그림·영상에 나오는 사람이 네모 상자라 어색) 상자 대신 둥근 몸: 몸통·머리·팔다리를 회전체(단면 고리를 이어 붙임)로
+            // (그림·영상에 나오는 사람이 네모 상자라 어색) 상자 대신 둥근 몸: 몸통·머리·팔다리를 회전체(단면 고리를 이어 붙임)로
             var shoe = DcAssets.Lit(DcAssets.Hex("#1B1B1D"), 0.25f);
             Round(go.transform, "torso", new Vector3(0f, 0.90f * s, 0f), shirt,
                 new[] { 0f, 0.06f * s, 0.30f * s, 0.50f * s, 0.56f * s, 0.60f * s }, new[] { 0.150f, 0.172f, 0.180f, 0.205f, 0.170f, 0.060f }, new[] { 0.095f, 0.112f, 0.118f, 0.122f, 0.100f, 0.050f });

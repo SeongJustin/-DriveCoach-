@@ -1,5 +1,5 @@
 // 앱 뼈대 화면: 인트로, 연결 중, P/주행 화면 분기, P 상태 메뉴
-// (11/5 정리) MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
+// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -13,6 +13,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,7 +48,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.coerceIn
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -55,6 +61,8 @@ import kr.drivecoach.app.ui.CoachChipMinHeight
 import kr.drivecoach.app.ui.AdaptiveScreen
 import kr.drivecoach.app.ui.CoachColors
 import kr.drivecoach.app.ui.LocalNarrow
+import kr.drivecoach.app.ui.FillLastColumn
+import kr.drivecoach.app.ui.LocalArtMaxHeight
 import kr.drivecoach.app.ui.CoachCornerRadius
 import kr.drivecoach.app.ui.CoachSize
 import kr.drivecoach.app.ui.CoachType
@@ -115,7 +123,7 @@ internal fun MainActivity.IntroVisual(onFinished: () -> Unit) {
         }
         else -> {
             LaunchedEffect(Unit) { delay(INTRO_FALLBACK_MS); onFinished() }
-            // (11/15 대표: 앱 이름 여섯 글자만 있어 허전하다) 라임 띠 + 앱 이름 + 한 줄 소개, 아래쪽에 라임 띠
+            // (앱 이름 여섯 글자만 있어 허전하다) 라임 띠 + 앱 이름 + 한 줄 소개, 아래쪽에 라임 띠
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(modifier = Modifier.width(120.dp).height(12.dp).background(CoachColors.Primary, androidx.compose.foundation.shape.RoundedCornerShape(6.dp)))
@@ -146,26 +154,26 @@ internal fun MainActivity.CoachRoot(svc: CoachService) {
     val isRestricted by svc.restricted.collectAsState()
     val mode by svc.coach.mode.collectAsState()
     val lastSpoken by svc.coach.lastSpoken.collectAsState()
-    // 인트로가 끝나 이 화면이 처음 그려질 때 환영 멘트("현재 차량은 …")를 하게 한다(11/4 대표 요청). 여러 번 불려도 한 번만 말한다.
+    // 인트로가 끝나 이 화면이 처음 그려질 때 환영 멘트("현재 차량은 …")를 하게 한다. 여러 번 불려도 한 번만 말한다.
     LaunchedEffect(svc) { svc.coach.onIntroFinished() }
     // 앱을 켠 직후에는 판정기가 UNKNOWN 에서 PARKED 로 넘어가는 데 2초(히스테리시스)가 걸려 "P · 0 km/h" 한 줄 화면이 먼저 보였다.
-    // 기어가 P 면 차는 서 있으므로 UNKNOWN 이어도 바로 메뉴를 보여 준다(11/3 대표 피드백). 움직임·규제는 그대로 주행 화면.
-    // P 에 두고 서 있으면 판정기의 2초 유지와 무관하게 바로 메뉴(베타 A-10: P 복귀 뒤 2초간 주행 화면이 보이던 문제).
+    // 기어가 P 면 차는 서 있으므로 UNKNOWN 이어도 바로 메뉴를 보여 준다. 움직임·규제는 그대로 주행 화면.
+    // P 에 두고 서 있으면 판정기의 2초 유지와 무관하게 바로 메뉴(P 복귀 뒤 2초간 주행 화면이 보이던 문제).
     val parkedNow = mode == DriveMode.PARKED_LEARN || (state.gear == Gear.P && (state.speedKmh ?: 0.0) <= STOPPED_SPEED_KMH)
     val driving = isRestricted || !parkedNow
     if (driving) DrivingScreen(svc, state, lastSpoken) else ParkedScreen(svc, state, spec, lastSpoken)
 }
 
 /**
- * 주행 중(P 가 아니거나 플랫폼 규제): 정지 그림(drawable/driving_still, 11/5 영상 반복에서 교체)을 보여 주고 아래에 작은 검정 자막 "기어 P단 상태에서만 … 실행이 가능합니다" 를 띄운다
- * (11/3 대표 요청, 메뉴·신호·안내문 없음. 코칭은 서비스가 음성으로 계속한다).
+ * 주행 중(P 가 아니거나 플랫폼 규제): 정지 그림(drawable/driving_still, 영상 반복에서 교체)을 보여 주고 아래에 작은 검정 자막 "기어 P단 상태에서만 … 실행이 가능합니다" 를 띄운다
+ * (메뉴·신호·안내문 없음. 코칭은 서비스가 음성으로 계속한다).
  * 예외 하나: 직각 주차 슬로우 모드에서 차가 서 있고 "확인"으로만 넘어가는 단계면 단계 문장 + 확인/다시 버튼을 자막 위에 둔다(STT·휠 버튼 연결 전 대체).
  */
 @Composable
 internal fun MainActivity.DrivingScreen(svc: CoachService, state: VehicleState, lastSpoken: String) {
     val parking by svc.coach.parkingUi.collectAsState()
     Box(modifier = Modifier.fillMaxSize().background(CoachColors.Background)) {
-        // 주행 중에는 영상을 틀지 않는다(차량 OS 의 주행 중 영상 금지 원칙, 베타 D-04 / 11/5 대표 결정). 미니멀 정지 그림 한 장.
+        // 주행 중에는 영상을 틀지 않는다(차량 OS 의 주행 중 영상 금지 원칙). 미니멀 정지 그림 한 장.
         Image(painter = painterResource(R.drawable.driving_still), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
         Column(
             modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = 48.dp, vertical = 32.dp),
@@ -201,9 +209,9 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
     val course by coach.courseUi.collectAsState()
     val law by coach.lawUi.collectAsState()
     val parkLearn by coach.parkLearnUi.collectAsState()
-    // 미니멀 레이아웃(11/3~4 대표 피드백): 차량명 + 설정 아이콘 한 줄, 그 아래 메뉴 4개(11/5)가 화면을 꽉 채운다.
+    // 미니멀 레이아웃: 차량명 + 설정 아이콘 한 줄, 그 아래 메뉴 4개가 화면을 꽉 채운다.
     // 신호 한 줄·조용히 칩·메뉴 설명·최근 안내는 뺐다. 조용히·진단·앱 종료는 설정 화면에.
-    // 화면 폭을 재서 좁은(세로형) 화면이면 메뉴·그림·버튼 배치를 바꾼다(ui/Adaptive.kt, 11/6)
+    // 화면 폭을 재서 좁은(세로형) 화면이면 메뉴·그림·버튼 배치를 바꾼다(ui/Adaptive.kt)
     AdaptiveScreen(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().padding(32.dp)) {
             val settings by settingsOpen
@@ -211,21 +219,21 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
                 Text(
                     text = spec?.let { if (it.detected) getString(R.string.header_car_detected, it.name) else getString(R.string.header_car_default, it.name) }
                         ?: getString(R.string.header_car_unknown),
-                    style = CoachType.Title, maxLines = 1,
+                    style = CoachType.Header, maxLines = 1,   // 화면 제목보다 한 단계 작게
                 )
                 Spacer(Modifier.weight(1f))
-                // 마이크(11/7): 누르면 "항상 듣기"를 켜고 끈다 — 켜져 있으면 코치가 말하지 않는 동안 "다음·다시·확인·조용히·세울래요"를 언제든 받는다.
+                // 마이크: 누르면 "항상 듣기"를 켜고 끈다 — 켜져 있으면 코치가 말하지 않는 동안 "다음·다시·확인·조용히·세울래요"를 언제든 받는다.
                 // Pleos STT 를 못 쓰면 흐리게 보이고 눌러도 반응 없음.
                 val voiceState by svc.voice.state.collectAsState()
                 val alwaysOn by svc.voice.alwaysOn.collectAsState()
                 val listening = voiceState == VoiceCommandListener.State.LISTENING
                 val usable = voiceState == VoiceCommandListener.State.READY || listening
-                // (11/14 대표) "듣는 중… 다음, 다시, 확인" 글은 뺐다. 듣는 중이면 마이크 뒤를 라임으로 채운다.
-                //   (11/15 대표: "마이크 옆에 왜 알아들은 말이 있나, 사용 중이면 칠해 주기만") 알아들은 말도 화면에 쓰지 않는다
+                // "듣는 중… 다음, 다시, 확인" 글은 뺐다. 듣는 중이면 마이크 뒤를 라임으로 채운다.
+                //   알아들은 말도 화면에 쓰지 않는다
                 IconButton(
                     onClick = { svc.toggleVoice() },
                     enabled = usable,
-                    // (11/14 베타: 누르지 않아도 연두·검정을 오간다 — 듣는 중/잠깐 쉼) 항상 듣기를 켜 두면 늘 연두 원
+                    // (누르지 않아도 연두·검정을 오간다 — 듣는 중/잠깐 쉼) 항상 듣기를 켜 두면 늘 연두 원
                     modifier = Modifier.size(64.dp).background(if (alwaysOn && usable || listening) CoachColors.Primary else Color.Transparent, CircleShape),
                 ) {
                     Icon(
@@ -239,7 +247,7 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
                         modifier = Modifier.size(44.dp),
                     )
                 }
-                // 톱니바퀴(11/4): 설정 화면 — 코칭 음성, 음성 속도, 진단, 버전, 앱 종료. 다시 누르면 닫힘.
+                // 톱니바퀴: 설정 화면 — 코칭 음성, 음성 속도, 진단, 버전, 앱 종료. 다시 누르면 닫힘.
                 IconButton(onClick = { settingsOpen.value = !settingsOpen.value }, modifier = Modifier.size(64.dp)) {
                     Icon(
                         imageVector = Icons.Filled.Settings, contentDescription = getString(R.string.settings_title),
@@ -273,14 +281,30 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
             } else if (menu) {
                 PracticeChooser(coach, modifier = Modifier.weight(1f))
             } else {
-                Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                    when {
-                        subMode == SubMode.PRACTICE && p != null -> PracticeCard(coach, p)
-                        subMode == SubMode.PARKING && parkLearn != null -> ParkLearnScreen(coach, parkLearn!!)
-                        subMode == SubMode.PARKING && pk != null -> ParkingScreen(coach, pk)
-                        subMode == SubMode.COURSE && cu != null -> CourseScreen(coach, cu)
-                        subMode == SubMode.LAW && lw != null -> LawScreen(coach, lw)
-                        else -> MenuGrid(coach, modifier = Modifier.height(360.dp))
+                // 활동 카드가 남은 높이를 채워 버튼 줄이 늘 화면 아래 같은 자리에 오고(FillLastColumn), 그림은 남은 높이만큼 키운다.
+                //   내용이 화면보다 길면 전처럼 스크롤된다. reserve = 카드에서 그림 말고 차지하는 높이(제목·진행 바·버튼 줄, 법규는 주제 칩까지).
+                BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    val viewport = maxHeight
+                    val reserve = when (subMode) {
+                        SubMode.LAW -> 600.dp
+                        SubMode.PARKING -> if (parkLearn != null) 280.dp else 380.dp
+                        SubMode.COURSE -> 400.dp   // 코스 준비 화면의 코스 모양 칸 높이로 쓴다
+                        else -> 300.dp
+                    }
+                    val artMax = (viewport - reserve).coerceIn(300.dp, 640.dp)
+                    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                        CompositionLocalProvider(LocalArtMaxHeight provides artMax) {
+                            FillLastColumn(Modifier.fillMaxWidth().heightIn(min = viewport)) {
+                                when {
+                                    subMode == SubMode.PRACTICE && p != null -> PracticeCard(coach, p)
+                                    subMode == SubMode.PARKING && parkLearn != null -> ParkLearnScreen(coach, parkLearn!!)
+                                    subMode == SubMode.PARKING && pk != null -> ParkingScreen(coach, pk)
+                                    subMode == SubMode.COURSE && cu != null -> CourseScreen(coach, cu)
+                                    subMode == SubMode.LAW && lw != null -> LawScreen(coach, lw)
+                                    else -> MenuGrid(coach, modifier = Modifier.height(360.dp))
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -290,11 +314,12 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
 
 /** 헤더 오른쪽의 작은 칩. selected 면 라임 채움, 아니면 흰 바탕 테두리. */
 @Composable
-internal fun MainActivity.HeaderChip(text: String, selected: Boolean, done: Boolean = false, onClick: () -> Unit) {
+internal fun MainActivity.HeaderChip(text: String, selected: Boolean, done: Boolean = false, fontSize: TextUnit = CoachSize.Chip, onClick: () -> Unit) {
+    // 고른 칩은 굵은 글씨, 본 칩은 더 옅은 라임 — 법규 주제 줄에서 '지금 보는 것'과 '본 것'이 비슷해 보이던 것
     if (selected) {
-        PrimaryButton(onClick = onClick, minHeight = CoachChipMinHeight) { Text(text = text, fontSize = CoachSize.Chip) }
+        PrimaryButton(onClick = onClick, minHeight = CoachChipMinHeight) { Text(text = text, fontSize = fontSize, fontWeight = FontWeight.Bold) }
     } else {
-        SecondaryButton(onClick = onClick, minHeight = CoachChipMinHeight, container = if (done) CoachColors.Primary.copy(alpha = 0.45f) else CoachColors.Background) { Text(text = text, fontSize = CoachSize.Chip) }
+        SecondaryButton(onClick = onClick, minHeight = CoachChipMinHeight, container = if (done) CoachColors.PrimarySoft else CoachColors.Background) { Text(text = text, fontSize = fontSize) }
     }
 }
 
@@ -306,61 +331,64 @@ internal fun MainActivity.HeaderChip(text: String, selected: Boolean, done: Bool
 internal fun MainActivity.MenuGrid(coach: CoachController, modifier: Modifier = Modifier) {
     val practice: () -> Unit = { practiceQuery.value = ""; parkingMenuOpen.value = false; practiceMenuOpen.value = true }
     val law: () -> Unit = { practiceMenuOpen.value = false; parkingMenuOpen.value = false; coach.startLaw() }
-    // (11/15 대표: 직각·평행 주차는 주차·핸들 연습으로) 3D 연습·직각 주차·평행 주차를 고르는 화면을 먼저 연다
+    // (직각·평행 주차는 주차·핸들 연습으로) 3D 연습·직각 주차·평행 주차를 고르는 화면을 먼저 연다
     val game: () -> Unit = { practiceMenuOpen.value = false; parkingMenuOpen.value = true }
     val course: () -> Unit = { practiceMenuOpen.value = false; parkingMenuOpen.value = false; coach.startCourse() }
-    // 11/10 대표: 3D 도로 주행(내 동네)은 주차·핸들 연습에서 빼 첫 화면에 따로 둔다
+    // 3D 도로 주행(내 동네)은 주차·핸들 연습에서 빼 첫 화면에 따로 둔다
     val road3d: () -> Unit = { practiceMenuOpen.value = false; parkingMenuOpen.value = false; GameLauncher.open(this@MenuGrid, menu = "road") }
     if (LocalNarrow.current) {
-        // 세로형·좁은 화면(11/6 Pleos 가이드): 2 × 2
+        // 세로형·좁은 화면(Pleos 가이드): 2 × 2
         Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
             Row(modifier = Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                MenuCard(getString(R.string.menu_practice), practice, Modifier.weight(1f))
-                MenuCard(getString(R.string.menu_law), law, Modifier.weight(1f))
+                MenuCard(getString(R.string.menu_practice), practice, Modifier.weight(1f), icon = R.drawable.ic_menu_controls)
+                MenuCard(getString(R.string.menu_law), law, Modifier.weight(1f), icon = R.drawable.ic_menu_law)
             }
             Row(modifier = Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                MenuCard(getString(R.string.menu_game), game, Modifier.weight(1f))
-                MenuCard(getString(R.string.menu_road3d), road3d, Modifier.weight(1f))
+                MenuCard(getString(R.string.menu_game), game, Modifier.weight(1f), icon = R.drawable.ic_menu_parking)
+                MenuCard(getString(R.string.menu_road3d), road3d, Modifier.weight(1f), icon = R.drawable.ic_menu_road)
             }
             Row(modifier = Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                MenuCard(getString(R.string.menu_course), course, Modifier.weight(1f))
+                MenuCard(getString(R.string.menu_course), course, Modifier.weight(1f), icon = R.drawable.ic_menu_course)
             }
         }
     } else {
         Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            MenuCard(getString(R.string.menu_practice), practice, Modifier.weight(1f))
-            MenuCard(getString(R.string.menu_law), law, Modifier.weight(1f))
-            MenuCard(getString(R.string.menu_game), game, Modifier.weight(1f))
-            MenuCard(getString(R.string.menu_road3d), road3d, Modifier.weight(1f))
-            MenuCard(getString(R.string.menu_course), course, Modifier.weight(1f))
+            MenuCard(getString(R.string.menu_practice), practice, Modifier.weight(1f), icon = R.drawable.ic_menu_controls)
+            MenuCard(getString(R.string.menu_law), law, Modifier.weight(1f), icon = R.drawable.ic_menu_law)
+            MenuCard(getString(R.string.menu_game), game, Modifier.weight(1f), icon = R.drawable.ic_menu_parking)
+            MenuCard(getString(R.string.menu_road3d), road3d, Modifier.weight(1f), icon = R.drawable.ic_menu_road)
+            MenuCard(getString(R.string.menu_course), course, Modifier.weight(1f), icon = R.drawable.ic_menu_course)
         }
     }
 }
 
 /**
- * (11/15 대표: "직각 주차/평행 주차는 주차·핸들 연습으로") "주차·핸들 연습" 선택 화면: 위에 "← 메뉴로"·제목, 아래 카드 셋.
+ * "주차·핸들 연습" 선택 화면: 위에 "← 메뉴로"·제목, 아래 카드 셋.
  *  3D 연습(게임: 핸들 감각·서킷·주차 단계) / 직각 주차 / 평행 주차(차를 세운 빈 곳에서 한 단계씩 음성 안내).
  */
 @Composable
 internal fun MainActivity.ParkingChooser(coach: CoachController, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            HeaderChip(text = getString(R.string.btn_back_menu), selected = false, onClick = { parkingMenuOpen.value = false })
+            HeaderChip(text = getString(R.string.btn_back_menu), selected = false, fontSize = CoachSize.Label, onClick = { parkingMenuOpen.value = false })   // 뒤로 버튼 글씨 22 → 26sp
             Spacer(Modifier.width(20.dp))
             Text(text = getString(R.string.parking_menu_title), style = CoachType.Title, maxLines = 1)
         }
         Spacer(Modifier.height(28.dp))
         Row(modifier = Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            MenuCard(getString(R.string.parking_menu_game), { GameLauncher.open(this@ParkingChooser) }, Modifier.weight(1f))
-            MenuCard(getString(R.string.menu_parking_learn), { coach.startParkLearn(ParkingKind.PERPENDICULAR) }, Modifier.weight(1f))
-            MenuCard(getString(R.string.menu_parking_parallel_learn), { coach.startParkLearn(ParkingKind.PARALLEL) }, Modifier.weight(1f))
+            MenuCard(getString(R.string.parking_menu_game), { GameLauncher.open(this@ParkingChooser) }, Modifier.weight(1f), icon = R.drawable.ic_park_game)
+            MenuCard(getString(R.string.menu_parking_learn), { coach.startParkLearn(ParkingKind.PERPENDICULAR) }, Modifier.weight(1f), icon = R.drawable.ic_park_perp)
+            MenuCard(getString(R.string.menu_parking_parallel_learn), { coach.startParkLearn(ParkingKind.PARALLEL) }, Modifier.weight(1f), icon = R.drawable.ic_park_par)
         }
     }
 }
 
-/** 메뉴 카드 하나: 흰 바탕·옅은 테두리·둥근 모서리, 왼쪽 라임 세로 띠, 제목 44sp 검정 가운데 정렬. 높이는 부모가 준다. */
+/**
+ * 메뉴 카드 하나: 흰 바탕·옅은 테두리·둥근 모서리, 왼쪽 라임 세로 띠, 제목 44sp 검정 가운데 정렬. 높이는 부모가 준다.
+ * 제목 위에 회색 원(184dp) 안 선 그림 아이콘([icon], 0 이면 없음) — 글을 읽지 않고도 한눈에 고르게(Pleos: 글 최소화). 제목 칸은 두 줄 높이로 맞춰 카드끼리 아이콘 높이가 같다.
+ */
 @Composable
-internal fun MainActivity.MenuCard(title: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun MainActivity.MenuCard(title: String, onClick: () -> Unit, modifier: Modifier = Modifier, icon: Int = 0) {
     val shape = RoundedCornerShape(CoachCornerRadius)
     Row(
         modifier = modifier
@@ -372,11 +400,17 @@ internal fun MainActivity.MenuCard(title: String, onClick: () -> Unit, modifier:
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(modifier = Modifier.fillMaxHeight().width(12.dp).background(CoachColors.Primary))
-        Box(modifier = Modifier.weight(1f).padding(horizontal = 20.dp), contentAlignment = Alignment.Center) {
+        Column(modifier = Modifier.weight(1f).padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            if (icon != 0) {
+                Box(modifier = Modifier.size(184.dp).background(CoachColors.Surface, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(painter = painterResource(icon), contentDescription = null, tint = CoachColors.OnBackground, modifier = Modifier.size(104.dp))
+                }
+                Spacer(Modifier.height(36.dp))
+            }
             // 좁은 칸에서 낱말 중간("연/습")이 끊기지 않게, 긴 이름은 마지막 띄어쓰기에서 줄을 나눈다
             val shown = if (title.length > 6 && title.contains(' ')) title.substringBeforeLast(' ') + "\n" + title.substringAfterLast(' ') else title
-            // (11/15) "주차 및 스티어링 휠 연습"은 세 줄 — 두 줄이면 "연습"이 잘렸다
-            Text(text = shown, style = CoachType.Title, maxLines = 3, textAlign = TextAlign.Center)
+            // "주차 및 스티어링 휠 연습"은 세 줄 — 두 줄이면 "연습"이 잘렸다
+            Text(text = shown, style = CoachType.Title, maxLines = 3, minLines = if (icon != 0) 2 else 1, textAlign = TextAlign.Center)
         }
     }
 }

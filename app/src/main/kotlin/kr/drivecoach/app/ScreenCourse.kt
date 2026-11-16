@@ -1,5 +1,5 @@
-// 코스 주행(5장) 화면 — 팀원 담당 영역
-// (11/5 정리) MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
+// 코스 주행(5장) 화면
+// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.drivecoach.app.ui.CoachChipMinHeight
@@ -41,6 +42,7 @@ import kr.drivecoach.app.ui.CoachCard
 import kr.drivecoach.app.ui.CoachCornerRadius
 import kr.drivecoach.app.ui.CoachSize
 import kr.drivecoach.app.ui.CoachType
+import kr.drivecoach.app.ui.LocalArtMaxHeight
 import kr.drivecoach.app.ui.PrimaryButton
 import kr.drivecoach.app.ui.SecondaryButton
 import kr.drivecoach.core.course.CourseOptionId
@@ -65,9 +67,9 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
         Spacer(Modifier.height(16.dp))
         when (c.phase) {
             CoursePhase.CHOOSE -> {
-                Text(text = getString(R.string.course_title), style = CoachType.Body, fontWeight = FontWeight.Bold, maxLines = 1)
+                Text(text = getString(R.string.course_title), style = CoachType.Title, maxLines = 1)   // 다른 활동 카드 제목과 같은 크기
                 Spacer(Modifier.height(16.dp))
-                // (11/15 강명수) 난이도 1~5 와 연습 시간. 길찾기 키가 있을 때(난이도별 생성기)만 보인다.
+                // 난이도 1~5 와 연습 시간. 길찾기 키가 있을 때(난이도별 생성기)만 보인다.
                 var difficulty by remember(c.difficulty) { mutableStateOf(c.difficulty) }
                 var minutes by remember(c.targetMinutes) { mutableStateOf(c.targetMinutes) }
                 if (c.difficultyAvailable) {
@@ -86,7 +88,8 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                     for (pair in rows) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             for (id in pair) {
-                                SecondaryButton(onClick = { coach.chooseCourseOption(id, difficulty, minutes) }, modifier = Modifier.weight(1f)) {
+                                // 목적 버튼을 크게(96 → 156dp): 화면 빈 곳을 줄이고 누르기 쉽게
+                                SecondaryButton(onClick = { coach.chooseCourseOption(id, difficulty, minutes) }, modifier = Modifier.weight(1f), minHeight = 156.dp) {
                                     Text(text = courseOptionLabel(id), fontSize = CoachSize.Option, maxLines = 1)
                                 }
                             }
@@ -95,22 +98,24 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                     }
                 }
                 Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.weight(1f))   // 내비 상태와 '메뉴로' 줄은 화면 아래에
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(text = getString(if (c.naviReady) R.string.course_navi_ready else R.string.course_navi_not_ready), style = CoachType.Caption, color = if (c.naviReady) CoachColors.Ok else CoachColors.Danger, maxLines = 1)
                     Spacer(Modifier.weight(1f))
-                    // (11/14 베타: 작은 글씨라 버튼처럼 안 보인다)
+                    // (작은 글씨라 버튼처럼 안 보인다)
                     SecondaryButton(onClick = { coach.endActivity() }, minHeight = CoachChipMinHeight) {
                         Text(text = getString(R.string.btn_close), fontSize = CoachSize.Label)
                     }
                 }
             }
             CoursePhase.GENERATING -> {
-                // (담당 T) 길찾기 API 가 백그라운드에서 도는 동안. 닫기만 가능(닫으면 생성 작업 취소).
+                // 길찾기 API 가 백그라운드에서 도는 동안. 닫기만 가능(닫으면 생성 작업 취소).
                 Text(text = getString(R.string.course_status_generating), style = CoachType.Body, maxLines = 3)
                 Spacer(Modifier.height(16.dp))
                 // 무한(indeterminate) 진행 바 — progress 인자 없는 material3 오버로드
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp), color = CoachColors.Primary, trackColor = CoachColors.Outline)
                 Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.weight(1f))   // 버튼 줄은 화면 아래에
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     SecondaryButton(onClick = { coach.endActivity() }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_close), fontSize = CoachSize.Button)
@@ -118,32 +123,34 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                 }
             }
             CoursePhase.READY -> {
-              // (11/14 베타: 안내 글 길이에 따라 버튼 높이가 매번 달라진다) 글 칸 높이를 고정
-              Row(modifier = Modifier.fillMaxWidth().height(330.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-              if (c.routeShape.size >= 2) Column(modifier = Modifier.width(300.dp)) {
-                  RouteShape(c.routeShape, Modifier.size(300.dp, 290.dp))
+              // (안내 글 길이에 따라 버튼 높이가 매번 달라진다) 글 칸 높이를 고정
+              // 남은 높이만큼 코스 모양을 크게(330 → 최대 560dp). 버튼 줄은 화면 아래에 붙는다
+              val rowH = LocalArtMaxHeight.current.coerceIn(330.dp, 560.dp)
+              Row(modifier = Modifier.fillMaxWidth().height(rowH), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+              if (c.routeShape.size >= 2) Column(modifier = Modifier.width(rowH - 30.dp)) {
+                  RouteShape(c.routeShape, Modifier.size(rowH - 30.dp, rowH - 40.dp))
                   Text(text = getString(R.string.course_map_legend), style = CoachType.Caption, maxLines = 1)
               }
               Column(modifier = Modifier.weight(1f)) {
                 Text(text = c.summary, style = CoachType.Body, maxLines = 6)
                 Spacer(Modifier.height(8.dp))
-                // (담당 T) 실제 경로의 숫자: 거리·좌회전·차선 변경(추정)·비보호 좌회전·우회전 + 출처(길찾기 N회 / 임시 코스)
+                // 실제 경로의 숫자: 거리·좌회전·차선 변경(추정)·비보호 좌회전·우회전 + 출처(길찾기 N회 / 임시 코스)
                 val dKm = c.distanceKm
                 val lt = c.leftTurns
                 val lc = c.laneChanges
                 val ul = c.unprotectedLefts
                 val rt = c.rightTurns
-                // (11/14 베타 4차: 같은 숫자가 큰 글과 작은 줄에 두 번) 작은 줄은 진단 보기에서만
+                // (같은 숫자가 큰 글과 작은 줄에 두 번) 작은 줄은 진단 보기에서만
                 if (showDiag.value && dKm != null && lt != null && lc != null && ul != null && rt != null) {
                     Text(text = getString(R.string.course_summary_numbers, dKm, lt, lc, ul, rt), style = CoachType.Caption, maxLines = 2)
                     Spacer(Modifier.height(4.dp))
                 }
-                // (11/14 베타: 고른 목적과 나온 코스가 다르다) 조건을 못 맞췄으면 무엇이 다른지 그대로 알린다
+                // (고른 목적과 나온 코스가 다르다) 조건을 못 맞췄으면 무엇이 다른지 그대로 알린다
                 c.mismatch?.let {
                     Text(text = getString(R.string.course_mismatch, it), style = CoachType.Caption, color = CoachColors.Danger, maxLines = 2)
                     Spacer(Modifier.height(4.dp))
                 }
-                // (11/14 베타: "실제 도로 경로 · 길찾기 8회"는 초보에게 뜻 없는 말) 임시 코스 경고만 늘 보이고, 길찾기 횟수는 진단 보기에서
+                // ("실제 도로 경로 · 길찾기 8회"는 초보에게 뜻 없는 말) 임시 코스 경고만 늘 보이고, 길찾기 횟수는 진단 보기에서
                 if (!c.generated || showDiag.value) Text(
                     text = if (c.generated) getString(R.string.course_source_generated, c.apiCalls) else getString(R.string.course_source_offset),
                     style = CoachType.Caption, color = if (c.generated) CoachColors.Secondary else CoachColors.Danger, maxLines = 2,
@@ -153,11 +160,12 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
               }
               }
                 Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.weight(1f))   // 버튼 줄은 화면 아래에
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     PrimaryButton(onClick = { coach.sendCourseToNavi() }, modifier = Modifier.weight(2f)) {
                         Text(text = getString(R.string.btn_course_send), fontSize = CoachSize.Button)
                     }
-                    // (11/14 베타: 다른 목적을 보려면 매번 메뉴부터 다시 들어가야 한다)
+                    // (다른 목적을 보려면 매번 메뉴부터 다시 들어가야 한다)
                     SecondaryButton(onClick = { coach.endActivity(); coach.startCourse() }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_course_rechoose), fontSize = CoachSize.Button)
                     }
@@ -165,7 +173,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                         Text(text = getString(R.string.btn_close), fontSize = CoachSize.Button)
                     }
                 }
-                // (11/14 베타: 누르면 예고 없이 내비 화면으로 바뀐다)
+                // (누르면 예고 없이 내비 화면으로 바뀐다)
                 Spacer(Modifier.height(10.dp))
                 Text(text = getString(R.string.course_send_hint), style = CoachType.Caption, maxLines = 2)
             }
@@ -178,6 +186,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                     Text(text = getString(R.string.course_route_line, dist / 1000.0, (dur + 59) / 60), style = CoachType.Caption, maxLines = 1)
                 }
                 Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.weight(1f))   // 버튼 줄은 화면 아래에
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     SecondaryButton(onClick = { coach.endActivity() }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_close), fontSize = CoachSize.Button)
@@ -192,6 +201,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                     style = CoachType.Body, maxLines = 3,
                 )
                 Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.weight(1f))   // 버튼 줄은 화면 아래에
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     PrimaryButton(onClick = { coach.endActivity() }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_close), fontSize = CoachSize.Button)
@@ -199,11 +209,12 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                 }
             }
             CoursePhase.ERROR -> {
-                // (11/15 오류 검수) 내부 코드(CAUSE_SEARCH_ROUTE, no_location …)를 그대로 보이지 않고 운전자용 문장으로. 원래 코드는 logcat(코스 오류: …)에
+                // 내부 코드(CAUSE_SEARCH_ROUTE, no_location …)를 그대로 보이지 않고 운전자용 문장으로. 원래 코드는 logcat(코스 오류: …)에
                 Text(text = courseErrorText(c.error), style = CoachType.Body, color = CoachColors.Danger, maxLines = 3)
                 Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.weight(1f))   // 버튼 줄은 화면 아래에
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    // (11/15 오류 검수) 조건에 맞는 코스가 없거나 내비가 경로를 못 찾으면 같은 목적으로 다시 해도 같다 → '다른 목적'
+                    // 조건에 맞는 코스가 없거나 내비가 경로를 못 찾으면 같은 목적으로 다시 해도 같다 → '다른 목적'
                     if (courseErrorWantsOtherPurpose(c.error)) {
                         PrimaryButton(onClick = { coach.endActivity(); coach.startCourse() }, modifier = Modifier.weight(1f)) {
                             Text(text = getString(R.string.btn_course_rechoose), fontSize = CoachSize.Button)
@@ -214,7 +225,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                         }
                     }
                     if (c.fallbackAvailable) {
-                        // (담당 T) 길찾기가 실패했을 때의 마지막 수단: 오프셋 임시 코스
+                        // 길찾기가 실패했을 때의 마지막 수단: 오프셋 임시 코스
                         SecondaryButton(onClick = { coach.useFallbackCourse() }, modifier = Modifier.weight(1f)) {
                             Text(text = getString(R.string.btn_course_fallback), fontSize = CoachSize.Button, maxLines = 1)
                         }
@@ -226,7 +237,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
             }
         }
         // 내비 진단 줄(최근 6줄): 초기화·요청·이벤트가 실제로 오는지 에뮬레이터에서 바로 본다
-        // (11/14 베타: 개발 로그가 그대로 보인다) 설정의 "진단 보기"를 켰을 때만 보인다
+        // (개발 로그가 그대로 보인다) 설정의 "진단 보기"를 켰을 때만 보인다
         if (showDiag.value && c.naviDiag.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))
             Text(getString(R.string.course_diag_title), fontSize = CoachSize.Mono, fontFamily = FontFamily.Monospace, color = CoachColors.Secondary)
@@ -234,7 +245,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                 Text(line, fontSize = CoachSize.Mono, fontFamily = FontFamily.Monospace, color = if (line.startsWith("FAIL")) CoachColors.Danger else CoachColors.Secondary, maxLines = 1)
             }
         }
-        // (담당 T) 길찾기(Naver Directions) 진단 줄(최근 4줄): HTTP 코드·응답 code·오늘 호출 수
+        // 길찾기(Naver Directions) 진단 줄(최근 4줄): HTTP 코드·응답 code·오늘 호출 수
         if (showDiag.value && c.routeDiag.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
             Text(getString(R.string.course_route_diag_title), fontSize = CoachSize.Mono, fontFamily = FontFamily.Monospace, color = CoachColors.Secondary)
@@ -250,7 +261,7 @@ internal fun MainActivity.courseCaption(c: CourseUi): String = when (c.phase) {
     CoursePhase.CHOOSE -> getString(R.string.course_caption_choose)
     CoursePhase.GENERATING -> getString(R.string.course_caption_generating, c.chosen?.let { courseOptionLabel(it) } ?: "")
     CoursePhase.READY, CoursePhase.ROUTING, CoursePhase.DRIVING -> {
-        // (11/14 베타: "목적지 약 0.1 km"·"경유지 2"는 코스 길이와 헷갈린다) 목적 이름만
+        // ("목적지 약 0.1 km"·"경유지 2"는 코스 길이와 헷갈린다) 목적 이름만
         getString(R.string.course_caption_ready, c.chosen?.let { courseOptionLabel(it) } ?: "")
     }
     CoursePhase.ARRIVED -> getString(R.string.course_caption_arrived)
@@ -309,7 +320,7 @@ internal fun MainActivity.maneuverLabel(m: ManeuverType): String = getString(
 )
 
 /**
- * (11/14 베타 4차) 코스 모양 미리보기: 지도 없이 경로 선만(위가 북쪽). 출발점은 검은 점.
+ * 코스 모양 미리보기: 지도 없이 경로 선만(위가 북쪽). 출발점은 검은 점.
  * 위도·경도를 그 자리의 m 로 바꿔(경도는 cos(위도) 배) 칸에 맞춘다.
  */
 @Composable
@@ -321,14 +332,15 @@ internal fun RouteShape(pts: List<LatLon>, modifier: Modifier = Modifier) {
         val xs = pts.map { it.lon * k }; val ys = pts.map { it.lat }
         val minX = xs.min(); val maxX = xs.max(); val minY = ys.min(); val maxY = ys.max()
         val span = maxOf(maxX - minX, maxY - minY, 1e-6)
-        val pad = 24f
+        val pad = 32f
         val sc = (minOf(size.width, size.height) - 2 * pad) / span
         val ox = (size.width - (maxX - minX) * sc) / 2f; val oy = (size.height - (maxY - minY) * sc) / 2f
         fun p(i: Int) = Offset((ox + (xs[i] - minX) * sc).toFloat(), (size.height - oy - (ys[i] - minY) * sc).toFloat())
         val path = Path().apply { moveTo(p(0).x, p(0).y); for (i in 1 until pts.size) lineTo(p(i).x, p(i).y) }
-        drawPath(path, color = CoachColors.OnBackground, style = Stroke(width = 10f, cap = StrokeCap.Round, join = StrokeJoin.Round))
-        drawPath(path, color = CoachColors.Primary, style = Stroke(width = 6f, cap = StrokeCap.Round, join = StrokeJoin.Round))
-        drawCircle(color = CoachColors.OnBackground, radius = 12f, center = p(0))
+        // 칸이 커져 선과 출발점도 조금 굵게(/12 → 14/9/15)
+        drawPath(path, color = CoachColors.OnBackground, style = Stroke(width = 14f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        drawPath(path, color = CoachColors.Primary, style = Stroke(width = 9f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        drawCircle(color = CoachColors.OnBackground, radius = 15f, center = p(0))
     }
 }
 

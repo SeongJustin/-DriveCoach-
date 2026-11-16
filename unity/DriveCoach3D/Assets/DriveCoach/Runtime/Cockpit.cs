@@ -1,6 +1,5 @@
-// 담당: S (3D 주차 연습 — 운전석 시점(유로트럭·플라이트 시뮬레이터처럼): 실내(대시보드·A필러·핸들·계기판·가운데 화면)와
+// (3D 주차 연습 — 운전석 시점(유로트럭·플라이트 시뮬레이터처럼): 실내(대시보드·A필러·핸들·계기판·가운데 화면)와
 // 거울 3개(실내 백미러·양쪽 사이드미러)를 차 안에 만들고, 실제 차의 핸들 각을 가상 핸들에 그대로 돌린다.
-// 11/8 대표 요청: "3인칭 내 운전자 시점이 유로트럭같이 … CN8 차량 내부의 모습이 그대로 재현돼서 연동"
 //               "사이드나 백미러는 설정을 하면, 고개를 돌리지 않아도 화면 내에서 보이도록" → MirrorRig 의 그림을 Hud 가 화면 가장자리에도 띄운다.
 // 실내 치수(눈높이·핸들 위치·대시보드 높이)는 준중형 세단(아반떼 CN8 급) 기준 근사. 현대 로고·고유 디자인은 쓰지 않는다(상표·디자인권).
 using System.Collections.Generic;
@@ -43,20 +42,20 @@ namespace DriveCoach.Unity
             var dark = DcAssets.Lit(DcAssets.Hex("#2E3238"), 0.3f);
             var trim = DcAssets.Lit(DcAssets.Hex("#3A3E45"), 0.4f);
             var soft = DcAssets.Lit(DcAssets.Hex("#2C3036"), 0.15f);
-            // 11/8 "유로트럭 느낌": 가죽·소프트 촉감 질감(Poly Haven CC0). 없으면 단색
+            // 가죽·소프트 촉감 질감(Poly Haven CC0). 없으면 단색
             var wheelMat = DcAssets.Pbr("brown_leather", DcAssets.Hex("#1E2023"), new Color(0.13f, 0.13f, 0.135f), 0.85f);
             var mk = new MeshKit();
-            // 대시보드(11/8 밤 다시 만듦, 대표: "저 정도 퀄리티로 직접"): 단면 13점을 폭 방향 25곳에서 이어 붙인 곡면(로프트).
+            // 대시보드(다시 만듦): 단면 13점을 폭 방향 25곳에서 이어 붙인 곡면(로프트).
             // 위 판(소프트 촉감) · 앞면(투톤 가죽) · 아래(무광 검정) 세 띠. 가운데 아래는 콘솔 쪽으로 불룩, 양 끝은 문 쪽으로 둥글게 감긴다.
             DashLoft(root.transform, xEye, zEye, inner);
             // 계기판 덮개: 가운데가 평평하고 끝이 둥근 아치(넓은 화면 위 눈부심 가리개)
             HoodLoft(root.transform, xEye, zEye);
-            // 11/8 실내 다듬기(특정 차 디자인을 본뜨지 않은 일반적인 요즘 실내): 장식 띠·은은한 조명·송풍구·콘솔·문 안쪽·천장·햇빛 가리개
+            // 실내 다듬기(특정 차 디자인을 본뜨지 않은 일반적인 요즘 실내): 장식 띠·은은한 조명·송풍구·콘솔·문 안쪽·천장·햇빛 가리개
             Trim(root.transform, xEye, zEye, inner);
-            // (11/14 대표: "내부 시점에서 시점 돌아봤을 때 내부 모델링이 덜됐어") 옆·뒤를 돌아보면 보이는 것: 앞뒤 좌석, B·C 필러, 뒷문, 지붕, 뒷유리 틀,
+            // 옆·뒤를 돌아보면 보이는 것: 앞뒤 좌석, B·C 필러, 뒷문, 지붕, 뒷유리 틀,
             //   뒤 선반, 바닥, 페달, 칼럼 레버(아반떼 CN8 취급설명서의 실내 그림 배치를 따름. 로고·고유 무늬는 넣지 않음)
             Cabin(root.transform, v, xEye, zEye, inner);
-            // 지붕 앞 가로대(앞 유리 위): 눈보다 0.5 m 앞·0.25 m 위 — 11/8 첫 사진에서 머리 바로 위라 화면 위를 크게 가려 옮겼다
+            // 지붕 앞 가로대(앞 유리 위): 눈보다 0.5 m 앞·0.25 m 위 — 처음 자리는 머리 바로 위라 화면 위를 크게 가려 옮겼다
             float zTop = zEye + 0.62f;
             mk.Box(new Vector3(0f, 1.42f, zTop), new Vector3(inner, 0.05f, 0.12f), 0f);
             mk.ToObject("interior", dark, root.transform, false, true);
@@ -76,7 +75,7 @@ namespace DriveCoach.Unity
                 float wd = (v.width - 0.16f) * (1f - 0.08f * i / steps);
                 hood.Box(new Vector3(0f, y, (a + b) / 2f), new Vector3(wd, 0.06f, b - a + 0.01f), 0f);
             }
-            // 직접 만든 차(CarBody)는 차체 보닛을 운전석에서도 그대로 보여 주므로 상자 보닛은 만들지 않는다(11/8)
+            // 직접 만든 차(CarBody)는 차체 보닛을 운전석에서도 그대로 보여 주므로 상자 보닛은 만들지 않는다
             if (!CarView.HasOwnBody) hood.ToObject("hood", DcAssets.Lit(CarView.Paint, 0.78f, 0.15f), root.transform, false, true);
             // 실내 거울 받침 + 거울 몸통(유광 검정, 거울 판 뒤)
             var stem = new MeshKit();
@@ -90,14 +89,14 @@ namespace DriveCoach.Unity
             var wheelGo = new GameObject("SteeringWheel");
             wheel = wheelGo.transform;
             wheel.SetParent(root.transform, false);
-            // 눈에서 앞 0.6 m·아래 0.26 m(실제 운전 자세 근처). 11/8 첫 사진: 0.4 m 앞이라 화면의 절반을 가렸다
+            // 눈에서 앞 0.6 m·아래 0.26 m(실제 운전 자세 근처). 0.4 m 앞이라 화면의 절반을 가렸다
             wheel.localPosition = new Vector3(xEye, WheelY, zEye + 0.62f);
             wheel.localRotation = Quaternion.Euler(WheelTilt, 0f, 0f);   // 운전자 쪽으로 기운 원판(법선이 눈 쪽)
-            // 테: 둥근 가죽 고리(11/8 "유로트럭 느낌" — 예전 납작한 띠 세 겹)
+            // 테: 둥근 가죽 고리(예전: 납작한 띠 세 겹)
             var rim = new MeshKit();
             rim.Torus(Vector3.zero, 0.18f, 0.017f, 48, 10);
             rim.ToObject("rim", wheelMat, wheel, false, true);
-            // (11/14) 아반떼(CN8) 취급설명서 그림(cn8_005)의 핸들 배치: 큰 둥근 네모 가운데 패드, 3·9시 넓은 바큇살 위 버튼 묶음(둥근 4방향 단추),
+            // 아반떼(CN8) 취급설명서 그림(cn8_005)의 핸들 배치: 큰 둥근 네모 가운데 패드, 3·9시 넓은 바큇살 위 버튼 묶음(둥근 4방향 단추),
             //   아래는 두 갈래 살을 가로대로 이은 U 모양. 가운데 무늬(로고)는 넣지 않는다
             var ring = new MeshKit();
             foreach (var sx in new[] { -1f, 1f })
@@ -128,7 +127,7 @@ namespace DriveCoach.Unity
             Pillar(root.transform, soft, new Vector3(xEye, 0.875f, zEye + 0.655f), new Vector3(xEye, 0.79f, zEye + 0.77f), 0.075f, 0.09f);
             // 12시 표시(핸들이 얼마나 돌았는지 눈으로 보이게)
             var mark = new MeshKit();
-            // (11/11) 가는 줄로: 예전 3.5 cm 네모는 운전석 눈에서 계기판 속도 숫자를 통째로 가렸다
+            // 가는 줄로: 예전 3.5 cm 네모는 운전석 눈에서 계기판 속도 숫자를 통째로 가렸다
             mark.Line(V2.FromAngle(-90f * Geom.Deg2Rad) * 0.164f, V2.FromAngle(-90f * Geom.Deg2Rad) * 0.196f, 0.012f, 0.02f);
             mark.ToObject("top-mark", DcAssets.Unlit(DcAssets.Orange), wheel);
 
@@ -171,7 +170,7 @@ namespace DriveCoach.Unity
                 }
             }
             speedText = UiKit.Label(clusterRt, "0", 44, Color.white, true, TextAnchor.MiddleCenter);
-            Box(speedText.rectTransform, 0.25f, 0.5f, 0.75f, 1.0f);      // (11/11) 핸들 테 위로 보이는 윗부분에(예전 자리는 테에 가렸다)
+            Box(speedText.rectTransform, 0.25f, 0.5f, 0.75f, 1.0f);      // 핸들 테 위로 보이는 윗부분에(예전 자리는 테에 가렸다)
             var unit = UiKit.Label(clusterRt, "km/h", 14, DcAssets.Hex("#9AA3AE"), false, TextAnchor.UpperCenter);
             Box(unit.rectTransform, 0.25f, 0.1f, 0.75f, 0.32f);
             gearText = UiKit.Label(clusterRt, "P", 17, DcAssets.Hex("#7FB3FF"), true, TextAnchor.MiddleCenter);
@@ -190,9 +189,9 @@ namespace DriveCoach.Unity
             // 거울 판: 거울 카메라 그림을 좌우 뒤집어 붙인다. 판은 운전자 눈 쪽을 보게(월드 캔버스는 -Z 쪽에서 읽힌다)
             if (CarView.HasOwnBody)
             {
-                // 직접 만든 차: 차체 사이드미러 몸통(운전석에서도 보임)의 거울 면 바로 앞(운전자 쪽 4 cm)에 맞춘다(11/8)
+                // 직접 만든 차: 차체 사이드미러 몸통(운전석에서도 보임)의 거울 면 바로 앞(운전자 쪽 4 cm)에 맞춘다
                 float mx = 0.948f * v.width / 1.855f, mzq = 0.966f + (v.length / 2f - v.frontOh) - 1.4675f;   // 앞축과 함께 움직인다
-                // (11/13 대표: "차에 붙어 있는 거울 모양이 다르다") 거울 판을 눈 쪽으로 돌려 4 cm 띄워 두어, 몸통 밖으로 비어져 나온 검은 테 네모로 보였다
+                // 거울 판을 눈 쪽으로 돌려 4 cm 띄워 두어, 몸통 밖으로 비어져 나온 검은 테 네모로 보였다
                 //   → 몸통의 거울 면(뒤를 보는 평평한 면)에 그대로 붙이고(5 mm 앞), 테 없이 거울 면 안에 들어가는 크기로
                 mzq += 0.034f;
                 MirrorQuad("MirrorL", new Vector3(-mx, 1.052f, mzq), new Vector2(0.150f, 0.088f), 0f, mirrors.texL, false);
@@ -204,7 +203,7 @@ namespace DriveCoach.Unity
                 MirrorQuad("MirrorR", new Vector3(v.width / 2f + 0.1f, 1.05f, zEye + 0.72f), new Vector2(0.20f, 0.117f), 30f, mirrors.texR);
             }
             MirrorQuad("MirrorC", new Vector3(0.05f, 1.36f, zEye + 0.64f), new Vector2(0.26f, 0.082f), 8f, mirrors.texC);
-            // 실내 채움 빛(11/8 첫 사진: 지붕 그늘에 실내가 너무 어두움). 그림자 없이 실내만 닿는 거리(1.7 m)로 은은하게
+            // 실내 채움 빛(지붕 그늘에 실내가 너무 어두움). 그림자 없이 실내만 닿는 거리(1.7 m)로 은은하게
             var fill = new GameObject("cabin-fill").AddComponent<Light>();
             fill.transform.SetParent(root.transform, false);
             fill.transform.localPosition = new Vector3(0f, 1.32f, zEye + 0.35f);
@@ -261,7 +260,7 @@ namespace DriveCoach.Unity
             // 가운데 콘솔
             softTouch.Box(new Vector3(0f, 0.48f, zEye + 0.30f), new Vector3(0.26f, 0.26f, 0.9f), 0f);
             piano.Box(new Vector3(0f, 0.615f, zEye + 0.33f), new Vector3(0.24f, 0.012f, 0.62f), 0f);
-            // (11/14) 아반떼(CN8)는 변속 레버가 스티어링 휠 오른쪽 칼럼에 있다(취급설명서) → 콘솔의 다이얼 대신 작은 수납함(Cabin 에 칼럼 레버)
+            // 아반떼(CN8)는 변속 레버가 스티어링 휠 오른쪽 칼럼에 있다(취급설명서) → 콘솔의 다이얼 대신 작은 수납함(Cabin 에 칼럼 레버)
             hole.Box(new Vector3(0f, 0.6215f, zEye + 0.24f), new Vector3(0.15f, 0.002f, 0.11f), 0f);
             hole.Box(new Vector3(0f, 0.623f, zEye + 0.50f), new Vector3(0.16f, 0.005f, 0.12f), 0f);   // 무선 충전판
             foreach (var cx in new[] { -0.055f, 0.055f })
@@ -272,7 +271,7 @@ namespace DriveCoach.Unity
             softTouch.Box(new Vector3(0f, 0.67f, zEye - 0.32f), new Vector3(0.22f, 0.06f, 0.4f), 0f);   // 팔걸이
             foreach (var sx in new[] { -1f, 1f })
                 glow.Box(new Vector3(sx * 0.1315f, 0.585f, zEye + 0.3f), new Vector3(0.003f, 0.004f, 0.8f), 0f);
-            // 문 안쪽(양쪽). (11/14) 앞문은 B 필러(눈 뒤 0.36 m)에서 끝난다 — 그 뒤는 뒷문(Cabin)
+            // 문 안쪽(양쪽). 앞문은 B 필러(눈 뒤 0.36 m)에서 끝난다 — 그 뒤는 뒷문(Cabin)
             float zB = zEye - 0.36f;
             foreach (var sx in new[] { -1f, 1f })
             {
@@ -318,7 +317,7 @@ namespace DriveCoach.Unity
         }
 
         /// <summary>
-        /// (11/14) 실내 나머지: 앞뒤 좌석(운전석은 머리받침·등받이 윗부분을 뺀다 — 눈 바로 뒤라 돌아보면 화면을 덮는다), B·C 필러, 지붕 옆·뒤 가로대,
+        /// 실내 나머지: 앞뒤 좌석(운전석은 머리받침·등받이 윗부분을 뺀다 — 눈 바로 뒤라 돌아보면 화면을 덮는다), B·C 필러, 지붕 옆·뒤 가로대,
         /// 뒷문 안쪽, 뒤 선반, 바닥·발판, 페달, 콘솔 뒤쪽, 안전띠, 칼럼 레버(오른쪽 = 변속, 왼쪽 = 등·방향지시등)와 시동 버튼.
         /// 크기는 준중형 세단(아반떼 CN8: 전장 4.765 m·축거 2.75 m) 실내 근사. 모든 자리는 눈(운전석) 기준.
         /// </summary>
@@ -626,7 +625,7 @@ namespace DriveCoach.Unity
         static void HoodLoft(Transform root, float xEye, float zEye)
         {
             float[] pz = { 1.00f, 0.97f, 0.93f, 0.87f, 0.81f, 0.78f, 0.768f };
-            // (11/13 대표: "계기판과 차량 모델링이 겹쳐 보인다") 덮개가 화면 윗부분과 양 끝을 가렸다(눈에서 보면 뒤쪽 턱이 화면 위 1/4 을 덮고,
+            // 덮개가 화면 윗부분과 양 끝을 가렸다(눈에서 보면 뒤쪽 턱이 화면 위 1/4 을 덮고,
             //   끝으로 갈수록 낮아져 지도 오른쪽은 절반이 가려짐) → 턱을 1.2 cm 올리고, 화면보다 넉넉히 넓혀 화면 위에서는 거의 평평하게
             float[] py = { 0.975f, 1.07f, 1.127f, 1.157f, 1.160f, 1.147f, 1.124f };
             float x0 = xEye - 0.32f, x1 = xEye + 0.62f, xc = (x0 + x1) / 2f, hw = (x1 - x0) / 2f;

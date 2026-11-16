@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — TTS 어댑터 공통 인터페이스)
+// 앱 연결 — TTS 어댑터 공통 인터페이스
 package kr.drivecoach.app.speech
 
 /**
@@ -33,7 +33,7 @@ interface Speaker {
     /** 말하기 시작/끝 콜백 등록. null 이면 해제. */
     fun setListener(listener: SpeakerListener?)
 
-    /** 말 빠르기(1.0 = 보통). 지원하지 않는 엔진은 무시한다(설정 화면 "음성 속도", 11/4). */
+    /** 말 빠르기(1.0 = 보통). 지원하지 않는 엔진은 무시한다(설정 화면 "음성 속도"). */
     fun setRate(rate: Float) {}
 }
 

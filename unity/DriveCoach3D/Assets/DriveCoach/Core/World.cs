@@ -1,4 +1,3 @@
-// 담당: S
 // 한 판(단계 또는 튜토리얼)의 상태와 규칙: 차 움직이기, 충돌·보행자, 목표 판정, 튜토리얼 단계 검사. 좌표는 전부 m.
 using System;
 using System.Collections.Generic;
@@ -67,7 +66,7 @@ namespace DriveCoach.Core
         public RoadRun roadRun;
         /// <summary>도로 주행의 다른 차들(없으면 null)</summary>
         public Traffic traffic;
-        /// <summary>내 동네 횡단보도를 건너는 사람들(11/9, 없으면 null)</summary>
+        /// <summary>내 동네 횡단보도를 건너는 사람들(없으면 null)</summary>
         public CrossPeds crossPeds;
         /// <summary>자동 속도(핸들만 돌리기)로 달리는 중 — 안내 말을 "속도를 줄이세요" 대신 핸들·시선 쪽으로 바꾼다</summary>
         public bool autoSpeed;
@@ -92,7 +91,7 @@ namespace DriveCoach.Core
             if (st.road != null) foreach (var b in st.road.buildings) AddOb(b.poly, "building");
             if (st.road?.region != null)
                 foreach (var pc in st.road.region.parked) AddOb(Geom.RectPoly(pc.c, pc.L, pc.W, pc.ang * Geom.Rad2Deg), "car");   // 이면도로 세운 차
-            // (11/15) 주차장 칸에서 출발: 출발 자리 150 m 안 주차장에 세워 둔 차는 부딪히는 물체(빠져나올 때 옆 차를 뚫고 지나가지 않게).
+            // 주차장 칸에서 출발: 출발 자리 150 m 안 주차장에 세워 둔 차는 부딪히는 물체(빠져나올 때 옆 차를 뚫고 지나가지 않게).
             //   길(차로) 위로 나온 칸의 차는 그리지 않으므로(FacilityBuilder) 차로 가운데에서 2.2 m 안의 차는 넣지 않는다
             if (st.road?.region != null)
                 foreach (var fc in st.road.region.facilities)
@@ -273,9 +272,9 @@ namespace DriveCoach.Core
             float reach = car.length / 2f + 0.5f;
             List<V2[]> tires = null;
             bool curbNow = false;
-            // (11/11 대표: "충돌은 그냥 부딪힌 거지 게임 오버로 넘어가지 말아줘") 도로 주행에서는 부딪혀도 판을 끝내지 않는다:
+            // 도로 주행에서는 부딪혀도 판을 끝내지 않는다:
             //   닿기 직전 자리로 되돌려 세우고 한마디만 한다(횟수는 결과 리포트에). 주차·서킷 연습은 그대로 실패.
-            // (11/15 밤 대표: "어디 박아도 실패라는 말이 안 떠야 … 그 자리에 정지하고 후진해서 빠져나오는 게 맞지") 주차·서킷 연습도 판을 끝내지 않고 그 자리에 세운다
+            // 주차·서킷 연습도 판을 끝내지 않고 그 자리에 세운다
             bool soft = true;
             foreach (var ob in obstacles)
             {
@@ -290,7 +289,7 @@ namespace DriveCoach.Core
                     {
                         if (!Geom.ConvexOverlap(tp, ob.poly)) continue;
                         if (roadRun == null) { Bump("연석에 바퀴가 닿았습니다"); return; }   // 주차 연습: 연석은 넘지 못하고 그 자리에 선다
-                        // (11/11 대표) 도로 주행: 연석은 밟고 올라설 수 있다 → 멈추지 않고 횟수만 남긴다(한 번 밟는 동안 한 번)
+                        // 도로 주행: 연석은 밟고 올라설 수 있다 → 멈추지 않고 횟수만 남긴다(한 번 밟는 동안 한 번)
                         curbNow = true;
                         break;
                     }
@@ -330,12 +329,12 @@ namespace DriveCoach.Core
         public bool Touching => touching;
         /// <summary>닿았을 때 가던 쪽(1 = 앞으로 가다, -1 = 뒤로 가다)</summary>
         public int BumpDir => bumpDir;
-        /// <summary>(11/14 베타: 차가 왜 서 있는지 모르겠다) 자동 속도가 차를 세운 까닭(없으면 "")</summary>
+        /// <summary>(차가 왜 서 있는지 모르겠다) 자동 속도가 차를 세운 까닭(없으면 "")</summary>
         public string autoWhy = "";
         bool touching; int bumpDir; float lastBumpT = -10f; V2 lastPos; float lastHeading;
 
         /// <summary>
-        /// 도로 주행에서 부딪힘(11/11 대표: "원래 위치로 되돌릴 필요도 없어. 그냥 부딪히면 그 자리에 멈추는 거지"): 그 자리에 세운다. 판은 계속된다.
+        /// 도로 주행에서 부딪힘: 그 자리에 세운다. 판은 계속된다.
         /// 닿은 채로는 부딪힌 쪽(앞으로 가다 닿았으면 앞)으로는 더 못 가고, 반대쪽(후진)으로만 빠져나올 수 있다.
         /// </summary>
         void Bump(string what)
@@ -366,7 +365,7 @@ namespace DriveCoach.Core
         void Fail(string reason, V2 at)
         {
             state = PlayState.Fail;
-            // (11/15 베타 5A) 결과 창 문장 끝 마침표
+            // 결과 창 문장 끝 마침표
             failReason = string.IsNullOrEmpty(reason) || reason.EndsWith(".") ? reason : reason + ".";
             failPoint = at;
             car.speed = 0f;
@@ -443,9 +442,9 @@ namespace DriveCoach.Core
                 // 도로 주행 미리보기: 서서 P 를 누르면 끝. 위반이 없을수록 별이 많다.
                 var rr = roadRun;
                 int bad = rr.redLightCount * 2 + rr.laneDepartCount + rr.speedingCount + rr.rightOnRedCount + rr.tailgateCount + rr.lightCount + rr.beltCount + rr.humpCount + rr.schoolStopCount * 2 + rr.pedCount * 2
-                    + rr.bumpCount * 3 + rr.curbCount + rr.noSignalCount + rr.highBeamCount;   // (11/15 오류 검수) 부딪힘, 연석, 방향지시등, 상향등도 별점에 넣는다(부딪혀도 별 셋이 나오던 것)
+                    + rr.bumpCount * 3 + rr.curbCount + rr.noSignalCount + rr.highBeamCount;   // 부딪힘, 연석, 방향지시등, 상향등도 별점에 넣는다(부딪혀도 별 셋이 나오던 것)
                 state = PlayState.Done;
-                // (11/14 베타: 골목을 10초 달리고 P 를 눌렀는데 ★★★ "모두 잘 지켰어요") 300 m 안쪽이면 평가하지 않고 별 하나
+                // (골목을 10초 달리고 P 를 눌렀는데 ★★★ "모두 잘 지켰어요") 300 m 안쪽이면 평가하지 않고 별 하나
                 bool tooShort = rr.distance < 300f;
                 result = new JudgeResult { ok = true, kind = "road", stars = tooShort ? 1 : (bad == 0 ? 3 : (bad <= 3 ? 2 : 1)), moves = bad, precise = bad == 0 && !tooShort, efficient = true };
                 return;
@@ -543,7 +542,7 @@ namespace DriveCoach.Core
                 state = PlayState.Done;
                 result = new JudgeResult { ok = true, stars = 3, tutorial = true, moves = moves, par = moves, efficient = true, precise = true, kind = "tutorial" };
             }
-            else Say("좋습니다! 다음: " + steps[stepI].text, 7f);   // (11/14 밤) 할 일 카드를 없애 다음 할 일을 알림으로
+            else Say("좋습니다! 다음: " + steps[stepI].text, 7f);   // 할 일 카드를 없애 다음 할 일을 알림으로
         }
 
         public bool Check(string name)

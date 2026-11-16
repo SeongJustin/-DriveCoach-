@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — 코칭 두뇌·신호 소스·TTS 를 Activity 밖 포그라운드 서비스로. 11/3 에뮬레이터: 기어 D 에서 Pleos 런처가 앱 화면을 덮어도 음성 코칭은 계속돼야 함)
+// 앱 연결 — 코칭 두뇌·신호 소스·TTS 를 Activity 밖 포그라운드 서비스로. 기어 D 에서 Pleos 런처가 앱 화면을 덮어도 음성 코칭은 계속돼야 함
 package kr.drivecoach.app
 
 import android.app.Notification
@@ -86,7 +86,7 @@ class CoachService : Service() {
     /** 음성 명령(Pleos STT, 누르고 말하기). 화면 마이크 버튼·휠 음성 버튼이 [listenForCommand] 를 부른다. */
     lateinit var voice: VoiceCommandListener
         private set
-    /** (담당 T) 네이버 Directions 어댑터. local.properties 에 NCP 키가 없으면 null(오프셋 코스로 대체). 진단 화면이 diag 를 본다. */
+    /** 네이버 Directions 어댑터. local.properties 에 NCP 키가 없으면 null(오프셋 코스로 대체). 진단 화면이 diag 를 본다. */
     var directions: NaverDirectionsProvider? = null
         private set
     private var uxMonitor: UxRestrictionsMonitor? = null
@@ -112,8 +112,8 @@ class CoachService : Service() {
         speaker = SpeakerFactory.create(this)
         navi = PleosNaviAdapter(this)
         navi.start()
-        // (담당 T) 코스 소스: 키가 있으면 실제 길찾기, 생성당 최대 COURSE_MAX_API_CALLS 회(하루 상한은 어댑터가 센다).
-        // (11/15 강명수) 키가 있을 때는 난이도별 순환 코스 생성기(DifficultyCourseGenerator: 난이도 1~5, 연습 시간, 출발지 200 m 안 복귀).
+        // 코스 소스: 키가 있으면 실제 길찾기, 생성당 최대 COURSE_MAX_API_CALLS 회(하루 상한은 어댑터가 센다).
+        // 키가 있을 때는 난이도별 순환 코스 생성기(DifficultyCourseGenerator: 난이도 1~5, 연습 시간, 출발지 200 m 안 복귀).
         // 키가 없으면(제출 release APK) 지금처럼 오프셋 기본 코스. CoachController 는 CourseSource 만 안다.
         directions = NaverDirectionsProvider.fromBuildConfig(this)
         val courseSource: CourseSource = directions?.let { DifficultyCourseGenerator(it, maxApiCalls = COURSE_MAX_API_CALLS) }
@@ -123,7 +123,7 @@ class CoachService : Service() {
         val demoLimit = BuildConfig.DEMO_SPEED_LIMIT_KMH.takeIf { it > 0 }?.toDouble()
         coach = CoachController(signals, speaker, scope, speaker.activeName, navi = navi, courseSource = courseSource, routeDiag = directions?.diag,
             defaultSpeedLimitKmh = demoLimit)
-        // (11/16) 통화·음성 비서로 오디오 포커스를 잃으면 남은 안내 줄을 비운다
+        // 통화·음성 비서로 오디오 포커스를 잃으면 남은 안내 줄을 비운다
         speaker.onFocusLostListener = { coach.onAudioFocusLost() }
         // 음성 명령: 들은 문장 → CoachController.onVoice(core 의 CommandRecognizer 로 해석)
         voice = VoiceCommandListener(this, isCoachSpeaking = { speaker.isSpeaking }) { text -> coach.onVoice(text) }
@@ -133,7 +133,7 @@ class CoachService : Service() {
         val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
         coach.setSpeechRate(prefs.getFloat(PREF_SPEECH_RATE, 1f))
         coach.onSpeechRateChanged = { rate -> prefs.edit().putFloat(PREF_SPEECH_RATE, rate).apply() }
-        // 코칭 음성 켜짐/꺼짐·연습 결과(통과/건너뜀)도 유지한다(베타 A-05/D-12/D-40). 결과는 "id=PASSED" 문자열 집합.
+        // 코칭 음성 켜짐/꺼짐·연습 결과(통과/건너뜀)도 유지한다. 결과는 "id=PASSED" 문자열 집합.
         coach.setQuiet(prefs.getBoolean(PREF_QUIET, false))
         coach.onQuietChanged = { q -> prefs.edit().putBoolean(PREF_QUIET, q).apply() }
         coach.onBringToFront = {
@@ -167,7 +167,7 @@ class CoachService : Service() {
             scope.launch { _restricted.value = requiresDo; coach.setRestricted(requiresDo) }
         }.also { it.start() }
 
-        // Pleos "Suspend 모드 - 오디오 포커스" 가이드(11/9): 시동이 꺼져(OFF·LOCK) Suspend 로 들어가면 음성을 멈추고 포커스를 반납,
+        // Pleos "Suspend 모드 - 오디오 포커스" 가이드: 시동이 꺼져(OFF·LOCK) Suspend 로 들어가면 음성을 멈추고 포커스를 반납,
         // 그동안 새로 재생하지 않는다. 시동이 다시 켜지면(ACC·ON·START) 허용만 하고 멈췄던 문장은 다시 틀지 않는다.
         // 앱이 뜰 때의 첫 값으로는 판단하지 않는다(바뀌는 순간만 본다 — 에뮬레이터 기본값 등으로 처음부터 말을 막지 않게).
         signals.onIgnitionState = { s -> scope.launch { onIgnition(s) } }
@@ -221,7 +221,7 @@ class CoachService : Service() {
     /** 설정 > 진단 > "Pleos 실험"(DO 점검·TTS 조건별 시험). 처음 열 때 만든다. */
     val lab by lazy { PleosLab(this) { runCatching { speaker.restart() }; runCatching { voice.restart() } } }
 
-    /** 화면 마이크 버튼: 항상 듣기를 켜고 끈다(11/7). */
+    /** 화면 마이크 버튼: 항상 듣기를 켜고 끈다. */
     fun toggleVoice() {
         voice.setAlwaysOn(!voice.alwaysOn.value)
     }
@@ -335,7 +335,7 @@ class CoachService : Service() {
         const val CHANNEL_ID = "coach_running"
         const val NOTIFICATION_ID = 1001
         /**
-         * (담당 T) 코스 1회 생성에 허용하는 길찾기 호출 수. 하루 상한이 NaverDirectionsProvider.DAILY_CALL_CAP(100)이므로
+         * 코스 1회 생성에 허용하는 길찾기 호출 수. 하루 상한이 NaverDirectionsProvider.DAILY_CALL_CAP(100)이므로
          * core 기본 12 대신 8 — 하루 최소 12번은 코스를 만들 수 있게. 조건 충족 후보가 나오면 그 전에 멈춘다(보통 1~5회).
          */
         const val COURSE_MAX_API_CALLS = 8

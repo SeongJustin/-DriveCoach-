@@ -1,4 +1,4 @@
-// 담당: K (멘트 카탈로그·발화 정책 테스트)
+// 멘트 카탈로그·발화 정책 테스트
 package kr.drivecoach.core.tts
 
 import kotlin.test.assertEquals
@@ -174,7 +174,7 @@ fun testQuietMode() {
     assertEquals(Decision.SPEAK, policy.decide(req(Phrases.dangerSpeeding), 0, ctx).decision)
     assertEquals(Decision.SPEAK, policy.decide(req(Phrases.systemPullOverAck), 0, ctx).decision)
     assertEquals(Decision.SPEAK, policy.decide(req(Phrases.warningLampRed), 0, ctx).decision)
-    // 시스템 멘트: 운전자 명령에 대한 직접 응답(force)만, 자동 멘트(출발/정차)는 막는다(11/5)
+    // 시스템 멘트: 운전자 명령에 대한 직접 응답(force)만, 자동 멘트(출발/정차)는 막는다
     assertEquals(Decision.SPEAK, policy.decide(req(Phrases.systemCmdQuietOff, force = true), 0, ctx).decision)
     assertEquals(Decision.DROP, policy.decide(req(Phrases.systemDriveStart), 0, ctx).decision)
 }

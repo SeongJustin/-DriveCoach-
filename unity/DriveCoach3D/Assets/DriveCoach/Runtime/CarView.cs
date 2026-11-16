@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 내 차: 제원으로 직접 만든 세단(CarBody, 없으면 Kenney 모델), 앞바퀴 꺾임·바퀴 굴림·브레이크등·후진등, 경사로 기울기)
+// 3D 주차 연습 — 내 차: 제원으로 직접 만든 세단(CarBody, 없으면 Kenney 모델), 앞바퀴 꺾임·바퀴 굴림·브레이크등·후진등, 경사로 기울기
 using System.Collections.Generic;
 using DriveCoach.Core;
 using UnityEngine;
@@ -36,7 +36,7 @@ namespace DriveCoach.Unity
             halfLen = v.length / 2f;
             brakeMat = DcAssets.UnlitInstance(new Color(0.35f, 0.02f, 0.02f));
             reverseMat = DcAssets.UnlitInstance(new Color(0.25f, 0.25f, 0.25f));
-            // 11/8 밤: 차 제원으로 직접 만든 세단. 없으면 예전 Kenney 모델
+            // 차 제원으로 직접 만든 세단. 없으면 예전 Kenney 모델
             Transform driverView = null;
             var holderGo = new GameObject("car");
             holderGo.transform.SetParent(root.transform, false);
@@ -45,7 +45,7 @@ namespace DriveCoach.Unity
             if (!own)
             {
                 Dc.Kill(holderGo);
-                // 길이·폭은 차 제원 그대로, 높이도 실제 승용차 높이(아반떼 CN8 1.42 m)로 — 예전엔 모델 비율대로 키워 좁고 높아 보였다(11/8)
+                // 길이·폭은 차 제원 그대로, 높이도 실제 승용차 높이(아반떼 CN8 1.42 m)로 — 예전엔 모델 비율대로 키워 좁고 높아 보였다
                 holder = StageBuilder.ModelCar("Kenney/CarKit/sedan", v.length, v.width, root.transform, DcAssets.Blue, 1.42f);
             }
             body = holder.transform;
@@ -76,7 +76,7 @@ namespace DriveCoach.Unity
                 }
             }
             HasOwnBody = own;
-            if (own) wipers = Wipers.Make(holder.transform);   // 11/8 밤: 와이퍼가 실제로 움직인다
+            if (own) wipers = Wipers.Make(holder.transform);   // 와이퍼가 실제로 움직인다
             // 내 차 표시 고리(바닥에 옅은 파랑)
             var ringMk = new MeshKit();
             var pts = new List<V2>();
@@ -106,7 +106,7 @@ namespace DriveCoach.Unity
                 mk.Box(new Vector3(sx * (v.width / 2f - 0.10f), 0.86f, -v.length / 2f + 0.06f), new Vector3(0.18f, 0.06f, 0.06f), 0f);
                 mk.Box(new Vector3(sx * (v.width / 2f + 0.06f), 1.02f, v.length / 2f - 1.42f), new Vector3(0.05f, 0.025f, 0.12f), 0f);   // 거울 옆
                 blink[s] = mk.ToObject(s == 0 ? "blink-left" : "blink-right", mat, root.transform);
-                blink[s].layer = BodyLayer;     // (11/13) 차체와 같은 층: 운전석 화면에서 거울 옆 주황 등이 공중에 뜬 판자처럼 보였다(나중에 만들어져 기본 층에 있었음)
+                blink[s].layer = BodyLayer;     // 차체와 같은 층: 운전석 화면에서 거울 옆 주황 등이 공중에 뜬 판자처럼 보였다(나중에 만들어져 기본 층에 있었음)
                 blink[s].SetActive(false);
             }
         }
@@ -135,7 +135,7 @@ namespace DriveCoach.Unity
             return v.turnSignal;
         }
 
-        /// <summary>전조등(11/8 밤: 밤·궂은 날씨). 처음 켤 때 만든다(스폿 두 개, 그림자 없음)</summary>
+        /// <summary>전조등(밤·궂은 날씨). 처음 켤 때 만든다(스폿 두 개, 그림자 없음)</summary>
         public void SetHeadlights(bool on) { envHeadlights = on; ApplyHeadlights(on, false); }
 
         GameObject beam;
@@ -162,19 +162,19 @@ namespace DriveCoach.Unity
                     headlights.Add(l);
                 }
             }
-            // URP 조명은 거리 제곱으로 약해진다(10 m 앞 = 1/100): 예전 세기 6 은 차 바로 앞만 겨우 비췄다(11/9 밤 사진 검수)
+            // URP 조명은 거리 제곱으로 약해진다(10 m 앞 = 1/100): 예전 세기 6 은 차 바로 앞만 겨우 비췄다
             foreach (var l in headlights)
             {
                 l.enabled = on;
                 l.range = high ? 110f : 70f;
                 l.spotAngle = high ? 50f : 64f;
-                l.intensity = high ? 200f : 120f;     // 11/9 2차: 40 도 어두운 아스팔트(반사 0.2)에서 10 m 앞이 거의 안 보였다
+                l.intensity = high ? 200f : 120f;     // 40 도 어두운 아스팔트(반사 0.2)에서 10 m 앞이 거의 안 보였다
             }
             // 노면에 번지는 전조등 빛(조명 개수가 적은 기기·그래픽 낮음에서도 앞길이 밝게 보이게): 차 앞 2~16 m 부채꼴 빛 판
             if (on && beam == null && root != null)
             {
                 var mk = new MeshKit();
-                // 둥근 빛(가운데 차 앞 9 m, 앞뒤 11 m): 뒤쪽 끝은 차 밑에서 사라져 경계가 보이지 않는다(11/9 밤 사진: 반쪽 판은 뒤 끝이 칼처럼 잘려 보였다)
+                // 둥근 빛(가운데 차 앞 9 m, 앞뒤 11 m): 뒤쪽 끝은 차 밑에서 사라져 경계가 보이지 않는다(예전: 반쪽 판은 뒤 끝이 칼처럼 잘려 보였다)
                 NightLights.Pool(mk, new Vector3(0f, 0.05f, halfLen + 11f), 4.6f, 14f, 0f);
                 NightLights.Pool(mk, new Vector3(0f, 0.055f, halfLen + 6f), 2.8f, 6.5f, 0f);       // 가까운 곳은 더 밝게(두 판이 겹침)
                 beam = mk.ToObject("headlight-beam", NightLights.Glow(new Color(1f, 0.95f, 0.84f, 0.42f)), root.transform);

@@ -1,4 +1,3 @@
-// 담당: A
 plugins {
     id("org.jetbrains.kotlin.jvm")
 }

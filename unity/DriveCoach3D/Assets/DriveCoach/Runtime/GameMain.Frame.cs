@@ -1,4 +1,4 @@
-// GameMain 의 매 프레임 처리 부분(11/15 코드 정리로 GameMain.cs 에서 나눈 파일). 전체 설명은 GameMain.cs 맨 위.
+// GameMain 의 매 프레임 처리 부분(GameMain.cs 에서 나눈 파일). 전체 설명은 GameMain.cs 맨 위.
 using System;
 using System.Globalization;
 using DriveCoach.Core;
@@ -15,7 +15,7 @@ namespace DriveCoach.Unity
         {
             float dt = Mathf.Min(Time.deltaTime, 0.05f);
             LogFps();
-            // 11/10 Pleos 성능 가이드(정차 중 CPU 25% 이하 — 3D 연습은 주차 중에만 돈다): 메뉴·결과·멈춤 화면은 초당 30장,
+            // Pleos 성능 가이드(정차 중 CPU 25% 이하 — 3D 연습은 주차 중에만 돈다): 메뉴·결과·멈춤 화면은 초당 30장,
             // 달리는 중에는 그래픽 "높게"일 때만 60장, 그 밖에는 30장(자가 검사에서 40장 안팎일 때 CPU 26.7% 였다).
             int wantFps = (world != null && scene != null && world.state == PlayState.Play && !paused && Prefs.Quality >= 2) ? 60 : 30;
             if (Application.targetFrameRate != wantFps) Application.targetFrameRate = wantFps;
@@ -31,8 +31,8 @@ namespace DriveCoach.Unity
                 if (float.IsNaN(realSteerBase)) realSteerBase = realSteer;
                 else if (Mathf.Abs(realSteer - realSteerBase) > 5f) realSteerSeen = true;
             }
-            // (11/13) 가상 운전대: 켜 두면 화면의 원으로 돌린다. 손을 떼면 달리는 동안 가운데로 돌아온다(실제 차의 복원처럼, 서 있으면 그대로)
-            // (11/15) 실제 스티어링 휠을 돌린 뒤에는 화면 원을 잡고 있을 때만 화면 원을 따르고, 아니면 실제 각도를 따른다(원도 같이 돈다)
+            // 가상 운전대: 켜 두면 화면의 원으로 돌린다. 손을 떼면 달리는 동안 가운데로 돌아온다(실제 차의 복원처럼, 서 있으면 그대로)
+            // 실제 스티어링 휠을 돌린 뒤에는 화면 원을 잡고 있을 때만 화면 원을 따르고, 아니면 실제 각도를 따른다(원도 같이 돈다)
             if (Prefs.VWheel && hud != null && realSteerSeen && !hud.DialHeld)
             {
                 hud.DialDeg = realSteer;
@@ -40,7 +40,7 @@ namespace DriveCoach.Unity
             }
             else if (Prefs.VWheel && hud != null)
             {
-                // (11/14 베타: 손을 떼면 가운데로 돌아와 후진 주차 중에 끝까지 돌린 채로 둘 수 없다)
+                // (손을 떼면 가운데로 돌아와 후진 주차 중에 끝까지 돌린 채로 둘 수 없다)
                 //   주차장과 후진에서는 놓은 자리에 그대로 둔다. 도로·서킷에서 앞으로 달릴 때만 실제 차처럼 천천히 풀린다
                 bool selfCenter = world != null && world.st.mode != StageMode.Parking && world.car.speed > 2f;
                 if (!hud.DialHeld && selfCenter) hud.DialDeg = Mathf.MoveTowards(hud.DialDeg, 0f, Mathf.Min(240f, world.car.speed * 40f) * dt);
@@ -51,7 +51,7 @@ namespace DriveCoach.Unity
             {
                 if (auto == null) auto = new AutoDrive(1, autoPlan);
                 if (world.car.gear == Gear.P || world.car.gear == Gear.N) world.Shift(Gear.D, true);
-                // (11/13) 핸들 + 속도를 함께(신호·굽은 길·빨간불 우회전 일시정지·방향지시등). 순항 50 km/h, 제한속도·앞차는 AutoSpeed 가 본다
+                // 핸들 + 속도를 함께(신호·굽은 길·빨간불 우회전 일시정지·방향지시등). 순항 50 km/h, 제한속도·앞차는 AutoSpeed 가 본다
                 target = auto.Drive(world, dt, 50f, out autoAccel, out autoBrake, out autoBrakeAmount);
                 // 부딪혀 섰으면 잠깐 R 로 물러났다가 다시 D
                 if (auto.Reverse && world.car.gear != Gear.R) world.Shift(Gear.R, true);
@@ -74,7 +74,7 @@ namespace DriveCoach.Unity
                 crossTestAt = -1f;
                 CrossTestJump();
             }
-            // (11/11) 옆 동(앱에 든 동)이 가까워지면 그 동 지도를 뒤에서 미리 읽어 둔다 — 1초에 한 번, 지금 자리·80 m 앞·200 m 앞이 옆 동 안인지 본다
+            // 옆 동(앱에 든 동)이 가까워지면 그 동 지도를 뒤에서 미리 읽어 둔다 — 1초에 한 번, 지금 자리·80 m 앞·200 m 앞이 옆 동 안인지 본다
             if (curKind == "region" && !loadingRegion && (preloadT -= dt) <= 0f)
             {
                 preloadT = 1f;
@@ -88,7 +88,7 @@ namespace DriveCoach.Unity
                         if (pi >= 0 && pi != curId) { RegionCatalog.Preload(pi); break; }
                     }
             }
-            // (11/11 대표) 동 사이 이동: 옆 동(앱에 들어 있는 동) 안으로 들어서면 그 동 지도로 바꿔 이어 달린다
+            // 동 사이 이동: 옆 동(앱에 들어 있는 동) 안으로 들어서면 그 동 지도로 바꿔 이어 달린다
             if (curKind == "region" && !loadingRegion && world.roadRun != null && !string.IsNullOrEmpty(world.roadRun.wantRegion))
             {
                 string wantFile = world.roadRun.wantRegion;
@@ -133,7 +133,10 @@ namespace DriveCoach.Unity
             hud.Tick(model);
         }
 
-        /// <summary>5초마다 초당 화면 수를 logcat 에 남긴다(자동 검수가 보고서에 옮김)</summary>
+        /// <summary>판마다 census 를 한 번만 찍으려고 센다(StartSession 에서 0)</summary>
+        internal static int censusTick;
+
+        /// <summary>5초마다 초당 화면 수를 logcat 에 남긴다</summary>
         void LogFps()
         {
             fpsFrames++;
@@ -142,24 +145,41 @@ namespace DriveCoach.Unity
             if (fpsTime < 5f) return;
             string where = world == null ? "menu" : $"{curKind}:{curId}";
             Debug.Log($"DC3D fps={fpsFrames / fpsTime:0.0} screen={where} cam={camMode} mirrors={(scene != null && scene.hudMirrors)} quality={Prefs.Quality} perf={(scene != null ? scene.perfStep : 0)} gpu={SystemInfo.graphicsDeviceName}");
-            // (11/11) 기기에서의 메모리 속: 유니티가 쓰는 양 / 잡아 둔 양 / C# 쓰는 양 / C# 잡아 둔 양(MB) — 어디를 줄일지 보려고
-            Debug.Log($"DC3D mem unityUsed={UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() >> 20} unityReserved={UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong() >> 20} monoUsed={UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong() >> 20} monoHeap={UnityEngine.Profiling.Profiler.GetMonoHeapSizeLong() >> 20} gfx={UnityEngine.Profiling.Profiler.GetAllocatedMemoryForGraphicsDriver() >> 20} screen={where}");
+            // 기기에서의 메모리 속: 유니티가 쓰는 양 / 잡아 둔 양 / C# 쓰는 양 / C# 잡아 둔 양(MB) — 어디를 줄일지 보려고
+            Debug.Log($"DC3D mem unityUsed={UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() >> 20} unityReserved={UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong() >> 20} monoUsed={UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong() >> 20} monoHeap={UnityEngine.Profiling.Profiler.GetMonoHeapSizeLong() >> 20} gfx={UnityEngine.Profiling.Profiler.GetAllocatedMemoryForGraphicsDriver() >> 20} gfxUsed={Dc.GfxMB()} sysUsed={Dc.SysMB()} screen={where}");
+            // 판을 연 뒤 두 번째 줄(약 10초 뒤, 짓기·첫 장면 끝)에 한 번: 물체·메시·smaps 요약
+            //   주행 중에 찍으면 한 번 90 ms 남짓 멈춘다(census + /proc/self/smaps 읽기) → 진단할 때만(Dc.CensusInPlay). 동네를 지은 직후 한 번은 그대로 찍는다(StageBuilder)
+            if (Dc.CensusInPlay && world != null && ++censusTick == 2) Dc.Census(where);
             fpsFrames = 0;
             fpsTime = 0f;
         }
 
-        // 11/8: 에뮬레이터에서 초당 5장(검수). 장면이 시작되고 2초 뒤부터 2초씩 재서, 22장 아래면 한 단계 가볍게(최대 3),
+        // 에뮬레이터에서 초당 5장. 장면이 시작되고 2초 뒤부터 2초씩 재서, 22장 아래면 한 단계 가볍게(최대 3),
         // 20초 넘게 55장 넘으면 한 단계 되돌린다. 단계는 다음 판에도 이어 쓴다(같은 기기).
+        // 판을 짓는 동안과 그 뒤 잠깐은 재지 않는다. 예전에는 판을 지은 프레임(한 장에 5~10초)이 첫 2초 창에 그대로 들어가
+        //   열 때마다 "perf -> 1 (fps 0.1)" 로 내려갔고, 이어지는 첫 그리기 장들까지 재서 첫 동네에서 3(렌더 배율 0.55)까지 갔다.
+        //   30장 상한에서는 55장을 못 넘어 되돌아오지 않고 perfCarry 로 다음 판에도 이어졌다.
+        //   이제: 판이 바뀐 장은 버리고, 동네를 여는 중(loadingRegion)이거나 판을 연 뒤 GovWarm 초 안의 긴 장(GovLongFrame 초 넘게)이면
+        //   그때부터 GovSettle 초를 더 기다린 뒤에 잰다. 판을 연 뒤 GovWarm 초가 지나면 긴 장도 그대로 잰다(정말 느린 기기는 예전처럼 내려간다).
+        const float GovSettle = 2f, GovLongFrame = 0.5f, GovWarm = 15f;
         static int perfCarry;
-        float govT, govFrames, govAge, govGood;
+        float govT, govFrames, govGood, govQuietUntil, govSceneAt;
         SceneRig govScene;
+
+        /// <summary>지금부터 GovSettle 초 동안 화면 수를 재지 않는다(재던 창도 비운다)</summary>
+        void GovQuiet()
+        {
+            govQuietUntil = Time.realtimeSinceStartup + GovSettle;
+            govT = govFrames = 0f;
+        }
 
         void Governor(float dt)
         {
             if (scene == null) { govScene = null; return; }
-            if (govScene != scene) { govScene = scene; govT = govFrames = govAge = govGood = 0f; scene.Degrade(perfCarry); }
-            govAge += dt;
-            if (govAge < 2f) return;
+            float now = Time.realtimeSinceStartup;
+            if (govScene != scene) { govScene = scene; govT = govFrames = govGood = 0f; govSceneAt = now; scene.Degrade(perfCarry); GovQuiet(); return; }
+            if (loadingRegion || (dt > GovLongFrame && now - govSceneAt < GovWarm)) GovQuiet();
+            if (now < govQuietUntil) return;
             govT += dt; govFrames++;
             if (govT < 2f) return;
             float fps = govFrames / govT;
@@ -173,7 +193,7 @@ namespace DriveCoach.Unity
         bool UsePedal => speedChoice == 3 && pedalSeen && realPedal >= 0f;
 
         /// <summary>
-        /// 이번 프레임의 액셀·브레이크(11/8). 서킷·도로: 실제 액셀이 있으면 그것, 없으면 자동 속도(핸들만 돌리기).
+        /// 이번 프레임의 액셀·브레이크. 서킷·도로: 실제 액셀이 있으면 그것, 없으면 자동 속도(핸들만 돌리기).
         /// 주차: 크리프(실제 액셀이 있으면 조금 더). 사람 브레이크(실제 페달·화면 버튼·스페이스)가 언제나 이긴다. PC: ↑(W) 는 액셀 끝까지.
         /// </summary>
         void Drive(out float accel, out bool brake, out float brakeAmount)
@@ -184,7 +204,7 @@ namespace DriveCoach.Unity
             bool roadLike = world.st.mode != StageMode.Parking;
             world.autoSpeed = roadLike && !UsePedal;
             bool autoOn = AutoOn;
-            if (!autoOn && Prefs.VAccel)      // (11/13) 가상 액셀: 누르는 동안만 가속(자동 속도는 끈다). 브레이크가 이긴다
+            if (!autoOn && Prefs.VAccel)      // 가상 액셀: 누르는 동안만 가속(자동 속도는 끈다). 브레이크가 이긴다
             {
                 world.autoSpeed = false;
                 accel = hud != null && hud.AccelHeld && !brakeOn ? 1f : 0f;
@@ -209,10 +229,10 @@ namespace DriveCoach.Unity
         string SpeedTag()
         {
             if (UsePedal) return "실제 가속 페달";
-            // (11/14 베타: 가상 액셀을 켜면 누를 때만 가는데 "자동 보통"이라고 떠 있다)
+            // (가상 액셀을 켜면 누를 때만 가는데 "자동 보통"이라고 떠 있다)
             if (Prefs.VAccel) return "화면 가속 페달";
             int lv = speedChoice == 3 ? 1 : Mathf.Clamp(speedChoice, 0, 2);
-            return "속도 자동(" + AutoSpeed.LevelNames[lv] + ")";   // (11/14 베타 4차: "자동 보통"이 무슨 뜻인지 모르겠다)
+            return "속도 자동(" + AutoSpeed.LevelNames[lv] + ")";   // ("자동 보통"이 무슨 뜻인지 모르겠다)
         }
 
         bool MirrorsVisible()
@@ -228,14 +248,14 @@ namespace DriveCoach.Unity
 
         float lastMoveT;
         /// <summary>
-        /// (11/14 베타: 차가 왜 서 있는지 화면에 안 나온다) 서 있는 까닭: 신호·보행자·앞차(11/16: 닿아 선 것은 말하지 않음). 정보 칸 끝에 " · 까닭" 으로 붙인다.
+        /// (차가 왜 서 있는지 화면에 안 나온다) 서 있는 까닭: 신호·보행자·앞차(닿아 선 것은 말하지 않음). 정보 칸 끝에 " · 까닭" 으로 붙인다.
         /// 사람이 브레이크를 밟고 있거나 P·N 이면 붙이지 않는다(까닭이 뻔하다).
         /// </summary>
         string StopWhy()
         {
             var car = world.car;
             if (world.state != PlayState.Play) return "";
-            // (11/16) 닿아 서 있을 때는 까닭을 붙이지 않는다.
+            // 닿아 서 있을 때는 까닭을 붙이지 않는다.
             if (world.Touching) return "";
             if (Mathf.Abs(car.speed) > 0.3f) { lastMoveT = world.t; return ""; }
             if (world.t - lastMoveT < 1.2f || car.gear == Gear.P || car.gear == Gear.N) return "";
@@ -260,17 +280,17 @@ namespace DriveCoach.Unity
             {
                 var cr = world.circuitRun;
                 int lap = Mathf.Min(cr.lap + 1, cr.def.laps);
-                // (11/15 베타 5A: "1/2 바퀴"가 반 바퀴로도 읽힌다)
+                // ("1/2 바퀴"가 반 바퀴로도 읽힌다)
                 return $"{kmh} km/h, {cr.def.laps}바퀴 중 {lap}번째, {Hud.Clock(cr.LapTime(world.t))}" + StopWhy();
             }
             if (world.roadRun != null)
             {
-                float lim = world.roadRun.limitKmh;      // 0 = 확인된 제한속도 없음 → 표시하지 않는다(11/13 대표)
+                float lim = world.roadRun.limitKmh;      // 0 = 확인된 제한속도 없음 → 표시하지 않는다
                 if (lim <= 0f) return $"{kmh} km/h" + StopWhy();
                 string col = kmh > lim + 0.5f ? "#D93025" : "#111111";
                 return $"<color={col}>{kmh}</color> / 제한 {lim:0} km/h" + StopWhy();
             }
-            // (11/14 베타: 주차 화면에 속도가 안 나온다)
+            // (주차 화면에 속도가 안 나온다)
             return $"{kmh} km/h" + StopWhy();
         }
 

@@ -1,4 +1,4 @@
-// 담당: S (11/8 밤, 대표: "차 실측치로 만드는 게임인데 차가 너무 얇다 → 디테일하게") — 내 차 겉모습.
+// 내 차 겉모습.
 // 가 만든 세단(Resources/DC/Car/sedan.bytes: 차체·유리·등·그릴·바퀴…)을 읽어
 // 지금 차의 제원(전장·전폭·축거·앞뒤 오버행·윤거)에 맞게 늘이고 줄인다. 모양은 직접 정한 일반 세단(특정 차 디자인을 본뜨지 않음).
 //   길이: 앞·뒤 축 둘레 ±0.45 m 는 그대로 옮기기만(바퀴 아치가 찌그러지지 않게), 그 사이·앞뒤 끝만 늘이고 줄인다.
@@ -34,12 +34,19 @@ namespace DriveCoach.Unity
 
         public static float WheelRadius => Load() ? refSpec[8] : 0.33f;
 
+        /// <summary>지금 읽어 둔 모델 경로. 나라 표의 carModel 이 바뀌면(독일: 번호판 글자만 다른 sedan_de) 다시 읽는다</summary>
+        static string loaded;
+
         static bool Load()
         {
+            var cm = CountryStyle.Current.carModel;
+            string want = string.IsNullOrEmpty(cm) ? ResPath : cm;
+            if (loaded != want) { parts = null; tried = false; loaded = want; }
             if (parts != null) return true;
             if (tried) return false;
             tried = true;
-            var ta = Resources.Load<TextAsset>(ResPath);
+            var ta = Resources.Load<TextAsset>(want);
+            if (ta == null && want != ResPath) { Debug.LogWarning("CarBody: " + want + " 없음 → " + ResPath); ta = Resources.Load<TextAsset>(ResPath); }
             if (ta == null) { Debug.LogWarning("CarBody: " + ResPath + " 없음 → Kenney 모델"); return false; }
             try
             {
@@ -147,7 +154,7 @@ namespace DriveCoach.Unity
             foreach (var p in parts)
             {
                 if (p.group != 0 && p.group != 3) continue;
-                // 와이퍼는 따로(움직여야 한다: Wipers 가 이름 "…wipers-l/r" 로 찾아 축을 감싼다). 11/9: 합쳐져서 와이퍼·빗방울이 안 돌던 것
+                // 와이퍼는 따로(움직여야 한다: Wipers 가 이름 "…wipers-l/r" 로 찾아 축을 감싼다). 합쳐져서 와이퍼·빗방울이 안 돌던 것
                 if (p.name != null && p.name.StartsWith("wipers")) { wipers.Add(p); continue; }
                 int key = p.group * 100 + p.mat;
                 if (!groups.TryGetValue(key, out var l)) groups[key] = l = new List<Part>();

@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 설정: 화면 거울, 처음 시점, 센서음, 도로 주행 미리보기 보이기, 그래픽 품질, 운전석 시야). 기기 안 PlayerPrefs.
+// 3D 주차 연습 — 설정: 화면 거울, 처음 시점, 센서음, 도로 주행 미리보기 보이기, 그래픽 품질, 운전석 시야. 기기 안 PlayerPrefs.
 using UnityEngine;
 
 namespace DriveCoach.Unity
@@ -14,19 +14,19 @@ namespace DriveCoach.Unity
         /// <summary>화면 거울: 기본은 "운전석 시점에서" (운전석에서는 오른쪽 사이드미러가 고개를 돌려야만 보이므로)</summary>
         public static HudMirrorMode HudMirrors
         {
-            get => (HudMirrorMode)Mathf.Clamp(Get("hudMirrors2", 0), 0, 2);   // (11/15 대표) 기본은 끔
+            get => (HudMirrorMode)Mathf.Clamp(Get("hudMirrors2", 0), 0, 2);   // 기본은 끔
             set => Set("hudMirrors2", (int)value);
         }
 
         /// <summary>처음 시점(마지막에 고른 시점을 기억한다)</summary>
         public static CamMode StartCam
         {
-            get => (CamMode)Mathf.Clamp(Get("startCam2", (int)CamMode.Driver), 0, 3);   // (11/15 대표) 기본은 운전석(1인칭)
+            get => (CamMode)Mathf.Clamp(Get("startCam2", (int)CamMode.Driver), 0, 3);   // 기본은 운전석(1인칭)
             set => Set("startCam2", (int)value);
         }
 
-        /// <summary>(11/13) 화면 조작: 가상 운전대·가상 액셀·가상 브레이크(각각 켜고 끔), 자동 운전(검수·시연)</summary>
-        // (11/14 밤 대표: "가상 운전대 기본으로 켜 두자") 새 키 vWheel2, 기본 켬 — 실제 핸들이 없는 에뮬레이터·화면만으로도 끝까지 해 볼 수 있게
+        /// <summary>화면 조작: 가상 운전대·가상 액셀·가상 브레이크(각각 켜고 끔), 자동 운전</summary>
+        // 새 키 vWheel2, 기본 켬 — 실제 핸들이 없는 에뮬레이터·화면만으로도 끝까지 해 볼 수 있게
         public static bool VWheel { get => Get("vWheel2", 1) == 1; set => Set("vWheel2", value ? 1 : 0); }
         public static bool VAccel { get => Get("vAccel2", 1) == 1; set => Set("vAccel2", value ? 1 : 0); }
         public static bool VBrake { get => Get("vBrake", 0) == 1; set => Set("vBrake", value ? 1 : 0); }
@@ -38,7 +38,7 @@ namespace DriveCoach.Unity
             set => Set("sensorSound", value ? 1 : 0);
         }
 
-        /// <summary>그래픽: 0 = 가볍게(그림자·후처리 끔, 거울 해상도 낮춤), 1 = 보통(후처리·그림자), 2 = 높게(+ 그늘·블룸·거울 그림자). 11/8 "높게" 추가</summary>
+        /// <summary>그래픽: 0 = 가볍게(그림자·후처리 끔, 거울 해상도 낮춤), 1 = 보통(후처리·그림자), 2 = 높게(+ 그늘·블룸·거울 그림자)</summary>
         public static int Quality
         {
             get => QualityOverride >= 0 ? QualityOverride : Mathf.Clamp(Get("quality2", 1), 0, 2);
@@ -50,7 +50,7 @@ namespace DriveCoach.Unity
 
         /// <summary>
         /// 서킷·도로 속도: 0 느긋하게 · 1 보통 · 2 빠르게(자동 속도, 핸들만 돌리기) · 3 실제 액셀(차가 페달 값을 줄 때만, 없으면 자동 보통).
-        /// 11/8 대표 요청: 화면 '가속' 버튼 대신.
+        /// 화면 '가속' 버튼 대신.
         /// </summary>
         public static int SpeedChoice
         {
@@ -58,7 +58,7 @@ namespace DriveCoach.Unity
             set => Set("speedChoice", value);
         }
 
-        /// <summary>날씨(11/8 밤 대표: 설정에서 날씨·시간): 0 맑음 · 1 흐림 · 2 비 · 3 안개 · 4 눈</summary>
+        /// <summary>날씨(설정에서 날씨·시간): 0 맑음 · 1 흐림 · 2 비 · 3 안개 · 4 눈</summary>
         public static int Weather
         {
             get => Mathf.Clamp(Get("weather", 0), 0, 4);
@@ -72,21 +72,21 @@ namespace DriveCoach.Unity
             set => Set("timeOfDay", value);
         }
 
-        /// <summary>교통량(11/9): 0 적게(0.5배) · 1 보통 · 2 많게(1.6배) — 시간·날씨 배율에 곱한다</summary>
+        /// <summary>교통량: 0 적게(0.5배) · 1 보통 · 2 많게(1.6배) — 시간·날씨 배율에 곱한다</summary>
         public static int TrafficLevel
         {
             get => Mathf.Clamp(Get("trafficLevel", 1), 0, 2);
             set => Set("trafficLevel", value);
         }
 
-        /// <summary>보행자(11/9): 0 없음 · 1 적게(0.5배) · 2 보통 · 3 많게(1.8배)</summary>
+        /// <summary>보행자: 0 없음 · 1 적게(0.5배) · 2 보통 · 3 많게(1.8배)</summary>
         public static int PedLevel
         {
             get => Mathf.Clamp(Get("pedLevel", 2), 0, 3);
             set => Set("pedLevel", value);
         }
 
-        // ── 운전석 시야(눈 위치) 옮김, cm. 11/8 대표 요청: 각자 맞추고 싶은 시야가 있으니 앞뒤·위아래·좌우로 ──
+        // ── 운전석 시야(눈 위치) 옮김, cm. 각자 맞추고 싶은 시야가 있으니 앞뒤·위아래·좌우로 ──
         public const int SeatMaxZ = 20, SeatMaxY = 15, SeatMaxX = 12, SeatStep = 2;
         static Vector3? seatCache;
 

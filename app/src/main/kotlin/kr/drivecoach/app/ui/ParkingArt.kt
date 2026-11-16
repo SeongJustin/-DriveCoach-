@@ -1,4 +1,3 @@
-// 담당: S
 package kr.drivecoach.app.ui
 
 import kr.drivecoach.app.R
@@ -21,7 +20,7 @@ object ParkingArt {
         "recover01_too_close.svg" to R.drawable.parking_recover01_too_close,
         "recover02_angled.svg" to R.drawable.parking_recover02_angled,
         "recover03_too_far.svg" to R.drawable.parking_recover03_too_far,
-        // (11/15) 평행 주차 7장
+        // 평행 주차 7장
         "par01_approach" to R.drawable.parking_par01_approach,
         "par02_gear_r_back" to R.drawable.parking_par02_gear_r_back,
         "par03_steer_right" to R.drawable.parking_par03_steer_right,
@@ -29,7 +28,7 @@ object ParkingArt {
         "par05_center_back" to R.drawable.parking_par05_center_back,
         "par06_steer_left_in" to R.drawable.parking_par06_steer_left_in,
         "par07_adjust_p" to R.drawable.parking_par07_adjust_p,
-        // (11/15 밤) 자리 바로잡기 6가지: 위에서 본 설명 영상의 한 장면
+        // 자리 바로잡기 6가지: 위에서 본 설명 영상의 한 장면
         "rec_perp_close" to R.drawable.parking_rec_perp_close,
         "rec_perp_angled" to R.drawable.parking_rec_perp_angled,
         "rec_perp_far" to R.drawable.parking_rec_perp_far,
@@ -42,7 +41,7 @@ object ParkingArt {
     fun resIdFor(key: String?): Int? = key?.let { byKey[it] }
 
     /**
-     * (11/14) 단계 영상: "step03_gear_r_steer_right.svg" → res/raw/parking_step03.mp4 의 리소스 ID. 없으면 0(그림만 보여 준다).
+     * 단계 영상: "step03_gear_r_steer_right.svg" → res/raw/parking_step03.mp4 의 리소스 ID. 없으면 0(그림만 보여 준다).
      * 영상은 3D 게임의 주차장 장면으로 만들었다.
      */
     fun videoResFor(ctx: android.content.Context, key: String?): Int {

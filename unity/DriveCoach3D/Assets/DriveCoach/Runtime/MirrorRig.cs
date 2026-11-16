@@ -1,4 +1,4 @@
-// 거울(11/15 코드 정리로 Cockpit.cs 에서 나눈 파일).
+// 거울(Cockpit.cs 에서 나눈 파일).
 using System.Collections.Generic;
 using DriveCoach.Core;
 using UnityEngine;

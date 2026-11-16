@@ -1,4 +1,4 @@
-// 담당: D (PracticeEngine / Chapter2Items / SuddenAccelDrill 테스트, fun main 러너)
+// PracticeEngine / Chapter2Items / SuddenAccelDrill 테스트, fun main 러너
 package kr.drivecoach.core.practice
 
 import kr.drivecoach.core.signal.FakeSignalSource
@@ -71,7 +71,7 @@ fun testConfirmInTry() {
     engine.onInput(UserInput.NEXT)
     assertEquals(Phase.PASSED, engine.onInput(UserInput.CONFIRM).phase)
 
-    engine.start("2-5-headlight-low") // 자동 전용 항목(비상등은 수동 확인 허용으로 바뀜, 베타 A-06)
+    engine.start("2-5-headlight-low") // 자동 전용 항목(비상등은 수동 확인 허용으로 바뀜)
     engine.onInput(UserInput.NEXT)
     val s = engine.onInput(UserInput.CONFIRM)
     assertEquals(Phase.TRY, s.phase)

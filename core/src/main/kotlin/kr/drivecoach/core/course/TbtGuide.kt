@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — 차량 내비 TBT(다음 회전) 이벤트를 5-3 안내 멘트 ID 로 바꾸는 순수 규칙)
+// 앱 연결 — 차량 내비 TBT(다음 회전) 이벤트를 5-3 안내 멘트 ID 로 바꾸는 순수 규칙
 package kr.drivecoach.core.course
 
 import kr.drivecoach.core.tts.PhraseId

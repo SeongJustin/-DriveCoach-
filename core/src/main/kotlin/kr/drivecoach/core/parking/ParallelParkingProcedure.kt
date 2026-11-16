@@ -1,4 +1,4 @@
-// 담당: I (11/15 대표: "실제 차로 주차는 평행 주차와 직각 주차 둘 다") 평행 주차 공식 — 직각 주차(ParkingProcedure)와 같은 슬로우 모드로 돌린다
+// 평행 주차 공식 — 직각 주차(ParkingProcedure)와 같은 슬로우 모드로 돌린다
 package kr.drivecoach.core.parking
 
 import kr.drivecoach.core.signal.Gear

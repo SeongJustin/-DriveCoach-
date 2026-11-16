@@ -1,4 +1,4 @@
-// 담당: I (11/15 평행 주차 공식 테스트)
+// 평행 주차 공식 테스트
 package kr.drivecoach.core.parking
 
 import kr.drivecoach.core.signal.FakeSignalSource

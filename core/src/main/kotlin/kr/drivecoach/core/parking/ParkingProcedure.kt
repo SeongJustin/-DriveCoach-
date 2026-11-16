@@ -1,4 +1,4 @@
-// 담당: I (직각 주차 공식 데이터 — 사전 학습/슬로우 모드의 단계표)
+// 직각 주차 공식 데이터 — 사전 학습/슬로우 모드의 단계표
 package kr.drivecoach.core.parking
 
 import kr.drivecoach.core.signal.Gear
@@ -21,7 +21,7 @@ sealed class StepExpectation {
     /** 속도가 [kmh] 미만이면 통과(천천히 움직이는 중에도 통과 가능). */
     data class SpeedBelow(val kmh: Double) : StepExpectation()
 
-    /** 핸들이 가운데(±[tolDeg]) 로 돌아오면 통과(베타 B-24/D-45: 조향각으로 판정 가능). */
+    /** 핸들이 가운데(±[tolDeg]) 로 돌아오면 통과(조향각으로 판정 가능). */
     data class SteeringCentered(val tolDeg: Double = 20.0) : StepExpectation()
 
     /** 차가 멈춘 상태에서 운전자가 "확인"해야 통과. 움직이는 중의 확인은 받지 않는다. */
@@ -30,7 +30,7 @@ sealed class StepExpectation {
     /** 센서로 알 수 없는 동작. 운전자 "확인/했어요" 로만 통과. */
     object ManualConfirm : StepExpectation() { override fun toString() = "ManualConfirm" }
 
-    /** 주차브레이크가 걸리면 통과(11/5 대표 결정: 공식 마지막에 추가). 신호가 없는 차는 '건너뛰기'. */
+    /** 주차브레이크가 걸리면 통과. 신호가 없는 차는 '건너뛰기'. */
     object ParkingBrakeOn : StepExpectation() { override fun toString() = "ParkingBrakeOn" }
 }
 
@@ -74,7 +74,7 @@ data class RecoveryProcedure(
 /**
  * 후진 직각 주차(운전석 기준 **우측** 공간) 공식. 의 출처 4곳을 하나로 정리한 것.
  *
- * 흐름(11단계, 11/5 대표 결정으로 처음 'D 넣기'·끝 '주차브레이크' 추가):
+ * 흐름(11단계, 처음 'D 넣기'·끝 '주차브레이크' 포함):
  *       D 넣기 → 접근·정지 → 핸들 왼쪽 끝 → 전진 45° → R → 핸들 오른쪽 끝 → 후진(미러에 선이 나란히) →
  *       핸들 풀기 → 직진 후진 → P → 주차브레이크.
  * 각 단계의 "기준점"은 운전자가 사이드미러로 보는 것이며, 앱은 기준점 도달을 판정하지 않는다.
@@ -116,7 +116,7 @@ object ParkingProcedure {
     const val REVERSE_IN_STEP_INDEX = 6
 
     /** 상황별 탈출 절차. 모두 "앞으로 빼서 다시 잡는다" 가 기본이며, 핸들 방향만 다르다. */
-    // (11/15 밤 대표) 자리 바로잡기마다 위에서 본 설명 영상을 보여 준다
+    // 자리 바로잡기마다 위에서 본 설명 영상을 보여 준다
     val RECOVERIES: Map<Tangle, RecoveryProcedure> = mapOf(
         Tangle.TOO_CLOSE to RecoveryProcedure(
             Tangle.TOO_CLOSE, PhraseId("parking_escape_too_close"),
@@ -189,9 +189,9 @@ object ParkingProcedure {
 
     /** 공식 완료 후 자기평가 요청. */
     val SELF_EVAL_PROMPT = PhraseId("parking_selfeval_ask")
-    /** 완주 직후 "P 완료. 내려서 …" 한마디(자기평가 요청 앞에, 베타 B-28). */
+    /** 완주 직후 "P 완료. 내려서 …" 한마디(자기평가 요청 앞에). */
     val DONE_PHRASE = PhraseId("parking_done_selfcheck")
-    /** 센서 단계를 '확인' 으로 넘기려 할 때: 아직 감지 안 됨(기능 연습과 같은 문장, 베타 B-23). */
+    /** 센서 단계를 '확인' 으로 넘기려 할 때: 아직 감지 안 됨(기능 연습과 같은 문장). */
     val NOT_DETECTED_PHRASE = PhraseId("practice_not_detected")
 }
 

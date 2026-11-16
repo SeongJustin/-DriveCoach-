@@ -1,4 +1,4 @@
-// 담당: 강명수(11/15) 난이도별 코스 생성 — 현재 위치에서 출발해 200 m 안으로 돌아오는 순환 코스를 네이버 Directions 15 로 찾고 난이도(1~5)·연습 시간·집중 연습에 맞는 후보를 고른다.
+// 난이도별 코스 생성 — 현재 위치에서 출발해 200 m 안으로 돌아오는 순환 코스를 네이버 Directions 15 로 찾고 난이도(1~5)·연습 시간·집중 연습에 맞는 후보를 고른다.
 // 난이도 점수는 초기 휴리스틱(실제 운전자 평가로 보정 전). 키가 있을 때만 쓰고, 키가 없는 제출 APK 는 OffsetCourseProvider(기본 코스)를 쓴다(CoachService).
 package kr.drivecoach.core.course
 
@@ -130,7 +130,7 @@ object DifficultyEvaluator {
         if (left !in spec.leftTurns) rejects += "좌회전 목표 횟수 불일치"
         if (lane !in spec.laneChanges) rejects += "차로 변경 부담 추정 목표 불일치"
         if (spec.includeMerge && merges + codes.count { it in entry } == 0) rejects += "목표 합류 구간 없음"
-        // (11/15 오류 검수) 직진 위주(페달 헷갈림)는 회전 2번 이하(11/14 베타 수정, CourseScorer 와 같은 기준)
+        // 직진 위주(페달 헷갈림)는 회전 2번 이하(CourseScorer 와 같은 기준)
         if (spec.fearFocus == Fear.PEDAL_CONFUSION && left + right + uturn > 2) rejects += "직진 위주 목적인데 회전이 2번 넘음"
         if (repeatShare > .5) rejects += "동일 구간 반복 비율 과다"
         return DifficultyAssessment(score, components, coverage, left, right, uturn, unprotected, rounds,
@@ -196,7 +196,7 @@ class DifficultyCourseGenerator(
         val targetKm = minOf(spec.maxDistanceKm * .8, spec.targetMinutes / 60.0 * 20.0)
         val base = (targetKm * 1000 / 5.0).coerceIn(300.0, 4000.0)
         val preferred = if (spec.preferRightTurns) 1 else -1
-        // (11/15 오류 검수) 직진 위주는 옆으로 꺾는 경유지 없이 곧장 가는 편도 후보만 만든다(예전 CourseGenerator 와 같음)
+        // 직진 위주는 옆으로 꺾는 경유지 없이 곧장 가는 편도 후보만 만든다(예전 CourseGenerator 와 같음)
         if (spec.fearFocus == Fear.PEDAL_CONFUSION) return (0 until maxApiCalls).map { i ->
             val bearing = heading + listOf(0.0, 90.0, -90.0, 180.0)[(i / 2) % 4]
             val distance = (targetKm * 1000 * listOf(1.0, .65)[i % 2]).coerceIn(500.0, 15000.0)

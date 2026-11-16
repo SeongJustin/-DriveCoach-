@@ -1,4 +1,4 @@
-// 담당: S (화면 스타일 — 흰 바탕, 검정 글씨, 라임 포인트. 색과 글자 크기는 전부 이 파일에서만 바꾼다)
+// 화면 스타일 — 흰 바탕, 검정 글씨, 라임 포인트. 색과 글자 크기는 전부 이 파일에서만 바꾼다
 // material3 1.2.x(compose-bom 2024.06.00) 의 공개 API 만 썼다.
 package kr.drivecoach.app.ui
 
@@ -28,13 +28,13 @@ import androidx.compose.ui.unit.sp
  * 앱 공통 색. 사용자 요청: "흰 바탕에 검정 글씨로 깔끔하게". 색을 바꾸려면 여기만 고친다.
  */
 object CoachColors {
-    // 11/10 대표: 검정·흰색 바탕에 중요한 곳만 라임 그린. 다른 색은 쓰지 않는다(위험 알림의 빨강만 예외).
-    // 11/11 대표: 흰색과 검정 중 더 넓게 쓰는 색은 흰색 → 흰 바탕·검정 글씨, 라임은 채운 면(버튼·진행 바)에만.
+    // 검정·흰색 바탕에 중요한 곳만 라임 그린. 다른 색은 쓰지 않는다(위험 알림의 빨강만 예외).
+    // 흰색과 검정 중 더 넓게 쓰는 색은 흰색 → 흰 바탕·검정 글씨, 라임은 채운 면(버튼·진행 바)에만.
     /** 바탕(배경). Pure White. */
     val Background = Color(0xFFFFFFFF)
     /** 카드·눌린 면(바탕보다 한 단계 밝은 검정). */
     val Surface = Color(0xFFF4F4F5)
-    /** (11/14 베타: 흰 칸과 회색 칸이 거의 같아 보인다) 건너뛴 항목 칸 */
+    /** (흰 칸과 회색 칸이 거의 같아 보인다) 건너뛴 항목 칸 */
     val Skipped = Color(0xFFD9D9DE)
     /** 본문 글씨. Midnight Black. */
     val OnBackground = Color(0xFF0B0B0C)
@@ -52,6 +52,8 @@ object CoachColors {
     val Ok = Color(0xFF0B0B0C)
     /** 강조 글씨·아이콘(흰 바탕 위). 라임은 면에만 쓰고 글씨 강조는 검정. */
     val PrimaryInk = Color(0xFF0B0B0C)
+    /** 이미 본 칩(법규 주제)의 옅은 라임. 지금 고른 칩(진한 라임)과 더 잘 구별되게 옅게. */
+    val PrimarySoft = Color(0xFFC6F432).copy(alpha = 0.3f)
 }
 
 /**
@@ -59,13 +61,15 @@ object CoachColors {
  */
 object CoachType {
     /**
-     * (11/15 베타 6f: "골반 부분/은", "확인하십/시오" 처럼 낱말 가운데서 줄이 바뀐다) 한국어는 띄어쓰기(어절) 단위로 줄을 바꾼다.
+     * ("골반 부분/은", "확인하십/시오" 처럼 낱말 가운데서 줄이 바뀐다) 한국어는 띄어쓰기(어절) 단위로 줄을 바꾼다.
      * Android 13(API 33) 이상에서만 듣고, 그 아래는 예전처럼 글자 단위다. 기본 글씨(LocalTextStyle = bodyLarge)도 이 값을 쓴다.
      */
     val KoLineBreak = LineBreak(LineBreak.Strategy.HighQuality, LineBreak.Strictness.Strict, LineBreak.WordBreak.Phrase)
     private val ko = LocaleList("ko-KR")
-    /** 제목(차종 헤더). 44sp 굵게. */
+    /** 제목(화면 제목·카드 제목·메뉴 카드). 44sp 굵게. */
     val Title = TextStyle(fontSize = 44.sp, fontWeight = FontWeight.Bold, color = CoachColors.OnBackground, lineBreak = KoLineBreak, localeList = ko)
+    /** 맨 위 차종 줄. 화면 제목(44sp)보다 한 단계 작게 — 하위 화면에서 44sp 굵은 줄 두 개가 겹쳐 보이던 것. */
+    val Header = TextStyle(fontSize = 36.sp, fontWeight = FontWeight.Bold, color = CoachColors.OnBackground, lineBreak = KoLineBreak, localeList = ko)
     /** 본문(연습 문장·메뉴 제목·버튼). 32sp. */
     val Body = TextStyle(fontSize = 32.sp, color = CoachColors.OnBackground, lineBreak = KoLineBreak, localeList = ko)
     /** 캡션(신호 한 줄·장/순번·메뉴 설명). 22sp 회색. */
@@ -73,7 +77,7 @@ object CoachType {
 }
 
 /**
- * 글자 크기 단계(11/15 디자인 통일). 화면마다 제각각이던 36, 30, 28, 24, 20sp 를 아래 단계로 맞췄다.
+ * 글자 크기 단계. 화면마다 제각각이던 36, 30, 28, 24, 20sp 를 아래 단계로 맞췄다.
  * 버튼 글씨는 같은 줄이면 같은 크기를 쓴다.
  */
 object CoachSize {
@@ -128,15 +132,15 @@ private val coachShapes = Shapes(
 )
 
 /**
- * 앱 전체를 감싸는 MaterialTheme. 밝은 색 하나만 쓴다(11/11: 흰 바탕, 검정 글씨, 채운 면에만 라임).
+ * 앱 전체를 감싸는 MaterialTheme. 밝은 색 하나만 쓴다(흰 바탕, 검정 글씨, 채운 면에만 라임).
  */
 @Composable
 fun CoachTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = coachColorScheme, typography = coachTypography, shapes = coachShapes, content = content)
 }
 
-/** 헤더 칩("조용히", "진단") 처럼 작은 버튼의 최소 높이. */
-val CoachChipMinHeight = 64.dp
+/** 헤더 칩("← 메뉴로", 켜짐/꺼짐, 법규 주제) 처럼 작은 버튼의 최소 높이. 64 → 72dp: 차 안에서 누르기 쉽게. */
+val CoachChipMinHeight = 72.dp
 
 /**
  * 주 동작 버튼(라임 바탕, 검정 글씨). 화면당 하나만 두는 것이 원칙(예: 연습 카드의 "확인"). 글씨 색은 LocalContentColor 로 검정이 된다.
@@ -165,7 +169,7 @@ fun SecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     minHeight: Dp = CoachButtonMinHeight,
-    container: Color = CoachColors.Background,   // (11/14 대표) 끝낸 항목은 ✓ 대신 라임으로 채운다
+    container: Color = CoachColors.Background,   // 끝낸 항목은 ✓ 대신 라임으로 채운다
     content: @Composable RowScope.() -> Unit,
 ) {
     OutlinedButton(

@@ -1,4 +1,3 @@
-// 담당: S
 // 순수 계산(UnityEngine 없음): 위에서 본 2D 평면, 단위 m. x 오른쪽, y 아래(Godot 화면 좌표와 같음), 각도 0 = +x, 시계 방향 +.
 // 3D 로 그릴 때는 Unity (X, Z) = (x, -y), 요(yaw, 도) = 90 + heading(도) 로 바꾼다(WorldView3D).
 using System;
@@ -112,7 +111,7 @@ namespace DriveCoach.Core
         }
 
         /// <summary>
-        /// (11/13) 볼록 다각형 a(차)와 아무 다각형 b(오목해도 됨: ㄱ·ㄷ 모양 건물)가 겹치는가.
+        /// 볼록 다각형 a(차)와 아무 다각형 b(오목해도 됨: ㄱ·ㄷ 모양 건물)가 겹치는가.
         /// ConvexOverlap 은 오목한 b 를 볼록 껍질처럼 봐서, ㄱ 모양 건물의 안쪽 빈 자리(길·마당)에서도 "건물에 부딪혔어요"가 났다.
         /// </summary>
         public static bool PolyOverlap(IList<V2> a, IList<V2> b)

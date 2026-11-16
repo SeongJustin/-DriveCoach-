@@ -1,4 +1,3 @@
-// 담당: C+G
 package kr.drivecoach.core.input
 
 import kotlin.test.assertEquals
@@ -29,7 +28,7 @@ private fun testSynonyms() {
         "힘들어요" to Command.PULL_OVER,
         "잠깐" to Command.PULL_OVER,
         "잠깐만요" to Command.PULL_OVER,
-        // (11/8) 자연스러운 말투
+        // 자연스러운 말투
         "한 번만 더 말해 줘" to Command.AGAIN,
         "못 들었어요" to Command.AGAIN,
         "잘 못 들었어" to Command.AGAIN,

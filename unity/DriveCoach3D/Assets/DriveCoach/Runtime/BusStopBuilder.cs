@@ -1,9 +1,8 @@
-// 담당: S (11/9 아침, 대표: "버스정류장 이런것도 넣었지?" / "서울은 brt라 버스 정류장 위치가 조금씩 달라 확인하면서 해줘")
 // 버스정류장: 상표·글자 없는 일반 모양.
 //   길가: 연석 0.6 m 뒤 표지 기둥(2.8 m, 위에 판) + 연석 2 m 뒤 쉘터(3.6 × 1.4 m: 지붕·뒷벽 유리·옆 유리·의자·노선 안내판 자리).
 //   중앙(서울 중앙버스전용차로, 노면에 이미 있는 중앙 섬 위만): 섬 길이만큼 긴 지붕(기둥 3 m 마다)·양쪽 낮은 난간·의자, 섬 끝에 표지 기둥.
 //   중앙 섬이 없는 곳(kind 2)은 세우지 않는다(차로를 막는 섬을 새로 만들지 않는다).
-// 정류장 10 m 안 정차 위반 규칙은 넣지 않는다(대표 11/9 08:15).
+// 정류장 10 m 안 정차 위반 규칙은 넣지 않는다.
 using DriveCoach.Core;
 using UnityEngine;
 
@@ -39,8 +38,8 @@ namespace DriveCoach.Unity
             metal.ToObject("busstop-metal", DcAssets.Lit(DcAssets.Hex("#3A3F45"), 0.45f, 0.6f), node, true, true);
             if (!roof.IsEmpty) roof.ToObject("busstop-roof", DcAssets.Lit(DcAssets.Hex("#C9CDD2"), 0.3f), node, true, true);
             if (!glass.IsEmpty) glass.ToObject("busstop-glass", DcAssets.Unlit(new Color(0.62f, 0.74f, 0.80f, 0.28f)), node);
-            plate.ToObject("busstop-plate", DcAssets.Lit(DcAssets.Hex("#1F3F7A"), 0.35f), node, true, true);
-            mark.ToObject("busstop-mark", DcAssets.Unlit(DcAssets.Hex("#F2F4F7")), node);
+            plate.ToObject("busstop-plate", DcAssets.Lit(CountryStyle.Current.busStopPlate, 0.35f), node, true, true);     // 나라 표: 한국 남색 판 + 흰 칸, 독일 노란 판 + 초록
+            mark.ToObject("busstop-mark", DcAssets.Unlit(CountryStyle.Current.busStopMark), node);
             if (!board.IsEmpty) board.ToObject("busstop-board", DcAssets.Lit(DcAssets.Hex("#23272D"), 0.5f), node, false, true);
             if (!bench.IsEmpty) bench.ToObject("busstop-bench", DcAssets.Lit(DcAssets.Hex("#8A6A4A"), 0.25f), node, true, true);
             Debug.Log($"BusStopBuilder: 버스정류장 {n}곳");

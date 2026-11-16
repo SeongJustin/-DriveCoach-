@@ -1,4 +1,4 @@
-// 담당: S (11/9 새벽, 조사 P1 "보행자: 신호 막판 뛰어듦 … / 횡단보도 보행자 보호(2022.7.12: 건너려 할 때도 일시정지)")
+// 보행자: 신호 막판에 뛰어드는 사람, 횡단보도 보행자 보호(2022.7.12 개정: 건너려 할 때도 일시정지).
 // 내 동네 지도의 횡단보도(OSM crossing 점 → 그 자리 길에 수직인 선)를 사람이 건넌다.
 //   신호 있는 횡단보도(30 m 안에 신호): 그 길의 차 신호가 빨간불일 때만 건너기 시작(보행 신호), 막판(빨간불 끝 4초)에는 뛰어 건넌다.
 //   신호 없는 횡단보도: 가끔(밤엔 드물게) 한 사람씩. 내 차가 가까이(12 m) 빠르게 오고 있으면 길가에서 기다렸다가 건넌다.
@@ -122,7 +122,7 @@ namespace DriveCoach.Core
                     bool sig = cr.signal >= 0 && cr.signal < road.signals.Count;
                     if (sig && !road.signals[cr.signal].PedOn(w.t)) continue;
                     int side = rnd.Next(2) == 0 ? 1 : -1;
-                    // (11/13 대표: "보행자가 차도를 걸으면 안 되지") 기다리는 자리·다 건넌 자리는 차도 가장자리가 아니라 보도 위(가장자리에서 Edge m 더 밖)
+                    // 기다리는 자리·다 건넌 자리는 차도 가장자리가 아니라 보도 위(가장자리에서 Edge m 더 밖)
                     var a = cr.c - cr.n * ((cr.half + Edge) * side);
                     var b = cr.c + cr.n * ((cr.half + Edge) * side);
                     float sp = 1.1f + (float)rnd.NextDouble() * 0.45f;
@@ -146,7 +146,7 @@ namespace DriveCoach.Core
                     var rel = cr.c - car.FrontBumperCenter;
                     float ahead = rel.Dot(car.Dir);
                     if (ahead > -2f && ahead < 12f && car.speed > 4f && Math.Abs(rel.x * car.Dir.y - rel.y * car.Dir.x) < cr.half + 2f) continue;
-                    // (11/13 저녁) 차가 이미 코앞(8 m 안)까지 와서 움직이고 있으면 느리더라도 발을 내딛지 않는다 — 꺾으려고 천천히 오던 차가 정지선을 넘은 자리에서 급히 서게 됐다
+                    // 차가 이미 코앞(8 m 안)까지 와서 움직이고 있으면 느리더라도 발을 내딛지 않는다 — 꺾으려고 천천히 오던 차가 정지선을 넘은 자리에서 급히 서게 됐다
                     if (ahead > -2f && ahead < 8f && car.speed > 0.6f && Math.Abs(rel.x * car.Dir.y - rel.y * car.Dir.x) < cr.half + 2f) continue;
                 }
                 // 신호 막판(빨간불이 4초 안에 끝남 = 보행 신호 깜빡임)이면 뛴다

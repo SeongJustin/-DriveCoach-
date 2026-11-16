@@ -1,4 +1,3 @@
-// 담당: S (11/9 낮, 대표: "중앙 분리대나 인도와 차도를 나누는 분리대 이런 것도 있잖아. 더 디테일하게. 최상급으로 만들고 우리가 다운그레이드하기로 했으니까")
 // 서울 보·차도 시설(위치 공개 자료가 없어 설치 기준으로 놓는다):
 //   - 볼라드(차량 진입 억제용 말뚝): 횡단보도 양 끝 보도 쪽, 높이 0.9 m·지름 0.2 m·간격 약 1.5 m (교통약자법 기준 80~100 cm, 10~20 cm)
 //     — 회색 돌 질감 기둥 + 위쪽 노란 반사 띠
@@ -19,6 +18,26 @@ namespace DriveCoach.Unity
     {
         const float BollardH = 0.9f, BollardR = 0.1f, BollardGap = 1.5f;
         const float FenceH = 1.0f, FenceOff = 0.3f, FenceLen = 14f, PostGap = 2.0f;
+
+        static readonly Dictionary<string, Material> tactileMats = new Dictionary<string, Material>();
+
+        /// <summary>
+        /// 점형블록 재질. 한국: 예전 그대로(노란 사진 질감 tactile_dots). 다른 나라: 같은 재질(점 요철 법선 지도)을 복사해 바탕 그림만 흰색으로 바꾸고 나라 색을 곱한다
+        /// (사진 질감이 노란색이라 색 곱으로는 흰·회색이 안 나온다).
+        /// </summary>
+        static Material TactileMat(CountryStyle cs)
+        {
+            var kr = DcAssets.Pbr("tactile_dots", DcAssets.Hex("#E9B92C"), Color.white, 0.5f);
+            if (cs.IsKorea) return kr;
+            if (tactileMats.TryGetValue(cs.code, out var m) && m != null) return m;
+            m = new Material(kr) { name = "tactile-" + cs.code };
+            if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", Texture2D.whiteTexture);
+            if (m.HasProperty("_MainTex")) m.SetTexture("_MainTex", Texture2D.whiteTexture);
+            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", cs.tactile);
+            if (m.HasProperty("_Color")) m.SetColor("_Color", cs.tactile);
+            tactileMats[cs.code] = m;
+            return m;
+        }
 
         public static void Build(RoadDef r, float h, Transform node)
         {
@@ -117,7 +136,7 @@ namespace DriveCoach.Unity
             if (!medTop.IsEmpty) medTop.ToObject("median-fence-top", DcAssets.Lit(DcAssets.Hex("#F2C200"), 0.6f, 0.1f), node, true);
             var metal = DcAssets.Lit(DcAssets.Hex("#B8BCC2"), 0.55f, 0.6f);
             var yellow = DcAssets.Lit(DcAssets.Hex("#E8B400"), 0.45f, 0.2f);
-            if (!tactile.IsEmpty) tactile.ToObject("tactile-paving", DcAssets.Pbr("tactile_dots", DcAssets.Hex("#E9B92C"), Color.white, 0.5f), node);
+            if (!tactile.IsEmpty) tactile.ToObject("tactile-paving", TactileMat(CountryStyle.Current), node);   // 색은 나라 표(한국: 노란 사진 질감 그대로, 독일 흰·밝은 회색)
             if (!stone.IsEmpty) stone.ToObject("bollards", DcAssets.Pbr("brushed_concrete", DcAssets.Hex("#9A9DA2"), new Color(0.82f, 0.83f, 0.85f), 0.5f), node, true);
             if (!band.IsEmpty) band.ToObject("bollard-bands", DcAssets.Lit(DcAssets.Hex("#F2C200"), 0.7f, 0.1f), node);
             if (!posts.IsEmpty) posts.ToObject("fence-posts", metal, node, true);

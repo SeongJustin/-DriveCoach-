@@ -1,4 +1,3 @@
-// 담당: A+B → R
 // 검증: Vehicle-2.3.2 / FusedLocation-1.1.3 jar 의 시그니처에 맞췄다. 값의 의미(단위·부호·0=닫힘)는 에뮬레이터에서 확인할 것.
 package kr.drivecoach.app.vehicle
 
@@ -68,7 +67,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  *    Odometer(누적 주행거리), Fuel(연료 %)
  *  - AAOS CarPropertyManager: PERF_VEHICLE_SPEED, PARKING_BRAKE_ON, IGNITION_STATE
  *    + 대체(fallback): GEAR_SELECTION(Pleos Gear 값이 아직 없을 때)
- *    (ENGINE_RPM·PERF_STEERING_ANGLE 은 signature|privileged 권한이라 공모전 규정상 쓰지 않는다 — 11/5 사무국 답변. rpm 은 항상 null)
+ *    (ENGINE_RPM·PERF_STEERING_ANGLE 은 signature|privileged 권한이라 공모전 규정상 쓰지 않는다 — 공모전 사무국 답변. rpm 은 항상 null)
  *  - Pleos FusedLocation SDK: lat/lon
  *
  * Vehicle SDK 2.3.2 에는 시동(IgnitionState enum 만 있고 API 없음)·주차브레이크·속도·RPM API 가 없어 이 넷은 AAOS 만 쓴다.
@@ -126,7 +125,7 @@ class PleosSignalSource(context: Context) : SignalSource {
     private var lowBeamSwitch: LightSwitch? = null
     private val lamps = HashSet<String>()
 
-    /** 구독에 성공한 Pleos 기능 이름(설정 화면 "Pleos 연결" 표시용, 11/6). 진단 줄은 40줄만 남아 여기 따로 모은다. */
+    /** 구독에 성공한 Pleos 기능 이름(설정 화면 "Pleos 연결" 표시용). 진단 줄은 40줄만 남아 여기 따로 모은다. */
     private val _connected = MutableStateFlow<Set<String>>(emptySet())
     val connected: StateFlow<Set<String>> = _connected.asStateFlow()
 
@@ -242,7 +241,7 @@ class PleosSignalSource(context: Context) : SignalSource {
                 override fun onFailed(e: Exception) = warn("HighBeam", e)
             }
             light.getCurrentLowBeamLightState({ s: LightState? -> low.onLightStateUpdated(s) }, { e: Exception -> warn("LowBeam.getCurrent", e) })
-            // 스위치(OFF/AUTO/…)에는 리스너가 없어 하향등 상태가 안 바뀌면(낮에 OFF→AUTO) AUTO 를 못 본다 → 2초마다 스위치를 다시 읽는다(베타 A-06/D-46).
+            // 스위치(OFF/AUTO/…)에는 리스너가 없어 하향등 상태가 안 바뀌면(낮에 OFF→AUTO) AUTO 를 못 본다 → 2초마다 스위치를 다시 읽는다.
             val poll = object : Runnable {
                 override fun run() {
                     if (!started) return
@@ -474,7 +473,7 @@ class PleosSignalSource(context: Context) : SignalSource {
                 VehiclePropertyIds.PARKING_BRAKE_ON to CarPropertyManager.SENSOR_RATE_ONCHANGE,
                 VehiclePropertyIds.IGNITION_STATE to CarPropertyManager.SENSOR_RATE_ONCHANGE,
             )
-            // (S, 11/8) 액셀 페달 밟은 정도: 3D 게임 "실제 액셀" 모드용. 차·에뮬레이터가 이 속성을 줄 때만(없으면 조용히 넘어감).
+            // 액셀 페달 밟은 정도: 3D 게임 "실제 액셀" 모드용. 차·에뮬레이터가 이 속성을 줄 때만(없으면 조용히 넘어감).
             //  권한 READ_CAR_PEDALS 는 dangerous(런타임 요청) — 사무국이 금지한 signature|privileged 가 아니다.
             safely("AccelPedal") {
                 if (pm.getCarPropertyConfig(ACCEL_PEDAL) == null) throw IllegalStateException("속성 없음")
@@ -542,7 +541,7 @@ class PleosSignalSource(context: Context) : SignalSource {
 
     private fun headlight(): Headlight = when {
         highBeam == LightState.ON -> Headlight.HIGH
-        lowBeamSwitch == LightSwitch.AUTOMATIC -> Headlight.AUTO   // 스위치가 AUTO 면 램프가 켜져 있어도 '오토'(베타 D-46)
+        lowBeamSwitch == LightSwitch.AUTOMATIC -> Headlight.AUTO   // 스위치가 AUTO 면 램프가 켜져 있어도 '오토'
         lowBeam == LightState.ON -> Headlight.LOW
         lowBeam != null && highBeam != null -> Headlight.OFF      // OFF 또는 DAYTIME_RUNNING(주간주행등만) 은 "전조등 꺼짐"
         else -> Headlight.UNKNOWN
@@ -614,7 +613,7 @@ class PleosSignalSource(context: Context) : SignalSource {
         const val LOW_FUEL_PERCENT = 10
         /**
          * Pleos 조향각 부호를 "+ = 시계방향(우회전)" 으로 맞추는 계수.
-         * 에뮬레이터 2.1.0 Virtual Console 에서 조향 슬라이더를 오른쪽 +411° 로 놓았을 때 SDK 가 -411 을 보냈다(11/2 확인)
+         * 에뮬레이터 2.1.0 Virtual Console 에서 조향 슬라이더를 오른쪽 +411° 로 놓았을 때 SDK 가 -411 을 보냈다
          * → Pleos 는 ISO 8855 식 "+ = 반시계(좌회전)" 으로 보고 -1 을 곱한다. 실차에서 한 번 더 확인할 것.
          */
         const val STEERING_SIGN = -1.0

@@ -1,4 +1,3 @@
-// 담당: S (11/9 새벽, 대표: "고가도로나 지하도로 … 최대한 다 반영해봐")
 // 지하차도: 땅을 판 길. make_surface 가 땅·노면·보도에 도랑 구멍을 내 두고(엇갈리는 땅 길 자리는 덮개로 남김),
 // 여기서는 도랑 안을 그린다:
 //   바닥 아스팔트(길 모양 그대로 높이를 따라), 양옆 콘크리트 옹벽(바닥에서 땅 + 1.0 m 난간 높이까지), 벽 위 난간 띠,
@@ -34,7 +33,7 @@ namespace DriveCoach.Unity
                 if (any0)
                 {
                     float hf = Mathf.Max(rd.wl > 0f ? rd.wl : Mathf.Max(3f, rd.lanes * 3.2f / 2f), rd.wr > 0f ? rd.wr : Mathf.Max(3f, rd.lanes * 3.2f / 2f));
-                    // (11/13) 좌우 따로 준 길은 옆 판정도 좌우 따로 — 넓은 쪽 값을 양쪽에 쓰면 좁은 쪽 옆의 남의 벽까지 빠져 벽에 구멍이 난다
+                    // 좌우 따로 준 길은 옆 판정도 좌우 따로 — 넓은 쪽 값을 양쪽에 쓰면 좁은 쪽 옆의 남의 벽까지 빠져 벽에 구멍이 난다
                     if (rd.twl > 0f || rd.twr > 0f) all.Add((rd, Mathf.Max(0.3f, rd.twl), Mathf.Max(0.3f, rd.twr))); else all.Add((rd, hf, hf));
                 }
             }
@@ -52,7 +51,7 @@ namespace DriveCoach.Unity
                 lids += Trench(rd, h, wl, wr, floor, wall, white, yellow, surf);
             }
             if (n == 0) return;
-            // (11/12 밤) 독립 평가 두 번: "도로 위에 두꺼운 흰 판", "높이 차가 안 읽혀 평면 교차로로 보인다"
+            // 독립 평가 두 번: "도로 위에 두꺼운 흰 판", "높이 차가 안 읽혀 평면 교차로로 보인다"
             //   → 옹벽을 밝은 크림색에서 어두운 콘크리트로, 도랑 바닥은 땅 위 아스팔트보다 어둡게(아래에 있다는 것이 색으로 읽히게),
             //     터널(위에 차도가 없어도 덮인 곳)은 땅 높이에 덮개 윗면을 그린다(전에는 밑면만 있어 위에서 도랑 안 벽이 들여다보였다).
             floor.ToObject("underpass-floor", DcAssets.Pbr("clean_asphalt", DcAssets.Hex("#4C5056"), new Color(0.72f, 0.72f, 0.75f), 0.9f), node, false, true);
@@ -60,14 +59,14 @@ namespace DriveCoach.Unity
             if (!coverRoad.IsEmpty) coverRoad.ToObject("underpass-cover-road", DcAssets.Pbr("clean_asphalt", DcAssets.Hex("#4C5056"), new Color(1.0f, 1.0f, 1.03f), 0.9f), node, false, true);
             if (!coverGround.IsEmpty) coverGround.ToObject("underpass-cover-ground", DcAssets.Pbr("concrete_floor_worn_001", DcAssets.Hex("#B9B19E"), new Color(1.0f, 0.95f, 0.84f), 0.5f), node, false, true);
             if (!white.IsEmpty) white.ToObject("underpass-paint-w", DcAssets.Unlit(DcAssets.Paint), node);
-            if (!yellow.IsEmpty) yellow.ToObject("underpass-paint-y", DcAssets.Unlit(DcAssets.Hex("#E2B33C")), node);
+            if (!yellow.IsEmpty) yellow.ToObject(CountryStyle.Current.IsKorea ? "underpass-paint-y" : "underpass-paint-c", DcAssets.Unlit(CountryStyle.Current.centre), node);   // 중앙선 색은 나라 표(한국 #E2B33C 그대로)
             Debug.Log($"UnderpassBuilder: 지하차도 {n}, 덮개 조각 {lids}");
         }
 
         static Vector3 P(V2 p, float y) => Space3D.W(p, y);
         static MeshKit coverRoad, coverGround;
 
-        // (11/11 밤) 연결로 도랑이 지하차도 도랑에 붙는 곳: 다른 도랑 안에 들어가는 벽·가장자리 실선은 그리지 않는다(합류 자리가 벽으로 막히지 않게)
+        // 연결로 도랑이 지하차도 도랑에 붙는 곳: 다른 도랑 안에 들어가는 벽·가장자리 실선은 그리지 않는다(합류 자리가 벽으로 막히지 않게)
         static readonly System.Collections.Generic.List<(RegionRoad rd, float wl, float wr)> all = new System.Collections.Generic.List<(RegionRoad, float, float)>();
 
         static bool InOther(RegionRoad self, V2 q, float z, float pad)
@@ -75,7 +74,7 @@ namespace DriveCoach.Unity
             foreach (var (rd, hwl, hwr) in all)
             {
                 if (rd == self) continue;
-                // (11/12 밤) 전에는 연결로가 낀 이음만 벽을 뺐다. 나란한 두 방향 도랑의 바닥이 겹치는 곳에도 가운데 벽이 서서
+                // 전에는 연결로가 낀 이음만 벽을 뺐다. 나란한 두 방향 도랑의 바닥이 겹치는 곳에도 가운데 벽이 서서
                 //   위에서 보면 차도 한가운데 흰 줄(옹벽 윗면)이 여러 가닥 지나갔다(독립 평가 "도로 위 두꺼운 흰 판") → 같은 깊이로 맞닿은 도랑은 모두 한 도랑으로.
                 var p = rd.pts; var zz = rd.z; float lim = Mathf.Max(hwl, hwr) + pad;
                 for (int i = 0; i + 1 < p.Length; i++)
@@ -128,7 +127,7 @@ namespace DriveCoach.Unity
                 {
                     V2 qa = e + nrm * (side * s), qb = e + nrm * (side * (s + 1f));
                     if (InMouth(rd, (qa + qb) * 0.5f, z)) continue;
-                    // (11/13) 옆 도랑·옆 터널 바닥 위에는 날개벽을 세우지 않는다(입구 앞 차도에 기둥처럼 선 벽 조각 — 대표: "수직벽이 있으면 사고")
+                    // 옆 도랑·옆 터널 바닥 위에는 날개벽을 세우지 않는다(입구 앞 차도에 기둥처럼 선 벽 조각은 사고 위험)
                     if (InOther(rd, (qa + qb) * 0.5f + outDir * 0.6f, z, 0.3f) || InOther(rd, (qa + qb) * 0.5f - outDir * 0.6f, z, 0.3f)) continue;
                     wall.Quad(P(qa, yFloor), P(qb, yFloor), P(qb, yTop), P(qa, yTop), o3, Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
                 }
@@ -160,7 +159,7 @@ namespace DriveCoach.Unity
                 floor.Quad(P(aL, ya), P(aR, ya), P(bR, yb), P(bL, yb), Vector3.up, Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
                 // 덮개(엇갈리는 땅 길이 위를 지나는 곳): 이 조각 가운데 위 땅 높이에 아스팔트가 있으면 — 벽은 덮개 밑면까지만, 난간 없음
                 var mid = (pts[i] + pts[i + 1]) / 2f;
-                // 11/12: 터널로 표시된 길(공원·하천 밑을 지나는 지하차도)은 위에 아스팔트가 없어도 덮개 — 난간·벽 윗면이 공원 위로 솟아 흰 줄처럼 보였다
+                // 터널로 표시된 길(공원·하천 밑을 지나는 지하차도)은 위에 아스팔트가 없어도 덮개 — 난간·벽 윗면이 공원 위로 솟아 흰 줄처럼 보였다
                 bool lid = surf != null && Mathf.Min(za, zb) < -3f && (rd.tunnel || surf.Asphalt(mid));
                 // 옹벽: 안쪽 면(바닥 → 땅 + 난간), 위 띠(두께 0.5 m), 바깥 면은 땅에 묻혀 안 보이니 난간 높이만
                 foreach (var side in new[] { -1f, 1f })
@@ -182,7 +181,7 @@ namespace DriveCoach.Unity
                     lids++;
                     float yl = h - 0.9f;
                     V2 lL = pts[i] - nr[i] * (wl + Wall), lR = pts[i] + nr[i] * (wr + Wall), mL = pts[i + 1] - nr[i + 1] * (wl + Wall), mR = pts[i + 1] + nr[i + 1] * (wr + Wall);
-                    // 덮개 윗면(11/12 밤): 위에 땅 차도가 없는 터널 구간 — 양옆이 차도면 아스팔트, 아니면 땅(공원·녹지 밑 터널)
+                    // 덮개 윗면: 위에 땅 차도가 없는 터널 구간 — 양옆이 차도면 아스팔트, 아니면 땅(공원·녹지 밑 터널)
                     if (!surf.Asphalt(mid))
                     {
                         var nm = (nr[i] + nr[i + 1]).Normalized;
@@ -197,7 +196,7 @@ namespace DriveCoach.Unity
                         wall.Quad(P(lL, yl), P(lR, yl), P(lR, h + 0.03f), P(lL, h + 0.03f), P(-dir, 0f) - P(V2.Zero, 0f), Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
                     if (i + 2 >= n || !(rd.tunnel || surf.Asphalt((pts[i + 1] + pts[i + 2]) / 2f)))
                         wall.Quad(P(mL, yl), P(mR, yl), P(mR, h + 0.03f), P(mL, h + 0.03f), P(dir, 0f) - P(V2.Zero, 0f), Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
-                    // (11/13) 터널 입구 옆 날개벽: 입구 앞 열린 도랑이 터널보다 넓으면 입구 양옆이 뚫려 하늘이 비쳤다(운전석에서 흰 틈).
+                    // 터널 입구 옆 날개벽: 입구 앞 열린 도랑이 터널보다 넓으면 입구 양옆이 뚫려 하늘이 비쳤다(운전석에서 흰 틈).
                     //   입구 면을 좌우 14 m 까지 바닥~땅 높이로 막는다(다른 터널 입구 자리는 비움, 땅속 부분은 어차피 안 보임)
                     if (rd.tunnel)
                     {
@@ -220,9 +219,10 @@ namespace DriveCoach.Unity
                         mk.Quad(P(a + o, ypa), P(a - o, ypa), P(b - o, ypb), P(b + o, ypb), Vector3.up, Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
                         return;
                     }
-                    for (float s0 = 0f; s0 < L; s0 += 8f)
+                    var cst = CountryStyle.Current;                 // 점선 길이·간격은 나라 표(한국 3 m / 5 m 그대로, 독일 3 m / 6 m)
+                    for (float s0 = 0f; s0 < L; s0 += cst.laneDash + cst.laneGap)
                     {
-                        float s1 = Mathf.Min(L, s0 + 3f);
+                        float s1 = Mathf.Min(L, s0 + cst.laneDash);
                         float y0 = Mathf.Lerp(ypa, ypb, s0 / L), y1 = Mathf.Lerp(ypa, ypb, s1 / L);
                         var p0 = a + dd * s0; var p1 = a + dd * s1;
                         mk.Quad(P(p0 + o, y0), P(p0 - o, y0), P(p1 - o, y1), P(p1 + o, y1), Vector3.up, Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
@@ -230,7 +230,16 @@ namespace DriveCoach.Unity
                 }
                 Line(-wl + 0.4f, 0.15f, white, false);
                 Line(wr - 0.4f, 0.15f, white, false);
-                if (!rd.oneway) { Line(-0.15f, 0.15f, yellow, false); Line(0.15f, 0.15f, yellow, false); }
+                if (!rd.oneway)
+                {
+                    // 중앙선 자리 = 지역 자료 차로로 정한 방향 경계(차로 자료가 없으면 예전처럼 길 가운데 0), 색·겹선은 나라 표.
+                    //   한국: 황색 복선(앱에 든 동네는 모두 0 → 예전 그대로). 독일: 흰 실선 한 줄(베를린 아데나워 광장 진입로: 차로 +2.9 | 0.0 −2.8 → +1.45.
+                    //   예전에는 0 = 왼쪽 차로 한가운데에 그어졌다)
+                    var cs = CountryStyle.Current;
+                    float co = cs.CentreOffset(rd);
+                    if (cs.centreDouble) { Line(co - 0.15f, 0.15f, yellow, false); Line(co + 0.15f, 0.15f, yellow, false); }
+                    else Line(co, 0.15f, yellow, false);
+                }
                 foreach (var offs in new[] { rd.laneR, rd.laneL })
                 {
                     if (offs == null || offs.Length < 2) continue;

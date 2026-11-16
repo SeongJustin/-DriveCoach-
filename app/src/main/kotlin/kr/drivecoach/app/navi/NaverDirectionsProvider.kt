@@ -1,4 +1,4 @@
-// 담당: J → T (코스 자동 생성 — 네이버 Directions 어댑터. T 가 11/3 완성: 일일 호출 상한, 실패 이유, 진단 줄, 엔드포인트 상수.)
+// 코스 자동 생성 — 네이버 Directions 어댑터: 일일 호출 상한, 실패 이유, 진단 줄, 엔드포인트 상수.
 package kr.drivecoach.app.navi
 
 import android.content.Context
@@ -140,7 +140,7 @@ class NaverDirectionsProvider(
                 val detail = NaverDirectionsApi.failureFromBody(response.body)
                 val reason = "HTTP ${response.code}" + (detail?.let { ": $it" } ?: "")
                 lastFailure = reason
-                // (11/15 보안 점검) 좌표는 진단 줄·logcat 어디에도 남기지 않는다(예전엔 출발·도착 좌표를 함께 남겼음)
+                // 좌표는 진단 줄·logcat 어디에도 남기지 않는다(예전엔 출발·도착 좌표를 함께 남겼음)
                 diagAdd("FAIL $reason")
                 Log.w(TAG, "$reason / ${response.body?.take(200)}")
                 if (NaverDirectionsApi.isFatalHttp(response.code)) throw RouteProviderException(reason)

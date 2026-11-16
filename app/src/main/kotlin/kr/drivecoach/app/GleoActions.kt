@@ -1,4 +1,4 @@
-// 담당: S (11/8 밤, Pleos 가이드 재점검) — Gleo 음성 연동(Gleo Interface, 문서 "앱 연동 가이드").
+// Gleo 음성 연동(Gleo Interface, 문서 "앱 연동 가이드").
 // assets/schema.json 에 함수 3개를 적어 두면 Gleo 가 운전자의 말을 함수 호출로 바꿔 MainActivity 를 연다
 // (인텐트 action = 함수 이름, extra "ACTION_PARAM" = JSON 문자열). 결과는 7초 안에 브로드캐스트
 // ai.pleos.playground.intent.action.APP_ACTION_RESPONSE(extra packageName, response = JSON)로 돌려준다.

@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 프로젝트 준비 1단계: Unity 공식 패키지 받기)
+// 3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 프로젝트 준비 1단계: Unity 공식 패키지 받기
 // 이 어셈블리는 다른 우리 코드에 기대지 않는다: 다른 스크립트에 컴파일 오류가 있어도 이 단계는 돌아간다.
 // 실행: Unity.exe -batchmode -quit -projectPath <프로젝트> -executeMethod DriveCoach.Setup.DcSetup.AddPackages
 using System;
@@ -28,7 +28,7 @@ namespace DriveCoach.Setup
         }
 
         /// <summary>
-        /// 처음 열 때 Unity 가 새 프로젝트 기본 패키지(결제·분석·협업 등)를 넣는다(11/8 첫 실행). 차 안 게임에 필요 없고,
+        /// 처음 열 때 Unity 가 새 프로젝트 기본 패키지(결제·분석·협업 등)를 넣는다. 차 안 게임에 필요 없고,
         /// 결제(purchasing)는 결제 권한을, 분석(analytics·services)은 기기 정보를 밖으로 보내는 코드를 APK 에 넣으므로 뺀다.
         /// 필요한 모듈은 다른 패키지가 기대면 Package Manager 가 다시 넣는다.
         /// </summary>

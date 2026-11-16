@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — Pleos TextToSpeech SDK 어댑터)
+// 앱 연결 — Pleos TextToSpeech SDK 어댑터
 // 검증: TextToSpeech-3.3.1.jar 를 javap 로 읽어 시그니처를 맞췄다. 소리가 실제로 나는지는 에뮬레이터에서 확인할 것.
 package kr.drivecoach.app.speech
 
@@ -24,7 +24,7 @@ import java.util.Locale
  *  - `initialize(OnInitializeListener { onSuccess(); onFailure(ErrorType) })`
  *  - `addEventListener(EventListener { onStart(); onReady(); onDone(); onError(ErrorType); onStop(); onUpdatedRms(Double) })`
  *  - `speak(text: String, isFinal: Boolean = true)`, `stop()`, `setLocale(Locale)`, `release()`
- *  - **ON_DEVICE 모드만** 쓴다(앱 등록·네트워크 불필요). SERVER/HYBRID 는 registerApp 이 필요하고 11/7 에뮬레이터에서 우리 프로젝트 자격 증명으로 UNAUTHENTICATED 라 뺐다.
+ *  - **ON_DEVICE 모드만** 쓴다(앱 등록·네트워크 불필요). SERVER/HYBRID 는 registerApp 이 필요하고 에뮬레이터에서 우리 프로젝트 자격 증명으로 UNAUTHENTICATED 라 뺐다.
  *  - 서비스 바인딩 대상(ServiceConstants): 패키지 `ai.pleos.playground.caas`, 컴포넌트 `…caas.service.speech.SpeechService`,
  *    ON_DEVICE 액션 `ai.pleos.playground.caas.intent.action.TTS_STREAM_ON_DEVICE_START`. 이 컴포넌트가 없으면 bindService 가 조용히 실패하므로
  *    [start] 에서 먼저 resolveService 로 존재 여부를 보고 없으면 바로 [onUnavailable] 을 불러 대체 엔진으로 넘어간다.
@@ -108,14 +108,14 @@ class PleosTtsSpeaker(
             val engine = TextToSpeech(appContext, Mode.ON_DEVICE)
             tts = engine
             // 주의: addEventListener 는 SDK 내부의 lateinit `tts`(initialize 가 만드는 엔진)를 바로 건드린다.
-            // initialize 전에 부르면 UninitializedPropertyAccessException (11/3 에뮬레이터 로그로 확인) → onSuccess 안에서 등록한다.
+            // initialize 전에 부르면 UninitializedPropertyAccessException → onSuccess 안에서 등록한다.
             main.postDelayed(initTimeout, INIT_TIMEOUT_MS)
             engine.initialize(object : OnInitializeListener {
                 override fun onSuccess() = post {
                     main.removeCallbacks(initTimeout)
                     if (released) return@post
                     try { engine.addEventListener(events) } catch (t: Throwable) { Log.w(TAG, "addEventListener 실패: ${t.message}") }
-                    // Pleos 엔진은 "ko-KR"(Locale.KOREA)만 받는다. Locale.KOREAN("ko")을 주면 엔진 오류가 나고 caas 를 다시 시작할 때까지 계속 ON_DEVICE_ENGINE_ERROR(11/7 확인, 다른 참가 팀 실측과 같음).
+                    // Pleos 엔진은 "ko-KR"(Locale.KOREA)만 받는다. Locale.KOREAN("ko")을 주면 엔진 오류가 나고 caas 를 다시 시작할 때까지 계속 ON_DEVICE_ENGINE_ERROR(다른 참가 팀 실측과 같음).
                     try { engine.setLocale(Locale.KOREA) } catch (t: Throwable) { Log.w(TAG, "setLocale 실패: ${t.message}") }
                     // 출력 용도: 내비 안내 음성(GuidanceAudioFocus.ATTRIBUTES 와 같은 값).
                     try {

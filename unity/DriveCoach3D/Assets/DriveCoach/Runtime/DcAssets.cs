@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 재질·모델·글꼴·하늘 불러오기. Resources/DC 아래, 없으면 단순한 대체물)
+// 3D 주차 연습 — 재질·모델·글꼴·하늘 불러오기. Resources/DC 아래, 없으면 단순한 대체물
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,8 +16,8 @@ namespace DriveCoach.Unity
         public static readonly Color Outline = Hex("#D9DEE6");
         public static readonly Color Paint = Hex("#F2F2EE");
 
-        // 11/10 대표: 화면(메뉴·HUD)은 검정·흰색 바탕에 중요한 곳만 라임 그린(#0B0B0C · #FFFFFF · #C6F432). 다른 색은 쓰지 않는다.
-        // 11/11 대표: 흰색과 검정 중 더 넓게 쓰는 색은 흰색 → 흰 바탕·검정 글씨. 라임은 채운 면에만(글씨 강조는 검정 굵게).
+        // 화면(메뉴·HUD)은 검정·흰색 바탕에 중요한 곳만 라임 그린(#0B0B0C · #FFFFFF · #C6F432). 다른 색은 쓰지 않는다.
+        // 흰색과 검정 중 더 넓게 쓰는 색은 흰색 → 흰 바탕·검정 글씨. 라임은 채운 면에만(글씨 강조는 검정 굵게).
         public static readonly Color Bg = Hex("#FFFFFF");
         public static readonly Color Card = Hex("#F4F4F5");
         public static readonly Color Lime = Hex("#C6F432");
@@ -128,7 +128,7 @@ namespace DriveCoach.Unity
         }
 
         /// <summary>
-        /// 11/8 "유로트럭 느낌": Poly Haven(CC0) 사진 질감 세트(DC/CC0/이름_albedo·_normal·_metalsmooth). 없으면 단색 fallback.
+        /// Poly Haven(CC0) 사진 질감 세트(DC/CC0/이름_albedo·_normal·_metalsmooth). 없으면 단색 fallback.
         /// smooth = 매끈함 배율(질감의 매끈함 × smooth), tint = 색 곱.
         /// </summary>
         public static Material Pbr(string name, Color fallback, Color tint, float smooth = 1f)
@@ -223,7 +223,7 @@ namespace DriveCoach.Unity
         static readonly Dictionary<Material, float> dryGloss = new Dictionary<Material, float>();
 
         /// <summary>
-        /// 젖은 노면(11/8 밤: 비·눈): 아스팔트 재질의 매끈함을 올려 하늘·불빛이 비치게. wet 0 = 마름, 1 = 비. 원래 값은 기억해 둔다.
+        /// 젖은 노면(비·눈): 아스팔트 재질의 매끈함을 올려 하늘·불빛이 비치게. wet 0 = 마름, 1 = 비. 원래 값은 기억해 둔다.
         /// </summary>
         public static void SetWet(float wet)
         {
@@ -244,7 +244,7 @@ namespace DriveCoach.Unity
 
         public static Font Font(bool bold)
         {
-            // 11/8 Pleos 디자인 가이드: 시스템 UI 글꼴 Asta Sans(42dot, OFL) — 차량 화면과 같은 글꼴. 자주 쓰는 글자만 남긴 부분 글꼴(약 480 KB)
+            // Pleos 디자인 가이드: 시스템 UI 글꼴 Asta Sans(42dot, OFL) — 차량 화면과 같은 글꼴. 자주 쓰는 글자만 남긴 부분 글꼴(약 480 KB)
             var f = Load<Font>(bold ? "DC/Fonts/AstaSans-Bold" : "DC/Fonts/AstaSans-Regular");
             if (f != null) return f;
             return UnityEngine.Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");

@@ -1,5 +1,5 @@
 // 발화 파이프라인: 요청 → SpeechPolicy 판정 → Speaker, 직렬 줄, 감시견, 로그
-// (11/5 정리) CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
+// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
 package kr.drivecoach.app
 
 import android.util.Log
@@ -48,14 +48,14 @@ internal fun CoachController.clearSubModeQueue() { subModeQueue.clear(); screenT
 
 /** 지금 말하는 멘트가 코칭(위험·공황·경고등이 아닌 것)이면 끊는다. */
 internal fun CoachController.interruptCoaching() {
-    requestGen++   // 미뤄진(DEFER) 이전 요청은 더 이상 유효하지 않다(베타 C-11: '다음' 연타 때 옛 주제가 뒤늦게 나오던 문제)
+    requestGen++   // 미뤄진(DEFER) 이전 요청은 더 이상 유효하지 않다('다음' 연타 때 옛 주제가 뒤늦게 나오던 문제)
     val s = speaking ?: return
     if (SpeechPolicy.priorityOf(s.category) >= SpeechPolicy.priorityOf(PhraseCategory.GUIDE)) speaker.stop()
 }
 
 internal fun CoachController.handleNoInput(decision: NoInputDecision) {
     when (decision) {
-        // R/D 에서는 화면이 가려져 버튼을 누를 수 없으니 재안내를 하지 않는다(베타 B-50).
+        // R/D 에서는 화면이 가려져 버튼을 누를 수 없으니 재안내를 하지 않는다.
         is NoInputDecision.Reprompt -> if (currentState().gear == Gear.P) {
             // 주차 단계 화면에는 '다음' 버튼이 없고 '확인'이 있다
             request(if (decision.prompt.promptId.startsWith("parking_")) Phrases.systemNoInputRepromptConfirm.id else decision.phraseId)
@@ -109,7 +109,7 @@ internal fun CoachController.decide(req: SpeechRequest, vars: Map<String, String
     when (outcome.decision) {
         Decision.SPEAK -> speakNow(req, vars, outcome.interrupt, onDone)
         Decision.DEFER -> {
-            // 재생 중인 문장이 길면(설명 30~40초) 그만큼 더 기다린다(베타 D-19: 환영·재안내가 8초 만에 버려지던 문제).
+            // 재생 중인 문장이 길면(설명 30~40초) 그만큼 더 기다린다(환영·재안내가 8초 만에 버려지던 문제).
             val maxDefers = speaking?.let { maxOf(MAX_DEFERS, (it.expectedMs / 1_000L).toInt() + 2) } ?: MAX_DEFERS
             if (attempt >= maxDefers) {
                 log("GIVEUP ${outcome.reason} ${req.phraseId.id}")
@@ -134,7 +134,7 @@ internal fun CoachController.speakNow(req: SpeechRequest, vars: Map<String, Stri
     val uid = "u${++utteranceSeq}:${req.phraseId.id}"
     speaking?.let { prev ->
         // 끊고 말하는 경우: 이전 문장은 끝난 것으로 정리한다(Speaker 가 onFinished 를 또 보내면 ID 가 달라 무시됨).
-        // 단, 위험·공황·경고등이 연습/주차 안내를 끊은 것이면 끊긴 안내를 직렬 줄 맨 앞에 되돌려 다시 들려준다(베타 B-52).
+        // 단, 위험·공황·경고등이 연습/주차 안내를 끊은 것이면 끊긴 안내를 직렬 줄 맨 앞에 되돌려 다시 들려준다.
         val preempted = SpeechPolicy.priorityOf(req.category) < SpeechPolicy.priorityOf(PhraseCategory.GUIDE) &&
             (prev.category == PhraseCategory.PRACTICE || prev.category == PhraseCategory.PARKING) && isInstruction(prev.id)
         afterUtterance.remove(prev.utteranceId)?.invoke()
@@ -145,7 +145,7 @@ internal fun CoachController.speakNow(req: SpeechRequest, vars: Map<String, Stri
         }
     }
     // 클립 실측 약 5자/초. 느린 속도(0.85)·여유 5초를 더해 글자 수 기준으로 감시 시간을 잡되 최소 20초.
-    // (11/7) 예전 식은 속도를 Long 으로 잘라(0.85 → 0 → 1) 느린 속도가 반영되지 않았다. 실수로 나눈다.
+    // 예전 식은 속도를 Long 으로 잘라(0.85 → 0 → 1) 느린 속도가 반영되지 않았다. 실수로 나눈다.
     val expected = maxOf(SPEAK_WATCHDOG_MS, (text.length * 250.0 / maxOf(0.5f, _speechRate.value)).toLong() + 5_000L)
     speaking = CoachController.Speaking(req.phraseId, req.category, uid, clock(), expectedMs = expected, vars = vars)
     if (onDone != null && uid !in afterUtterance) afterUtterance[uid] = onDone
@@ -160,7 +160,7 @@ internal fun CoachController.speakNow(req: SpeechRequest, vars: Map<String, Stri
 }
 
 /**
- * (11/16) 오디오 포커스를 잃었을 때(통화·음성 비서): 줄에 남은 안내와 미뤄진 코칭을 버린다.
+ * 오디오 포커스를 잃었을 때(통화·음성 비서): 줄에 남은 안내와 미뤄진 코칭을 버린다.
  * 위험·공황·경고등 안내는 세대와 무관해 그대로 나오고, 새 버튼·음성 명령 응답도 새로 요청되므로 나온다.
  */
 internal fun CoachController.onAudioFocusLost() {
@@ -201,7 +201,7 @@ internal fun CoachController.log(line: String) {
     _log.value = (_log.value + line).takeLast(12)
 }
 
-/** (11/15 대표) 3D 연습의 할 일을 화면 글 대신 음성으로 한 번 읽는다. 조용히 모드면 말하지 않는다. */
+/** 3D 연습의 할 일을 화면 글 대신 음성으로 한 번 읽는다. 조용히 모드면 말하지 않는다. */
 fun CoachController.speakGameHint(text: String) {
     if (text.isBlank() || _quiet.value) return
     runCatching { onWillSpeak?.invoke() }

@@ -1,4 +1,4 @@
-// CityBuilder 의 노면 표시(칠) 부분(11/15 코드 정리로 CityBuilder.cs 에서 나눈 파일). 전체 설명은 CityBuilder.cs 맨 위.
+// CityBuilder 의 노면 표시(칠) 부분(CityBuilder.cs 에서 나눈 파일). 전체 설명은 CityBuilder.cs 맨 위.
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -17,20 +17,27 @@ namespace DriveCoach.Unity
             var yellow = new MeshKit();
             var white = new MeshKit();
             float y = h + 0.045f;
+            var cs = CountryStyle.Current;          // 중앙선 색·겹선, 점선 길이는 나라 표(한국은 예전 값 그대로)
             foreach (var s in r.strips)
             {
                 float median = s.twoWay && s.fwd + s.bwd >= 4 ? 0.5f : 0f;
                 if (s.twoWay && s.fwd + s.bwd >= 2 && s.hw != "service" && s.hw != "living_street")
                 {
-                    if (Major(s.hw))
+                    if (!cs.centreDouble)
+                    {
+                        // 독일: 흰 한 줄 — 큰길은 실선(Z 295), 동네길은 점선(Leitlinie Z 340)
+                        bool solid = Major(s.hw) || cs.minorCentreDash <= 0f;
+                        Paint(yellow, s.pts, 0.12f, y, solid ? 0f : cs.minorCentreDash, solid ? 0f : cs.laneGap, InJunction);
+                    }
+                    else if (Major(s.hw))
                     {
                         Paint(yellow, Stages.Offset(s.pts, median / 2f + 0.12f), 0.13f, y, 0f, 0f, InJunction);
                         Paint(yellow, Stages.Offset(s.pts, -(median / 2f + 0.12f)), 0.13f, y, 0f, 0f, InJunction);
                     }
                     else Paint(yellow, s.pts, 0.13f, y, 0f, 0f, InJunction);
                 }
-                for (int k = 1; k < s.fwd; k++) Paint(white, Stages.Offset(s.pts, median / 2f + k * s.laneWidth), 0.12f, y, 3f, 5f, InJunction);
-                for (int k = 1; k < s.bwd; k++) Paint(white, Stages.Offset(s.pts, -(median / 2f + k * s.laneWidth)), 0.12f, y, 3f, 5f, InJunction);
+                for (int k = 1; k < s.fwd; k++) Paint(white, Stages.Offset(s.pts, median / 2f + k * s.laneWidth), 0.12f, y, cs.laneDash, cs.laneGap, InJunction);
+                for (int k = 1; k < s.bwd; k++) Paint(white, Stages.Offset(s.pts, -(median / 2f + k * s.laneWidth)), 0.12f, y, cs.laneDash, cs.laneGap, InJunction);
                 // 큰길 가장자리 실선
                 if (Major(s.hw))
                 {
@@ -61,7 +68,7 @@ namespace DriveCoach.Unity
                     if (best != null) Zebra(white, c, dir, best.width, y + 0.002f);
                 }
             }
-            if (!yellow.IsEmpty) yellow.ToObject("yellow-lines", DcAssets.Lit(DcAssets.Hex("#E0AE2E"), 0.45f), node);
+            if (!yellow.IsEmpty) yellow.ToObject(cs.IsKorea ? "yellow-lines" : "centre-lines", DcAssets.Lit(cs.IsKorea ? DcAssets.Hex("#E0AE2E") : cs.centre, 0.45f), node);
             if (!white.IsEmpty) white.ToObject("white-lines", DcAssets.Lit(DcAssets.Hex("#E6E6E1"), 0.45f), node);
         }
 

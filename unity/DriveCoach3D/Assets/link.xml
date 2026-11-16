@@ -1,5 +1,5 @@
-<!-- 담당: S (11/8) IL2CPP 코드 줄이기가 GameObject.CreatePrimitive 가 붙이는 충돌체 형식을 지워
-     기기에서 "Can't add component because class 'SphereCollider' doesn't exist!" 오류가 났다(검수 logcat). 남겨 둔다. -->
+<!-- IL2CPP 코드 줄이기가 GameObject.CreatePrimitive 가 붙이는 충돌체 형식을 지워
+     기기에서 "Can't add component because class 'SphereCollider' doesn't exist!" 오류가 났다(logcat). 남겨 둔다. -->
 <linker>
   <assembly fullname="UnityEngine.PhysicsModule">
     <type fullname="UnityEngine.SphereCollider" preserve="all"/>

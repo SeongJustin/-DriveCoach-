@@ -1,4 +1,4 @@
-// 담당: S (도로 법규 설명 — 11/4 대표 결정: 퀴즈는 다음 빌드, 이번엔 중요한 것 위주 설명만)
+// 도로 법규 설명 — 중요한 것 위주
 package kr.drivecoach.core.law
 
 import kr.drivecoach.core.tts.PhraseId
@@ -13,7 +13,7 @@ data class RuleTopic(val id: String, val title: String, val phraseId: PhraseId, 
 object TrafficRules {
     private fun t(id: String, title: String) = RuleTopic(id, title, PhraseId("law_$id"), HEADINGS[id] ?: title, BASIS[id] ?: "")
 
-    // (11/15 대표: 그림 속 조문 글을 오른쪽으로 옮기고 근거 조문을 적는다)
+    // (그림 속 조문 글을 오른쪽으로 옮기고 근거 조문을 적는다)
     private val HEADINGS = mapOf(
         "right_turn" to "적색 등화의 우회전",
         "crosswalk" to "보행자의 보호",
@@ -49,7 +49,7 @@ object TrafficRules {
         t("unprotected_left", "비보호 좌회전"),
         t("u_turn", "유턴"),
         t("signal_stopline", "신호와 교차로"),
-        t("lanes", "차로와 진로 변경"),   // (11/14 베타: "차선 종류"인데 그림·글은 진로 변경) 그림 제목과 같게
+        t("lanes", "차로와 진로 변경"),   // ("차선 종류"인데 그림·글은 진로 변경) 그림 제목과 같게
         t("crosswalk", "횡단보도"),
         t("school_zone", "어린이 보호구역"),
         t("roundabout", "회전교차로"),

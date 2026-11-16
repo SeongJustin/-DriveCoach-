@@ -1,4 +1,4 @@
-// 담당: L (가짜 경고등 퀴즈 — 경고등 3색 뜻, 출발 전 브리핑 "경고등 대응 다시 묻기")
+// 가짜 경고등 퀴즈 — 경고등 3색 뜻, 출발 전 브리핑 "경고등 대응 다시 묻기"
 package kr.drivecoach.core.warning
 
 import kr.drivecoach.core.signal.Gear

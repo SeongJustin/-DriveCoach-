@@ -1,4 +1,3 @@
-// 담당: A
 // Pleos 주행 규제 가이드는 CarUxRestrictionsManager.registerListener /
 //       onUxRestrictionsChanged / isRequiresDistractionOptimization / getActiveRestrictions 를 쓰라고만 명시한다.
 package kr.drivecoach.app.vehicle

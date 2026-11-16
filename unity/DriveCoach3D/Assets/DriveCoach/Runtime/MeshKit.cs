@@ -1,7 +1,9 @@
-// 담당: S (3D 주차 연습 — 코드로 만드는 도형: 바닥 다각형, 선(띠), 벽(기둥형), 리본(곡선 띠))
+// 3D 주차 연습 — 코드로 만드는 도형: 바닥 다각형, 선(띠), 벽(기둥형), 리본(곡선 띠)
 // 같은 재질은 한 메시에 모아(드로우 콜을 줄여) 에뮬레이터에서도 가볍게 그린다.
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using DriveCoach.Core;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -16,8 +18,23 @@ namespace DriveCoach.Unity
         readonly List<int> t = new List<int>();
         public float uvScale = 4f;
         public bool IsEmpty => t.Count == 0;
+        /// <summary>
+        /// 위를 보는 삼각형(TriUp)의 같은 자리 점을 하나로 합친다. 실제 노면(아스팔트·보도·칠)은 삼각형마다 점 3개를 따로 두어
+        /// 동네 하나에 60만 점이었다. 법선(위)·UV(바닥 좌표)가 자리에서 정해지므로 합쳐도 모양·질감은 같다.
+        /// </summary>
+        public bool weld;
+        Dictionary<Vector3, int> welded;
 
         int Add(Vector3 p, Vector3 normal, Vector2 tex) { v.Add(p); n.Add(normal); uv.Add(tex); return v.Count - 1; }
+        int AddUp(Vector3 p)
+        {
+            if (!weld) return Add(p, Vector3.up, Planar(p));
+            if (welded == null) welded = new Dictionary<Vector3, int>();
+            if (welded.TryGetValue(p, out int i)) return i;
+            i = Add(p, Vector3.up, Planar(p));
+            welded[p] = i;
+            return i;
+        }
         Vector2 Planar(Vector3 p) => new Vector2(p.x / uvScale, p.z / uvScale);
 
         /// <summary>볼록(또는 별 모양) 다각형을 높이 y 에 위로 보게(부채꼴)</summary>
@@ -160,10 +177,9 @@ namespace DriveCoach.Unity
         /// <summary>위를 보는 삼각형 하나(바닥 좌표 그대로 UV). 감는 방향은 위에서 보이게 맞춘다.</summary>
         public void TriUp(Vector3 a, Vector3 b, Vector3 c)
         {
-            int s = v.Count;
-            Add(a, Vector3.up, Planar(a)); Add(b, Vector3.up, Planar(b)); Add(c, Vector3.up, Planar(c));
-            if (Vector3.Cross(b - a, c - a).y >= 0f) { t.Add(s); t.Add(s + 1); t.Add(s + 2); }
-            else { t.Add(s); t.Add(s + 2); t.Add(s + 1); }
+            int ia = AddUp(a), ib = AddUp(b), ic = AddUp(c);
+            if (Vector3.Cross(b - a, c - a).y >= 0f) { t.Add(ia); t.Add(ib); t.Add(ic); }
+            else { t.Add(ia); t.Add(ic); t.Add(ib); }
         }
 
         /// <summary>둥근 고리(핸들 테): XZ 평면, 가운데 center, 고리 반지름 R, 굵기 반지름 r. UV u = 둘레, v = 단면</summary>
@@ -242,11 +258,11 @@ namespace DriveCoach.Unity
             return !(neg && pos);
         }
 
-        /// <summary>(11/11) 켜 두면(null 아님) Build 가 만든 메시를 모은다. 다 지은 뒤 한꺼번에 그래픽 장치로만 넘기고 일반 메모리 사본을 내리기 위해(CityBuilder).</summary>
+        /// <summary>켜 두면(null 아님) Build 가 만든 메시를 모은다. 다 지은 뒤 한꺼번에 그래픽 장치로만 넘기고 일반 메모리 사본을 내리기 위해(CityBuilder).</summary>
         public static List<Mesh> Built;
 
         /// <summary>
-        /// (11/11) 납작한 면의 큰 삼각형을 가장 긴 변의 가운데에서 잘라 변이 maxEdge 를 넘지 않게 한다.
+        /// 납작한 면의 큰 삼각형을 가장 긴 변의 가운데에서 잘라 변이 maxEdge 를 넘지 않게 한다.
         /// 안개는 꼭짓점에서 계산되므로, 수백 m 짜리 삼각형(큰 공원·숲·땅)은 가까운 곳까지 안개색으로 뿌옇게 칠해진다.
         /// </summary>
         public void SplitLong(float maxEdge)
@@ -274,7 +290,9 @@ namespace DriveCoach.Unity
             }
         }
 
-        public Mesh Build(string name = "dc", bool tangents = true)
+        public Mesh Build(string name = "dc", bool tangents = true) => Build(name, tangents, false);
+
+        Mesh Build(string name, bool tangents, bool compact)
         {
             var m = new Mesh { name = name };
             if (v.Count > 65000) m.indexFormat = IndexFormat.UInt32;
@@ -283,15 +301,128 @@ namespace DriveCoach.Unity
             m.SetUVs(0, uv);
             m.SetTriangles(t, 0);
             m.RecalculateBounds();
-            // 노멀맵(사진 질감의 요철)은 접선이 있어야 맞게 보인다(11/8)
-            if (tangents && uv.Count == v.Count && v.Count > 0) m.RecalculateTangents();
+            // 노멀맵(사진 질감의 요철)은 접선이 있어야 맞게 보인다
+            bool hasTan = tangents && uv.Count == v.Count && v.Count > 0;
+            if (hasTan) m.RecalculateTangents();
+            if (compact) Compact(m, hasTan);
             Built?.Add(m);
             return m;
         }
 
+        /// <summary>
+        /// 정점 압축: 위치·UV 는 float32 그대로 두고 법선·접선만 8비트(SNorm8 ×4)로. 점 하나 48 → 28 바이트(접선 있음), 32 → 24 바이트.
+        /// 그래픽 장치(에뮬레이터는 GL 드라이버가 앱 메모리에 사본을 둔다)의 정점 버퍼가 그만큼 준다. 평면(길·벽)의 법선은 축 방향이라 그대로이고,
+        /// 둥근 면도 각도 오차가 0.5° 아래라 그늘 차이가 보이지 않는다. 기기가 이 형식을 못 쓰면 예전 그대로(float32).
+        /// </summary>
+        public static bool CompactVertices = true;
+        static int snorm8 = -1;
+        static bool Snorm8Ok
+        {
+            get
+            {
+                if (snorm8 < 0) snorm8 = SystemInfo.SupportsVertexAttributeFormat(VertexAttributeFormat.SNorm8, 4) ? 1 : 0;
+                return snorm8 == 1;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)] struct VtxN { public Vector3 p; public uint n; public Vector2 uv; }
+        [StructLayout(LayoutKind.Sequential)] struct VtxNT { public Vector3 p; public uint n; public uint t; public Vector2 uv; }
+
+        static readonly VertexAttributeDescriptor[] LayoutN =
+        {
+            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.SNorm8, 4),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
+        };
+        static readonly VertexAttributeDescriptor[] LayoutNT =
+        {
+            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.SNorm8, 4),
+            new VertexAttributeDescriptor(VertexAttribute.Tangent, VertexAttributeFormat.SNorm8, 4),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
+        };
+        const MeshUpdateFlags QuietUpdate = MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontNotifyMeshUsers;
+
+        static uint S8(float f) => (uint)(byte)(sbyte)Mathf.Clamp(Mathf.RoundToInt(f * 127f), -127, 127);
+        static uint Pack(float x, float y, float z, float w) => S8(x) | (S8(y) << 8) | (S8(z) << 16) | (S8(w) << 24);
+
+        void Compact(Mesh m, bool hasTan)
+        {
+            int cnt = v.Count;
+            if (!CompactVertices || cnt == 0 || n.Count != cnt || uv.Count != cnt || !Snorm8Ok) return;
+            try
+            {
+                if (hasTan)
+                {
+                    var tan = new NativeArray<Vector4>(cnt, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                    try
+                    {
+                        using (var md = Mesh.AcquireReadOnlyMeshData(m)) md[0].GetTangents(tan);
+                        var a = new NativeArray<VtxNT>(cnt, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                        try
+                        {
+                            for (int i = 0; i < cnt; i++)
+                            {
+                                var nn = n[i]; var tt = tan[i];
+                                a[i] = new VtxNT { p = v[i], n = Pack(nn.x, nn.y, nn.z, 0f), t = Pack(tt.x, tt.y, tt.z, tt.w < 0f ? -1f : 1f), uv = uv[i] };
+                            }
+                            m.SetVertexBufferParams(cnt, LayoutNT);
+                            m.SetVertexBufferData(a, 0, 0, cnt, 0, QuietUpdate);
+                        }
+                        finally { a.Dispose(); }
+                    }
+                    finally { tan.Dispose(); }
+                }
+                else
+                {
+                    var a = new NativeArray<VtxN>(cnt, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                    try
+                    {
+                        for (int i = 0; i < cnt; i++)
+                        {
+                            var nn = n[i];
+                            a[i] = new VtxN { p = v[i], n = Pack(nn.x, nn.y, nn.z, 0f), uv = uv[i] };
+                        }
+                        m.SetVertexBufferParams(cnt, LayoutN);
+                        m.SetVertexBufferData(a, 0, 0, cnt, 0, QuietUpdate);
+                    }
+                    finally { a.Dispose(); }
+                }
+                m.RecalculateBounds();   // 배치를 바꾼 뒤 경계 상자를 다시(화면 밖 판정이 틀리지 않게)
+            }
+            catch (System.Exception e)
+            {
+                // 어떤 이유로든 압축이 안 되면 다시 float32 로(모양이 깨지지 않게) 하고 이후에는 압축하지 않는다
+                Debug.LogWarning("MeshKit compact off: " + e.Message);
+                CompactVertices = false;
+                m.Clear(false);   // 8비트 배치를 지우고 기본(float32) 배치로
+                if (cnt > 65000) m.indexFormat = IndexFormat.UInt32;
+                m.SetVertices(v); m.SetNormals(n); m.SetUVs(0, uv); m.SetTriangles(t, 0);
+                m.RecalculateBounds();
+                if (hasTan) m.RecalculateTangents();
+            }
+        }
+
+        /// <summary>다 쓴 점 목록을 놓는다(동네의 칸·재질별 메시 수천 개를 짓는 동안 목록이 끝까지 남지 않게)</summary>
+        public void Release()
+        {
+            v.Clear(); v.Capacity = 0;
+            n.Clear(); n.Capacity = 0;
+            uv.Clear(); uv.Capacity = 0;
+            t.Clear(); t.Capacity = 0;
+            welded = null;
+        }
+
+        /// <summary>
+        /// Built 가 켜져 있으면(동네 짓는 중) ToObject 가 메시를 만들자마자 그래픽 장치로 넘기고 일반 메모리의 사본을 내린다.
+        /// 예전에는 동네 메시 사본을 끝까지 모두 들고 있다가 한꺼번에 내려서(사용 최고 235 MB) Unity 가 잡아 둔 메모리가 그만큼 남았다.
+        /// 곧 다시 읽을 메시(밤 창 불빛 사본을 뜨는 외벽)는 KeepReadable 을 켜 두면 예전처럼 끝에 내린다.
+        /// </summary>
+        public static bool KeepReadable;
+
         /// <summary>메시를 가진 GameObject 를 만든다(그림자 받기·드리우기 선택)</summary>
         /// <summary>
-        /// 단면들(점 개수가 같음)을 차례로 이어 매끈한 곡면을 만든다(11/8 실내: 대시보드·필러·문턱). sections[i][k] = i 번째 단면의 k 번째 점.
+        /// 단면들(점 개수가 같음)을 차례로 이어 매끈한 곡면을 만든다(실내: 대시보드·필러·문턱). sections[i][k] = i 번째 단면의 k 번째 점.
         /// 법선은 이웃 점들로 계산해 부드럽게 보이고, flip 이면 반대쪽을 앞면으로. UV 는 두 방향 길이(m) / uvM.
         /// </summary>
         public void Loft(IList<Vector3[]> sections, bool flip = false, float uvM = 0.5f)
@@ -329,9 +460,11 @@ namespace DriveCoach.Unity
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
-            // (11/11) 접선은 요철 지도(노멀맵)가 있는 재질에만 쓰인다 → 없는 재질(차선 칠·볼라드·표지 등)은 만들지 않는다(점마다 16바이트, 모양은 같음)
+            // 접선은 요철 지도(노멀맵)가 있는 재질에만 쓰인다 → 없는 재질(차선 칠·볼라드·표지 등)은 만들지 않는다(점마다 16바이트, 모양은 같음)
             bool needTan = mat == null || (mat.HasProperty("_BumpMap") && mat.GetTexture("_BumpMap") != null);
-            go.AddComponent<MeshFilter>().sharedMesh = Build(name, needTan);
+            var mesh = Build(name, needTan, true);
+            if (Built != null && !KeepReadable) mesh.UploadMeshData(true);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var mr = go.AddComponent<MeshRenderer>();
             mr.sharedMaterial = mat;
             mr.shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;

@@ -1,4 +1,4 @@
-// 담당: D (2-4 급발진·헛밟음 대처 훈련 + 5-2 브리핑 재확인용 간격 반복)
+// 2-4 급발진·헛밟음 대처 훈련 + 5-2 브리핑 재확인용 간격 반복
 package kr.drivecoach.core.practice
 
 import kr.drivecoach.core.signal.Gear

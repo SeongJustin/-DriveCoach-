@@ -1,4 +1,4 @@
-// GameMain 의 앱에서 오는 신호 받기 부분(11/15 코드 정리로 GameMain.cs 에서 나눈 파일). 전체 설명은 GameMain.cs 맨 위.
+// GameMain 의 앱에서 오는 신호 받기 부분(GameMain.cs 에서 나눈 파일). 전체 설명은 GameMain.cs 맨 위.
 using System;
 using System.Globalization;
 using DriveCoach.Core;

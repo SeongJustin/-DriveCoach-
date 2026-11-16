@@ -1,4 +1,4 @@
-// 담당: D (기능 연습 상태 머신)
+// 기능 연습 상태 머신
 package kr.drivecoach.core.practice
 
 import kr.drivecoach.core.signal.Gear
@@ -9,7 +9,7 @@ import kr.drivecoach.core.tts.PhraseId
 /** 연습 항목 하나의 진행 단계. "설명 → 해보기 → 확인 → (통과 | 건너뜀)". */
 enum class Phase { EXPLAIN, TRY, CONFIRM, PASSED, SKIPPED }
 
-/** 사용자가 주행 중에도 할 수 있는 입력(음성 또는 휠 버튼). PREV 는 화면 "이전" 버튼(11/4): 목록의 바로 앞 항목으로. */
+/** 사용자가 주행 중에도 할 수 있는 입력(음성 또는 휠 버튼). PREV 는 화면 "이전" 버튼: 목록의 바로 앞 항목으로. */
 enum class UserInput { CONFIRM, NEXT, AGAIN, SKIP, PREV }
 
 /**
@@ -219,10 +219,10 @@ class PracticeEngine(
         }
     }
 
-    /** (11/15 대표) false 면 차량 신호로 자동 통과시키지 않는다. 앱은 설명만 보여 주고 '다음'으로 넘긴다. */
+    /** false 면 차량 신호로 자동 통과시키지 않는다. 앱은 설명만 보여 주고 '다음'으로 넘긴다. */
     var autoDetect: Boolean = true
 
-    /** (11/15 대표) 설명만 보고 넘어가기: 지금 항목을 본 것으로 적고 바로 다음 항목을 연다(해 보기 단계 없음). */
+    /** 설명만 보고 넘어가기: 지금 항목을 본 것으로 적고 바로 다음 항목을 연다(해 보기 단계 없음). */
     fun advance(): PracticeStep {
         val item = current ?: return startNextPending(null)
         resultsById[item.id] = Phase.PASSED
@@ -248,12 +248,12 @@ class PracticeEngine(
         return all.count { resultsById[it.id] == Phase.PASSED } to all.size
     }
 
-    /** 아직 결과가 없는 다음 항목(after 다음부터, 없으면 처음부터). 결과 없는 항목이 하나도 없으면 건너뛴 항목을 2순위로 돌려준다(베타 A-08/D-13). */
+    /** 아직 결과가 없는 다음 항목(after 다음부터, 없으면 처음부터). 결과 없는 항목이 하나도 없으면 건너뛴 항목을 2순위로 돌려준다. */
     fun nextPending(after: PracticeItem?): PracticeItem? {
         val startIdx = if (after == null) 0 else items.indexOf(after) + 1
-        // (11/14 대표: "다음을 누르니 2에서 28로 넘어간다") 이미 통과한 항목을 건너뛰지 않고 목록 순서대로 바로 다음 항목을 연다.
+        // 이미 통과한 항목을 건너뛰지 않고 목록 순서대로 바로 다음 항목을 연다.
         //   마지막 항목 뒤에만 아직 안 한 항목(없으면 건너뛴 항목)으로 돌아가고, 그것도 없으면 끝.
-        //   (11/14 밤 베타 2차: "다음·건너뛰기가 어디로 가는지 모르겠다") 끝낸 항목도 건너뛴 항목도 지나치지 않는다.
+        //   ("다음·건너뛰기가 어디로 가는지 모르겠다") 끝낸 항목도 건너뛴 항목도 지나치지 않는다.
         //   장을 통째로 건너뛴 직후(skipAll)에만 그 장의 남은 항목을 지나 다음 장 첫 항목으로 간다.
         if (after != null) {
             val ch = skippedChapter; skippedChapter = null
@@ -293,7 +293,7 @@ class PracticeEngine(
 
     private fun finish(item: PracticeItem, result: Phase, auto: Boolean = false): PracticeStep {
         phase = result
-        // 이미 통과한 항목을 다시 열어 건너뛰어도 ✓ 는 지우지 않는다(skipAll 과 같은 규칙, 베타 A-07).
+        // 이미 통과한 항목을 다시 열어 건너뛰어도 ✓ 는 지우지 않는다(skipAll 과 같은 규칙).
         if (!(result == Phase.SKIPPED && resultsById[item.id] == Phase.PASSED)) resultsById[item.id] = result
         lastAutoPassed = auto
         val phrase = if (result == Phase.PASSED) item.passPhrase else PHRASE_SKIPPED

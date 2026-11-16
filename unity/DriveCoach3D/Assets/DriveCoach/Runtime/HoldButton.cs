@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 누르고 있는 동안만 참인 버튼(가속 페달). Unity 는 MonoBehaviour 를 파일 이름과 같은 클래스로 찾으므로 따로 둔다)
+// 3D 주차 연습 — 누르고 있는 동안만 참인 버튼(가속 페달). Unity 는 MonoBehaviour 를 파일 이름과 같은 클래스로 찾으므로 따로 둔다
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;

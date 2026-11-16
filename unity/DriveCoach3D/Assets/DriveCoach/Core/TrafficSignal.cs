@@ -1,4 +1,4 @@
-// 신호등과 신호 계획(11/15 코드 정리로 Road.cs 에서 나눈 파일).
+// 신호등과 신호 계획(Road.cs 에서 나눈 파일).
 using System;
 using System.Collections.Generic;
 
@@ -12,7 +12,7 @@ namespace DriveCoach.Core
         public float facingDeg;    // 신호등이 바라보는 방향(다가오는 차 쪽)
         public float green = 12f, yellow = 3f, red = 15f, offset;
         /// <summary>
-        /// 직진 뒤 좌회전 화살표(11/9, 대표: "신호등도 리얼하게 실제랑 똑같이"): 0 이면 좌회전 화살표가 초록과 함께(동시 신호).
+        /// 직진 뒤 좌회전 화살표: 0 이면 좌회전 화살표가 초록과 함께(동시 신호).
         /// 0 보다 크면 한 주기 = [직진 초록 green][노랑][좌회전 화살표 leftGreen][노랑][빨강 red] — 화살표 동안 직진은 빨강.
         /// </summary>
         public float leftGreen;
@@ -49,6 +49,9 @@ namespace DriveCoach.Core
             return x < green ? green - x : 0f;
         }
 
+        /// <summary>직진 빨강이 끝나(초록이 되기)까지 남은 초(빨강이 아니면 0) — 독일 빨강+노랑(Rot-Gelb) 표시용</summary>
+        public float RedLeft(float t) => At(t) == SignalColor.Red ? Cycle - Phase(t) : 0f;
+
         /// <summary>앞 횡단보도 보행 초록인가(pedLen 0 이면 직진·좌회전이 모두 빨강인 동안)</summary>
         public bool PedOn(float t) => PedLeft(t) > 0f;
 
@@ -67,7 +70,7 @@ namespace DriveCoach.Core
     }
 
     /// <summary>
-    /// 실제 신호 운영계획 한 시간대(11/9, 대표: "신호등도 리얼하게 실제랑 똑같이 작동해야겠지(빨간불 1분 30초면 똑같이)").
+    /// 실제 신호 운영계획 한 시간대.
     /// 경찰청 교차로계획정보(교차로운영계획: OPER_PLAN_HH·MI, INT_OPER_CYCLE_VAL, INT_OPER_OFFSET_VAL, A_RING_n_PHASE_VAL)의 평일 계획.
     /// phases: A 링 현시 길이(초, 0 아닌 것만, 노랑·전적색 포함).
     /// </summary>

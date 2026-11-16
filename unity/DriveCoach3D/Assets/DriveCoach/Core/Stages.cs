@@ -1,4 +1,3 @@
-// 담당: S
 // 25단계와 튜토리얼 3개의 지도(전부 m 단위, 실제 규격).
 // 주차장법 시행규칙: 일반형 직각 주차칸 2.5 x 5.0 m, 평행 주차칸 2.0 x 6.0 m, 직각 주차 차로 6.0 m.
 using System;
@@ -224,7 +223,7 @@ namespace DriveCoach.Core
         static Target SlotTarget(int floorI, V2[] poly, float heading, float tol = 6f, bool either = false)
             => new Target { kind = TargetKind.Slot, floor = floorI, poly = poly, heading = heading, tol = tol, either = either };
 
-        /// <summary>(11/15) 차 한 대가 들어가는 직선 칸(길이 BoxL·폭 SW): 1~3단계 "칸에 맞춰 들어가기"</summary>
+        /// <summary>차 한 대가 들어가는 직선 칸(길이 BoxL·폭 SW): 1~3단계 "칸에 맞춰 들어가기"</summary>
         const float BoxL = 5.4f;
         static Target BoxTarget(V2 c, float heading, float len = BoxL)
             => SlotTarget(0, Geom.RectPoly(c, len, SW, heading), heading);
@@ -253,7 +252,7 @@ namespace DriveCoach.Core
 
         static Stage S01()
         {
-            // (11/15 대표: "선에 맞춰 서기는 아닌 것 같다, 칸에 맞춰 들어가기로") 1~3단계 목표를 선 대신 칸으로
+            // 1~3단계 목표를 선 대신 칸으로
             var s = MakeStage(1, "브레이크로 서기", "기어 D, 브레이크를 떼면 천천히 갑니다. 앞의 연두색 칸에 차가 다 들어가면 브레이크로 세우십시오");
             var f = LaneFloor();
             Wall(f, P(34, -4.2f), P(34, 4.2f), 0.4f);
@@ -292,9 +291,9 @@ namespace DriveCoach.Core
         // ───────────────────────── 4~10 직각 주차 ─────────────────────────
 
         /// <summary>통로(가로)와 아래·위 주차칸 줄. 목표는 아래 줄 6번 칸(x 5.0~7.5).</summary>
-        /// <summary>(11/14 대표: "직각 주차도 실제 게임 안에서 주차하는 모습으로") 실제 차 직각 주차 안내 그림용 주차장: 8단계와 같되 맞은편 줄은 비운다(45° 로 앞머리를 내밀 자리)</summary>
+        /// <summary>실제 차 직각 주차 안내 그림용 주차장: 8단계와 같되 맞은편 줄은 비운다(45° 로 앞머리를 내밀 자리)</summary>
         public static Stage ParkingGuide() => PerpStage(8, "직각 후진 주차", "", Occ(5, "out", 7, "out", 3, "in", 9, "out"), true, AISLE, false);
-        /// <summary>(11/15) 앱의 실제 차 평행 주차 안내 영상용: 규격 칸(6 m), 앞뒤 차(14단계와 같은 자리)</summary>
+        /// <summary>앱의 실제 차 평행 주차 안내 영상용: 규격 칸(6 m), 앞뒤 차(14단계와 같은 자리)</summary>
         public static Stage ParallelGuide() => ParallelStage(14, "평행 주차", "", PL, 0.65f, true);
 
         static Stage PerpStage(int id, string title, string goal, Dictionary<int, string> occ, bool backIn, float aisle, bool upperCars, bool dark = false, float pgap = 0f)

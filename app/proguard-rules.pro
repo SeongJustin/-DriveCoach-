@@ -1,4 +1,4 @@
-# 담당: S — release R8 규칙(11/7 켬).
+# release R8 규칙.
 # 원칙: 리플렉션·JNI·AIDL 로 이름을 찾는 코드는 이름째 전부 남기고, 라이브러리에서 아무도 부르지 않는 코드만 뺀다.
 
 # 이름을 바꾸지 않는다: 로그·오류 추적을 그대로 읽을 수 있고, 이름으로 찾는 코드(JNI·리플렉션)가 깨지지 않는다.
@@ -14,7 +14,7 @@
 -dontwarn java.awt.**
 -dontwarn com.sun.jna.**
 
-# 3D 게임(Unity, 11/8): 엔진이 JNI 로 Java 클래스·메서드를 이름으로 부른다(unityLibrary 의 proguard-unity.txt 와 같은 취지)
+# 3D 게임: 엔진이 JNI 로 Java 클래스·메서드를 이름으로 부른다(unityLibrary 의 proguard-unity.txt 와 같은 취지)
 -keep class com.unity3d.** { *; }
 -keep interface com.unity3d.** { *; }
 -keep class bitter.jnibridge.** { *; }

@@ -1,5 +1,5 @@
 // 직각 주차 슬로우 모드(4-5) 동작
-// (11/5 정리) CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
+// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
 package kr.drivecoach.app
 
 import android.util.Log
@@ -21,14 +21,14 @@ import kotlin.math.abs
 
 /**
  * "직각 주차" 열기. core ParkingSlowMode(공식 11단계 + 탈출 3종 + 자기평가)를 만들고, 먼저 시작 전 설명 화면을 보여 준다
- * (베타 2차 A-3: 무엇을 하는 연습인지 모른 채 첫 지시가 'D' 였음). '시작'([parkingBegin]) 을 누르면 1단계부터.
+ * (무엇을 하는 연습인지 모른 채 첫 지시가 'D' 였음). '시작'([parkingBegin]) 을 누르면 1단계부터.
  * 기어가 R/D 로 바뀌어 주행 모드가 돼도 닫지 않는다(그게 공식의 흐름). 그동안 발화 모드는 PRACTICE 라 PARKING 멘트가 나간다.
  */
 fun CoachController.startParking(kind: ParkingKind = ParkingKind.PERPENDICULAR) {
-    coachingPaused = false   // (11/15 오류 검수) 운전자가 새 활동을 열면 "세울래요"로 멈춘 코칭을 푼다
+    coachingPaused = false   // 운전자가 새 활동을 열면 "세울래요"로 멈춘 코칭을 푼다
     if (slowMode != null) return
     endActivity()
-    // (11/15 대표: 실제 차 주차는 직각·평행 둘 다) 공식 한 벌을 골라 같은 슬로우 모드로 돌린다
+    // (실제 차 주차는 직각·평행 둘 다) 공식 한 벌을 골라 같은 슬로우 모드로 돌린다
     val formula = if (kind == ParkingKind.PARALLEL) ParallelParkingProcedure.FORMULA else ParkingProcedure.FORMULA
     val intro = if (kind == ParkingKind.PARALLEL) Phrases.parkingParIntro else Phrases.parkingIntro
     val m = ParkingSlowMode(output = { out -> onParkingOutput(out) }, formula = formula, idleRpm = { idleRpm.idleRpm })
@@ -49,7 +49,7 @@ fun CoachController.parkingBegin() {
     if (m.phase != SlowModePhase.IDLE) return
     clearSubModeQueue()
     interruptCoaching()
-    // (11/14 베타: "브레이크를 밟은 채 시작"인데 안 밟아도 시작된다) 막지는 않고(신호가 없는 차도 있다) 밟지 않았으면 먼저 알린다
+    // ("브레이크를 밟은 채 시작"인데 안 밟아도 시작된다) 막지는 않고(신호가 없는 차도 있다) 밟지 않았으면 먼저 알린다
     val noBrake = currentState().brakePressed == false
     showParkingNotice(if (noBrake) "브레이크 페달이 밟혀 있지 않습니다. 밟은 채로 따라 하십시오. " + Phrases.parkingSlowStart.text else Phrases.parkingSlowStart.text)
     requestQueued(Phrases.parkingSlowStart.id)
@@ -81,7 +81,7 @@ fun CoachController.parkingHelp() {
     publishParkingUi(currentState())
 }
 
-/** (11/15 베타 6f) 탈출법 고르기에서 "하던 단계로". */
+/** 탈출법 고르기에서 "하던 단계로". */
 fun CoachController.parkingCancelHelp() {
     val m = slowMode ?: return
     clearSubModeQueue()
@@ -125,7 +125,7 @@ internal fun CoachController.onParkingInput(m: ParkingSlowMode, command: Command
     clearSubModeQueue()
     interruptCoaching()
     when (command) {
-        // 확인/다음: 이 단계를 통과(센서 단계는 신호가 맞아야 통과, 베타 B-23). 건너뛰기: 센서가 없는 차용으로 무조건 넘긴다.
+        // 확인/다음: 이 단계를 통과(센서 단계는 신호가 맞아야 통과). 건너뛰기: 센서가 없는 차용으로 무조건 넘긴다.
         Command.CONFIRM, Command.NEXT -> {
             if (m.phase == SlowModePhase.IDLE) { parkingBegin(); return }
             if (m.phase == SlowModePhase.DONE) { endParking(); return }
@@ -151,13 +151,13 @@ internal fun CoachController.onParkingOutput(out: SlowModeOutput) {
             val m = slowMode
             val cur = m?.currentStep
             if (m != null && (m.phase == SlowModePhase.STEP || m.phase == SlowModePhase.RECOVERY_STEP)) {
-                // 단계 중: 큰 문장은 publishParkingUi 가 지금 단계 지시를 바로 쓴다(멘트가 늦게 나와도 체크 항목과 어긋나지 않게, 베타 2차 A-2).
-                // 지시·기준점이 아닌 멘트(아직 감지 안 됨·먼저 정지·처음부터·탈출 제목)는 그 아래 보조 안내로 잠깐 보여 준다(베타 2차 A-9).
+                // 단계 중: 큰 문장은 publishParkingUi 가 지금 단계 지시를 바로 쓴다(멘트가 늦게 나와도 체크 항목과 어긋나지 않게).
+                // 지시·기준점이 아닌 멘트(아직 감지 안 됨·먼저 정지·처음부터·탈출 제목)는 그 아래 보조 안내로 잠깐 보여 준다.
                 if (out.phrase != cur?.instructionPhrase && out.phrase != cur?.referencePointPhrase) {
                     Phrases.find(out.phrase)?.let { showParkingNotice(it.text) }
                 }
             } else {
-                // 선택·평가·완료 화면: 그 멘트가 실제로 나갈 때 큰 문장을 바꾼다(여러 문장이 한꺼번에 나오면 마지막 것만 보이던 문제, 베타 B-11/B-26).
+                // 선택·평가·완료 화면: 그 멘트가 실제로 나갈 때 큰 문장을 바꾼다(여러 문장이 한꺼번에 나오면 마지막 것만 보이던 문제).
                 Phrases.find(out.phrase)?.let { ph -> screenTextWhenSpoken[out.phrase] = { parkingText = ph.text; publishParkingUi(currentState()) } }
             }
             // 확인으로만 넘어가는 단계면 입력을 기다린다(무응답 시 정차 중 1회 재안내, 휠 버튼 짧게 = 확인).
@@ -206,7 +206,7 @@ internal fun CoachController.publishParkingUi(state: VehicleState) {
         else -> {}
     }
     if (state.gear == Gear.R || state.gear == Gear.D) checks += ParkingCheck("속도 5 이하", speed <= PARKING_SPEED_OK_KMH)
-    // (11/15 베타 7h: 상태 고르기 화면에 직전 단계 영상이 남아 고르는 내용과 맞지 않았다) 고르기 화면은 그림 없이
+    // (상태 고르기 화면에 직전 단계 영상이 남아 고르는 내용과 맞지 않았다) 고르기 화면은 그림 없이
     val illustration = if (m.phase == SlowModePhase.RECOVERY_CHOICE) "" else step?.illustration ?: parkingIllustration
     val inStep = step != null && (m.phase == SlowModePhase.STEP || m.phase == SlowModePhase.RECOVERY_STEP)
     _parkingUi.value = ParkingUi(
@@ -228,7 +228,7 @@ internal fun CoachController.publishParkingUi(state: VehicleState) {
 }
 
 
-// ── (11/15 대표) 주차 배우기: 따라 하기(센서 확인, 자기평가) 없이 단계 영상과 설명을 한 장씩 본다. 자리 바로잡기 세 가지는 맨 뒤에 이어서 보여 준다.
+// ── 주차 배우기: 따라 하기(센서 확인, 자기평가) 없이 단계 영상과 설명을 한 장씩 본다. 자리 바로잡기 세 가지는 맨 뒤에 이어서 보여 준다.
 
 /** 배우기 한 장. [tangle] 이 있으면 자리 바로잡기 장이다. */
 data class ParkLearnPage(val step: kr.drivecoach.core.parking.ParkingStep, val tangle: Tangle?, val no: Int, val of: Int)

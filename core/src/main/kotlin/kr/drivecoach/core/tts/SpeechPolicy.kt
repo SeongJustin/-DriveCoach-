@@ -1,4 +1,4 @@
-// 담당: K (발화 정책)
+// 발화 정책
 package kr.drivecoach.core.tts
 
 /** 발화 요청에 대한 판정. */
@@ -129,7 +129,7 @@ class SpeechPolicy(private val config: SpeechPolicyConfig = SpeechPolicyConfig()
 
         // 2. 조용히 / 코칭 중지 / 경고등 대응 중
         // 코칭 음성 꺼짐: 위험·공황·경고등만. 시스템 멘트는 운전자가 누른 것에 대한 직접 응답(force)만 허용 —
-        // "출발합니다/정차했습니다/현재 차량은…" 같은 자동 시스템 멘트도 막는다(11/5 대표 결정).
+        // "출발합니다/정차했습니다/현재 차량은…" 같은 자동 시스템 멘트도 막는다.
         if (context.quietMode && cat !in QUIET_ALLOWED && !(cat == PhraseCategory.SYSTEM && request.force)) return drop("quiet_mode")
         if (context.coachingPaused && cat !in PAUSED_ALLOWED) return drop("coaching_paused")
         if (context.warningLampActive && cat !in PAUSED_ALLOWED) return drop("warning_lamp_active")

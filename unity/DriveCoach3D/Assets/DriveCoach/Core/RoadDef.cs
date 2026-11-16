@@ -1,4 +1,4 @@
-// 도로 정의: 정지선, 차로, 길(11/15 코드 정리로 Road.cs 에서 나눈 파일).
+// 도로 정의: 정지선, 차로, 길(Road.cs 에서 나눈 파일).
 using System;
 using System.Collections.Generic;
 
@@ -14,7 +14,7 @@ namespace DriveCoach.Core
     public class Lane
     {
         public V2[] center; public float width = 3.25f; public string name = ""; public float speedLimitKmh; public int next = -1;
-        /// <summary>(11/13) 자료로 확인된 제한속도(km/h, 0 = 모름·없음). speedLimitKmh 는 다른 차·자동 속도가 쓰는 '흐름 속도'(길 등급 기본값일 수 있다)</summary>
+        /// <summary>자료로 확인된 제한속도(km/h, 0 = 모름·없음). speedLimitKmh 는 다른 차·자동 속도가 쓰는 '흐름 속도'(길 등급 기본값일 수 있다)</summary>
         public float postedKmh;
         /// <summary>
         /// 양방향 좁은 골목(폭 4.6 m 밑, 중앙선 없음): 두 방향이 한 가운데를 같이 쓴다. pair = 맞은편 차로 번호, room = 길 폭(m).
@@ -65,7 +65,7 @@ namespace DriveCoach.Core
         /// <summary>다른 차 수(0 = 없음). 연습 동네 4, 내 동네 30.</summary>
         public int trafficCount;
 
-        // ── 입체 교차(11/8 밤): 고가·지하 길 조각과 높이. 차가 어느 층에 있는지는 앞 높이에서 이어지는 쪽으로 정한다 ──
+        // ── 입체 교차: 고가·지하 길 조각과 높이. 차가 어느 층에 있는지는 앞 높이에서 이어지는 쪽으로 정한다 ──
         readonly List<(V2 a, V2 b, float za, float zb, float half)> gradeSegs = new List<(V2, V2, float, float, float)>();
         readonly Dictionary<long, List<int>> gradeGrid = new Dictionary<long, List<int>>();
         const float GradeCell = 20f;

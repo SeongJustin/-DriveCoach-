@@ -1,4 +1,4 @@
-// 담당: K (멘트 카탈로그)
+// 멘트 카탈로그
 package kr.drivecoach.core.tts
 
 /** 멘트를 가리키는 ID. 영문 snake_case ("danger_speeding", "guide_turn_right_300m" 등). */
@@ -46,7 +46,7 @@ data class Phrase(
         get() = PLACEHOLDER.replace(text, "000").length
 
     companion object {
-        // 닫는 중괄호도 이스케이프: 안드로이드(ICU) 정규식은 홀로 있는 '}' 를 문법 오류로 본다 (JVM 은 허용) — 11/3 에뮬레이터 크래시로 확인
+        // 닫는 중괄호도 이스케이프: 안드로이드(ICU) 정규식은 홀로 있는 '}' 를 문법 오류로 본다 (JVM 은 허용) — 에뮬레이터 크래시로 확인
         internal val PLACEHOLDER = Regex("\\{([a-z_]+)\\}")
     }
 }
@@ -246,19 +246,19 @@ object Phrases {
     val practiceSkipped = p("practice_skipped", PR, "건너뜁니다.")
     val practiceAllDoneSkipped = p("practice_all_done_skipped", PR, "이 장의 연습을 마쳤습니다. 건너뛴 항목은 목록에서 골라 다시 할 수 있습니다.")
     val practiceAllDone = p("practice_all_done", PR, "이 장의 연습을 모두 마쳤습니다.")
-    /** 목록 끝까지 간 뒤 앞쪽의 안 한 항목으로 돌아갈 때(베타 2차 A-7). */
+    /** 목록 끝까지 간 뒤 앞쪽의 안 한 항목으로 돌아갈 때. */
     val practiceWrapAround = p("practice_wrap_around", PR, "마지막 항목까지 했습니다. 아직 하지 않은 항목으로 돌아갑니다.")
     val practiceNoSuchItem = p("practice_no_such_item", PR, "해당 항목이 없습니다. 다음 항목으로 넘어갑니다.")
     val practiceAutoPass = p("practice_auto_pass", PR, "이미 마친 항목입니다. 통과합니다.")
     val practiceNext = p("practice_next", PR, "다음 항목으로 넘어갑니다.")
 
     // ───────────────────────────────── 도로 법규 설명 (law 모듈 S) — 화면 글 = 음성, 길이 제한 170자 ─────────────────────────────────
-    // (11/14 대표: 추천안) 규칙은 도로교통법(시행 2026. 10. 13.) 조문에 근거한 것만 쉬운 말로 옮긴다. 과실 비율·캠페인 요령·해석은 넣지 않는다.
+    // (추천안) 규칙은 도로교통법(시행 2026. 10. 13.) 조문에 근거한 것만 쉬운 말로 옮긴다. 과실 비율·캠페인 요령·해석은 넣지 않는다.
     //   우회전·신호: 시행규칙 별표 2, 법 제25조 제5항, 제27조 제2항 / 비보호 좌회전: 시행규칙 별표 2, 제25조 제2항 / 유턴: 제5조, 제18조 제1항, 제38조 제1항
     //   차로: 제13조 제3항, 제14조 제5항, 제19조 제3항 / 횡단보도: 제27조 제1항 / 어린이 보호구역: 제12조 제1항, 제27조 제7항, 제32조 제8호
     //   회전교차로: 제25조의2, 제38조 제1항 / 긴급자동차: 제29조 제4항·제5항 / 고속도로: 제21조 제1항, 제60조 / 주정차: 제32조, 제33조
     //   기본: 제17조 제3항, 제38조 제1항, 제49조 제1항 제10호, 제50조 제1항
-    // (11/15 대표: 그림의 조문 발췌를 오른쪽 글로 옮기고 쉬운 말 글은 지움) 글 = 도로교통법 조문을 줄여 옮긴 것(근거 조문은 TrafficRules.basis)
+    // 글 = 도로교통법 조문을 줄여 옮긴 것(근거 조문은 TrafficRules.basis)
     private const val LAW_MAX = 170
     val lawRightTurn = p("law_right_turn", PR, "적색 등화에서는 정지선, 횡단보도 및 교차로의 직전에서 정지한 후, 다른 차의 교통을 방해하지 않고 우회전할 수 있다. 횡단하는 보행자의 통행을 방해하면 안 된다.", LAW_MAX)
     val lawUnprotectedLeft = p("law_unprotected_left", PR, "비보호 좌회전 표지가 있는 곳에서는 녹색의 등화에 좌회전할 수 있다. 교차로의 중심 안쪽을 이용하여 서행하면서 좌회전해야 한다. 맞은편에서 직진하는 차(그림의 빨간 화살표)의 진행을 방해하면 안 된다.", LAW_MAX)
@@ -393,7 +393,7 @@ object Phrases {
     val item25Hazard = item2("2-5-hazard",
         "비상 경고등 스위치는 가운데의 빨간 삼각형 버튼입니다. 누르면 좌우 방향지시등이 동시에 깜박입니다. 갓길에 정차할 때와 양보를 받아 감사를 표할 때 누릅니다. 켜져 있는 동안에는 방향지시등이 구분되지 않으니, 차로를 변경하기 전에 끄십시오.",
         "가운데의 빨간 삼각형 비상 경고등 스위치를 누르십시오.", "비상 경고등을 켰습니다. 다시 눌러 끄십시오.", "깜박이는 것을 확인했으면 '다음'을 누르십시오.")
-    // (11/14 대표: 연습 항목 추가) 아반떼(CN8) 취급설명서의 경음기·안전 삼각대
+    // 아반떼(CN8) 취급설명서의 경음기·안전 삼각대
     val item25Horn = item2("2-5-horn",
         "경음기는 스티어링 휠 가운데의 경음기 표시가 있는 부분을 누르면 울립니다. 위험을 알려야 할 때만 짧게 사용하십시오. 정당한 이유 없이 계속 울리거나 반복해서 울리면 안 됩니다. 주택가와 밤에는 특히 삼가십시오.",
         "스티어링 휠 가운데의 경음기 표시 위치를 확인하십시오. 주변에 사람이 없고 울려도 되는 곳이라면 짧게 한 번 눌러 보십시오.", "경음기 위치를 확인했습니다.", "위치를 확인했으면 '다음'을 누르십시오.")
@@ -533,8 +533,8 @@ object Phrases {
     val parkingPrelearnShort = p("parking_prelearn_short", PK, "키가 작으면 선이 늦게 보이니 바로 정지하십시오.", variant = "short")
     val parkingPrelearnNextPrompt = p("parking_prelearn_next_prompt", PK, "'다음'을 누르면 넘어갑니다.")
     // 슬로우 모드 (한 동작 한 문장, 기준점 포함)
-    /** 직각 주차 시작 전 설명 화면(베타 2차 A-3: 무엇을 하는 연습인지 모른 채 첫 지시가 'D' 였음). 정차 중이라 길게. */
-    /** 도로 법규 마지막 주제에서 '끝'(베타 2차 A-22). */
+    /** 직각 주차 시작 전 설명 화면(무엇을 하는 연습인지 모른 채 첫 지시가 'D' 였음). 정차 중이라 길게. */
+    /** 도로 법규 마지막 주제에서 '끝'. */
     val lawAllDone = p("law_all_done", PR, "도로 법규를 모두 보았습니다. 본 주제는 버튼이 연한 연두색으로 표시되고, 누르면 다시 볼 수 있습니다.")
     val lawEndSome = p("law_end_some", PR, "마지막 주제까지 보았습니다. 버튼이 흰색인 주제는 아직 보지 않은 것입니다.")
     val parkingIntro = p("parking_intro", PR, "직각 주차 연습입니다. 빈 주차장에서 실제로 차를 아주 천천히 움직이며 따라 합니다. 브레이크 페달을 밟은 채 시작하고, 한 동작씩 안내하면 그대로 한 뒤 정지하십시오. 차가 움직이는 동안에는 화면이 가려지고 음성으로만 안내합니다. 준비되면 '시작'을 누르십시오.")
@@ -583,7 +583,7 @@ object Phrases {
     val parkingFinishEngineOff = p("parking_finish_engine_off", PK, "시동을 끄십시오.")
     val parkingFinishWindows = p("parking_finish_windows", PK, "창문을 닫으십시오.")
     val parkingFinishLights = p("parking_finish_lights", PK, "전조등이 꺼졌는지 확인하십시오.")
-    // (11/15 대표: 실제 차 평행 주차) 평행 주차 공식(ParallelParkingProcedure) — D·R·핸들·P·주차브레이크 멘트는 직각 주차와 같은 것을 쓴다
+    // (실제 차 평행 주차) 평행 주차 공식(ParallelParkingProcedure) — D·R·핸들·P·주차브레이크 멘트는 직각 주차와 같은 것을 쓴다
     val parkingParIntro = p("parking_par_intro", PR, "평행 주차 연습입니다. 길가 빈 칸의 앞차 옆에서 시작해 실제로 차를 아주 천천히 움직이며 따라 합니다. 브레이크 페달을 밟은 채 시작하고, 한 동작씩 안내하면 그대로 한 뒤 정지하십시오. 차가 움직이는 동안에는 화면이 가려지고 음성으로만 안내합니다. 준비되면 '시작'을 누르십시오.")
     val parkingParStepApproach = p("parking_par_step_approach", PK, "앞차 옆에 나란히 서면 정지하십시오.")
     val parkingParRefApproach = p("parking_par_ref_approach", PK, "앞차와 1미터쯤 띄우고 뒤 범퍼를 맞추십시오.")
@@ -638,14 +638,14 @@ object Phrases {
     // ───────────────────────────────── 시스템 (명령 응답, 무응답, C/G 모듈) ─────────────────────────────────
     private val S = PhraseCategory.SYSTEM
     val systemWelcomeCar = p("system_welcome_car", S, "현재 차량은 {car_model}입니다.")
-    val systemWelcomeDefaultCar = p("system_welcome_default_car", S, "차종을 확인하지 못해 {car_model} 기준으로 안내합니다.")   // (11/15 오류 검수) 차가 차종을 알려 주지 않을 때
+    val systemWelcomeDefaultCar = p("system_welcome_default_car", S, "차종을 확인하지 못해 {car_model} 기준으로 안내합니다.")   // 차가 차종을 알려 주지 않을 때
     val systemCmdAgain = p("system_cmd_again", S, "다시 안내합니다.")
     val systemQuietAck = p("system_quiet_ack", S, "안내를 멈춥니다. 위험할 때만 안내합니다.")       // C/G 요청
     val systemCmdQuietOff = p("system_cmd_quiet_off", S, "안내를 다시 시작합니다.")
     val systemCmdConfirmAck = p("system_cmd_confirm_ack", S, "확인.", 6)
     val systemCmdNextAck = p("system_cmd_next_ack", S, "다음.", 6)
     val systemNoInputReprompt = p("system_no_input_reprompt", S, "마쳤으면 '다음'을 누르십시오.")   // C/G 요청, 1회만
-    val systemNoInputRepromptConfirm = p("system_no_input_reprompt_confirm", S, "마쳤으면 '확인'을 누르십시오.")   // (11/15 오류 검수) 주차 단계 화면의 버튼은 '확인'
+    val systemNoInputRepromptConfirm = p("system_no_input_reprompt_confirm", S, "마쳤으면 '확인'을 누르십시오.")   // 주차 단계 화면의 버튼은 '확인'
     val systemModeParkedHint = p("system_mode_parked_hint", S, "정차했습니다. 이제 화면을 볼 수 있습니다.")     // C/G 요청
     val systemWheelModeHint = p("system_wheel_mode_hint", S, "짧게 누르면 확인, 길게 누르면 정차할 곳을 찾습니다.")   // C/G 요청
     val systemDetectFail = p("system_detect_fail", S, "지금은 감지되지 않습니다. 마쳤으면 '다음'을 누르십시오.")
@@ -660,6 +660,18 @@ object Phrases {
     val systemCourseRouteFailed = p("system_course_route_failed", S, "경로를 찾지 못했습니다. 다른 코스를 선택하십시오.")
 
     // ───────────────────────────────── 조회 ─────────────────────────────────
+
+    /**
+     * 다른 나라 도로 법규 글([kr.drivecoach.core.law.ForeignLaws])을 멘트로 등록한다. ID 는 `law_<나라>_<주제>`.
+     * 같은 ID·같은 글을 다시 부르면 처음 등록한 것을 돌려주고, 글이 다르면 충돌로 보고 멈춘다. 한국 법규와 같은 길이 제한(170자).
+     */
+    @Synchronized
+    fun registerLaw(id: String, text: String): Phrase {
+        require(id.startsWith("law_")) { "법규 멘트 ID 는 law_ 로 시작해야 함: $id" }
+        registry[id]?.let { require(it.text == text) { "법규 멘트 ID 충돌: $id" }; return it }
+        require(text.length <= LAW_MAX) { "법규 글이 ${LAW_MAX}자를 넘음: $id (${text.length}자)" }
+        return p(id, PhraseCategory.PRACTICE, text, LAW_MAX)
+    }
 
     /** 등록된 모든 멘트(등록 순서). */
     val all: List<Phrase> get() = registry.values.toList()

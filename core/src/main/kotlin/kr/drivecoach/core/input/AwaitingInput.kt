@@ -1,4 +1,4 @@
-// 담당: C+G (입력이 필요한데 입력이 없는 상황 처리)
+// 입력이 필요한데 입력이 없는 상황 처리
 package kr.drivecoach.core.input
 
 import kr.drivecoach.core.signal.Gear
@@ -131,7 +131,7 @@ class AwaitingInputManager(
         const val MAX_REPROMPTS = 1
 
         /**
-         * 재안내 멘트 ID. 문장은 K 담당 core/tts 카탈로그에 등록 요청함.
+         * 재안내 멘트 ID. 문장은 core/tts 카탈로그에 있다.
          * 문장: "천천히 해도 돼요. 준비되면 버튼 눌러요".
          */
         val REPROMPT_PHRASE = PhraseId("system_no_input_reprompt")

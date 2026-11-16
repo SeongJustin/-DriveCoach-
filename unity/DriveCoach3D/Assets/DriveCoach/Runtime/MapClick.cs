@@ -1,4 +1,4 @@
-// 동네 지도 누르기(11/15 코드 정리로 MenuScreen.cs 에서 나눈 파일).
+// 동네 지도 누르기(MenuScreen.cs 에서 나눈 파일).
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace DriveCoach.Unity
 {
-    /// <summary>(11/15) 동네 지도 누르기: 누른 자리를 그림 안 0..1 좌표(왼쪽 아래 0,0)로 알린다</summary>
+    /// <summary>동네 지도 누르기: 누른 자리를 그림 안 0..1 좌표(왼쪽 아래 0,0)로 알린다</summary>
     public class MapClick : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHandler
     {
         public Action<Vector2> clicked;

@@ -1,4 +1,4 @@
-// 담당: S (3D 서킷·도로 주행 — 자동 속도, 11/8 대표 요청: "가속 버튼을 눌러야 하니까 짜친다. 다른 방법 없을까")
+// 3D 서킷·도로 주행 — 자동 속도
 // 실제 차는 P 에 둔 채로 하므로 액셀 페달 값을 모르는 경우가 많다. 그래서 기본은 "핸들만 돌리기":
 // 차가 정한 속도(느긋하게 25 · 보통 35 · 빠르게 45 km/h)로 달리고, 코너·모퉁이 앞에서는 스스로 미리 줄인다.
 // 사람의 브레이크(실제 페달·화면 버튼)는 언제나 이긴다 — 밟으면 서고, 떼면 다시 간다. 도로에서는 제한 속도를 넘지 않는다.
@@ -62,14 +62,14 @@ namespace DriveCoach.Core
             {
                 t = Math.Min(t, ((w.roadRun.limitKmh > 0f ? w.roadRun.limitKmh : w.roadRun.flowKmh) - 3f) / 3.6f);      // 제한속도를 모르는 길은 흐름 속도로
                 t = Math.Min(t, RoadLimit(w));
-                // (11/15 베타 7i: 주차장 칸에서 D 로 브레이크를 떼면 '보통' 35 km/h 로 내달아 2~3초 만에 통로 건너편 차에 부딪혔다)
+                // (주차장 칸에서 D 로 브레이크를 떼면 '보통' 35 km/h 로 내달아 2~3초 만에 통로 건너편 차에 부딪혔다)
                 //   차로에 들어서기 전(주차장 안·나오는 중)에는 주차장 속도로만 — 스티어링 휠을 돌릴 틈을 준다
                 if (w.roadRun.NotJoined && t > LotKmh / 3.6f) { t = LotKmh / 3.6f; w.autoWhy = "주차장 안: 천천히"; }
             }
             float follow = w.traffic != null ? FollowLimit(w) : float.PositiveInfinity;
             t = Math.Min(t, follow);
             if (follow < 0.5f) w.autoWhy = "앞차나 옆 차를 기다리는 중";
-            // 횡단보도를 건너는 사람(11/9): 앞 30 m·옆 6 m 안이면 그 3.5 m 앞에 선다
+            // 횡단보도를 건너는 사람: 앞 30 m·옆 6 m 안이면 그 3.5 m 앞에 선다
             float pedStop = float.PositiveInfinity;
             if (w.crossPeds != null)
             {
@@ -77,7 +77,7 @@ namespace DriveCoach.Core
                 if (!float.IsInfinity(d))
                 {
                     float stopD = d - 3.5f;
-                    // (11/13 저녁, 법 제27조①) 그 사람 앞 16 m 안에 정지선이 칠해져 있으면 그 앞에 선다(2.4 m 앞을 겨냥 — 멈추며 1 m 남짓 더 나간다. 이미 지났으면 그대로)
+                    // (법 제27조①) 그 사람 앞 16 m 안에 정지선이 칠해져 있으면 그 앞에 선다(2.4 m 앞을 겨냥 — 멈추며 1 m 남짓 더 나간다. 이미 지났으면 그대로)
                     var rgs = w.st.road?.region;
                     if (rgs != null && rgs.stopPaint.Count > 0)
                     {
@@ -88,11 +88,11 @@ namespace DriveCoach.Core
                     if (pedStop < 0.5f) w.autoWhy = "건너는 사람을 기다리는 중";
                 }
             }
-            // 어린이보호구역 신호 없는 횡단보도(11/9): 그 4 m 앞에서 한 번 선다(RoadRun 이 멈춘 걸 보면 다시 간다)
+            // 어린이보호구역 신호 없는 횡단보도: 그 4 m 앞에서 한 번 선다(RoadRun 이 멈춘 걸 보면 다시 간다)
             if (w.roadRun != null && w.roadRun.zoneStopDist < 25f)
             {
                 float zd = w.roadRun.zoneStopDist, stopZ = zd - 4f;
-                // (11/13 저녁) 정지선이 칠해져 있으면 그 앞(2.4 m 앞을 겨냥, 사진에서 정지선 위에 걸쳐 섰다)
+                // 정지선이 칠해져 있으면 그 앞(2.4 m 앞을 겨냥, 사진에서 정지선 위에 걸쳐 섰다)
                 var rgz = w.st.road?.region;
                 if (rgz != null && rgz.stopPaint.Count > 0)
                 {
@@ -102,11 +102,11 @@ namespace DriveCoach.Core
                 t = Math.Min(t, (float)Math.Sqrt(2f * 2f * Math.Max(0f, stopZ)));
                 if (stopZ < 1f) w.autoWhy = "어린이 보호구역 횡단보도 앞 일시정지";
             }
-            // 과속방지턱(11/9): 앞 25 m 안에 있으면 20 km/h 로(넘는 동안도)
+            // 과속방지턱: 앞 25 m 안에 있으면 20 km/h 로(넘는 동안도)
             var rg = w.st.road?.region;
             if (rg != null && rg.humps.Count > 0 && rg.HumpAhead(w.car.FrontBumperCenter, w.car.Dir, -3f, Math.Max(8f, v * 2.5f))) t = Math.Min(t, 20f / 3.6f);
             if (w.roadRun != null && w.roadRun.zoneStopDist < 25f) return t;     // 서야 하는 곳: 최소 속도를 두지 않는다
-            if (follow < MinKmh / 3.6f || pedStop < MinKmh / 3.6f) return t;                                // 앞차(서 있거나 마주 오는 차) 앞에서는 선다(11/9: 최소 속도로 밀고 들어가던 것)
+            if (follow < MinKmh / 3.6f || pedStop < MinKmh / 3.6f) return t;                                // 앞차(서 있거나 마주 오는 차) 앞에서는 선다(최소 속도로 밀고 들어가던 것)
             float floor = w.roadRun != null && w.roadRun.NotJoined ? Math.Min(MinKmh, LotKmh) / 3.6f : MinKmh / 3.6f;   // 주차장 안은 주차장 속도가 바닥
             return Math.Max(t, floor);
         }
@@ -126,9 +126,9 @@ namespace DriveCoach.Core
                 var cd = new V2((float)Math.Cos(c.heading), (float)Math.Sin(c.heading));
                 if (cd.Dot(dir) < 0.3f && cd.Dot(dir) >= -0.7f && ahead > -1f && ahead < 30f && Math.Abs(rel.Dot(right)) < 25f && Math.Abs(me.z - c.z) < 2.5f)
                 {
-                    // 가로지르는 차(11/9 시험: 신호 없는 교차로에서 옆에서 들어오는 차를 들이받음): 2.4초 안에 3.2 m 안으로 만날 것 같으면 그 앞에 선다
+                    // 가로지르는 차(신호 없는 교차로에서 옆에서 들어오는 차를 들이받음): 2.4초 안에 3.2 m 안으로 만날 것 같으면 그 앞에 선다
                     float v = Math.Max(me.speed, 2f);
-                    // 서 있는 차(내 차를 기다리는 중일 수 있다 — 11/9 시험: 둘이 서로 기다려 멈춤)는 내가 갈 길(차 반폭 + 0.5 m)에 그 차 네모가 걸릴 때만
+                    // 서 있는 차(내 차를 기다리는 중일 수 있다 — 둘이 서로 기다려 멈춤)는 내가 갈 길(차 반폭 + 0.5 m)에 그 차 네모가 걸릴 때만
                     bool moving = c.speed > 0.5f;
                     bool conflict = moving && rel.Length < 9f;            // 바로 앞을 지나는 중이면 다 지날 때까지
                     if (!moving)
@@ -156,12 +156,12 @@ namespace DriveCoach.Core
                     if (conflict) gap = Math.Min(gap, Math.Max(0f, ahead - 2f));
                     continue;
                 }
-                // 서 있는 맞은편 차가 10 m 안에서 옆 2.4 m 안이면(꺾어 들어가며 그 차 옆구리로 다가갈 때 — 11/9 시험) 그 앞에 선다
+                // 서 있는 맞은편 차가 10 m 안에서 옆 2.4 m 안이면(꺾어 들어가며 그 차 옆구리로 다가갈 때) 그 앞에 선다
                 bool stoppedNear = c.speed < 0.5f && ahead < 10f && Math.Abs(rel.Dot(right)) < 2.4f && cd.Dot(dir) < -0.7f;
                 if (ahead < -1f || ahead > 50f || (Math.Abs(rel.Dot(right)) > 1.8f && !stoppedNear)) continue;
                 if (cd.Dot(dir) < -0.7f)
                 {
-                    // 좁은 길에서 정면으로 마주 오는 차(옆 2.4 m 안 — 비켜 갈 수 없음): 그 차가 오는 만큼 더 일찍 선다(11/9 시험: 골목 정면 충돌)
+                    // 좁은 길에서 정면으로 마주 오는 차(옆 2.4 m 안 — 비켜 갈 수 없음): 그 차가 오는 만큼 더 일찍 선다(골목 정면 충돌)
                     if (Math.Abs(rel.Dot(right)) < 2.4f) gap = Math.Min(gap, ahead - c.length / 2f - c.speed * 1.5f);
                     continue;
                 }

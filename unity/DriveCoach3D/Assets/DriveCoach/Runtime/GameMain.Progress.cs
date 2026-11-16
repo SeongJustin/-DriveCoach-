@@ -1,4 +1,4 @@
-// GameMain 의 판 진행 부분(11/15 코드 정리로 GameMain.cs 에서 나눈 파일). 전체 설명은 GameMain.cs 맨 위.
+// GameMain 의 판 진행 부분(GameMain.cs 에서 나눈 파일). 전체 설명은 GameMain.cs 맨 위.
 using System;
 using System.Globalization;
 using DriveCoach.Core;
@@ -27,7 +27,7 @@ namespace DriveCoach.Unity
                         : "브레이크를 밟은 채로 D → 브레이크를 떼면 출발합니다. 속도는 자동입니다.")
                        + "\n" + steerHow
                        + (curKind == "region" ? " 신호, 차로, 제한 속도를 지키고, 끝내려면 서서 P를 누르십시오." : "")
-                       // (11/15 베타 7i: 주차장 칸에서 곧장 나가 통로 건너편 차에 부딪혔다) 주차장에서 출발하면 먼저 꺾어 나가라고
+                       // (주차장 칸에서 곧장 나가 통로 건너편 차에 부딪혔다) 주차장에서 출발하면 먼저 꺾어 나가라고
                        + (curKind == "region" && world.st.road?.region != null && world.st.road.region.InParkingLot(world.car.Center) ? "\n주차장 칸에서 출발합니다. 통로에 들어서면 스티어링 휠을 돌려 길 쪽으로 나가십시오." : "");
             return world.st.goal ?? "";
         }
@@ -45,7 +45,7 @@ namespace DriveCoach.Unity
                 // "region:동네번호" 또는 "region:동네번호:시작자리번호"(0 = 동네 한가운데, 1.. = 길 이름으로 고른 자리)
                 var parts = id.Split(':');
                 int ri = parts.Length > 1 && int.TryParse(parts[1], out var a1) ? a1 : 0;
-                // (11/15) "region:동네번호:@x,y[,방향]" = 동네 지도에서 고른 자리(동네 좌표 m). 방향까지 있으면 그 자리·방향 그대로(주차장 칸)
+                // "region:동네번호:@x,y[,방향]" = 동네 지도에서 고른 자리(동네 좌표 m). 방향까지 있으면 그 자리·방향 그대로(주차장 칸)
                 if (parts.Length > 2 && parts[2].StartsWith("@"))
                 {
                     var xy = parts[2].Substring(1).Split(',');
@@ -114,7 +114,7 @@ namespace DriveCoach.Unity
             camMode = camMode == CamMode.Chase ? CamMode.Driver
                     : camMode == CamMode.Driver ? CamMode.Top
                     : camMode == CamMode.Top ? CamMode.Overview : CamMode.Chase;
-            // (11/14 베타: 시점 버튼이 설정의 "처음 시점"을 몰래 바꾼다) 판 안에서만 바꾼다. 다음 판은 설정의 처음 시점으로
+            // (시점 버튼이 설정의 "처음 시점"을 몰래 바꾼다) 판 안에서만 바꾼다. 다음 판은 설정의 처음 시점으로
             lookYaw = lookPitch = 0f;
             scene.cameraRig.Snap(camMode, world);
         }
@@ -151,7 +151,7 @@ namespace DriveCoach.Unity
         }
 
         /// <summary>
-        /// (11/11) 달리던 동네를 내리고 다른(또는 같은) 동네를 연다. 순서가 중요하다: 예전에는 새 동네를 지은 뒤에야 옛 동네가 지워져
+        /// 달리던 동네를 내리고 다른(또는 같은) 동네를 연다. 순서가 중요하다: 예전에는 새 동네를 지은 뒤에야 옛 동네가 지워져
         /// 잠깐 두 동네가 함께 메모리에 올라갔다(자가 검사에서 최대 1,147 MB). 이제 ① 달리던 화면을 사진 한 장으로 깔아 두고(화면이 비지 않게)
         /// ② 옛 동네를 먼저 내리고 한 장 기다려 실제로 지워지게 한 뒤 안 쓰는 것을 정리하고 ③ 새 동네를 짓는다. 화면에는 작은 알림만 뜬다.
         /// </summary>
@@ -185,6 +185,15 @@ namespace DriveCoach.Unity
             }
             catch (Exception e) { Debug.LogWarning("freeze: " + e.Message); }
             EndSession();
+            // 떠나온 동네 자료(지도·노면)는 새 동네를 짓기 전에 잊는다. 예전에는 다 지은 뒤에 잊어서
+            //   짓는 동안 두 동네 자료가 함께 있었다(스크립트 힙 175 MB). 새 동네 것(미리 읽어 둔 것 포함)은 그대로 둔다.
+            if (id >= 0 && id < RegionCatalog.Entries.Count)
+            {
+                RegionCatalog.KeepOnly(RegionCatalog.Entries[id].file);
+                // 지은 뒤 노면 자료를 잊으므로("다시"로 같은 동네를 열 때) 노면 파일 해석을 지금 뒤에서 시작한다 —
+                //   아래 정리(UnloadUnusedAssets·GC)와 겹쳐 floors 단계의 1.5~2.5초를 줄인다. 옆 동처럼 이미 읽는 중이면 아무것도 안 한다
+                RoadSurface.Preload(RegionCatalog.Entries[id].file + "_surface");
+            }
             uiCam.enabled = true;                              // 장면 카메라가 없는 동안 화면을 그릴 카메라
             yield return null;
             var unload = Resources.UnloadUnusedAssets();
@@ -243,9 +252,9 @@ namespace DriveCoach.Unity
         /// <summary>실제 동네는 지도가 커서 여는 데 몇 초~수십 초가 걸린다. 누르자마자 "불러오는 중"을 띄우고 다음 장면에서 연다.</summary>
         /// <summary>실제 동네를 열 때의 시작 자리(없으면 동네 한가운데)와 바라볼 방향 힌트. StartSession("region") 이 한 번 쓰고 비운다</summary>
         V2? regionStart; float regionHeading = float.NaN;
-        bool regionExact;          // (11/15) 차로에 맞추지 않고 그 자리·방향 그대로(주차장 칸 출발)
-        string pendingRoute;     // (11/13) 시연 경로를 골랐으면 그 경로 JSON. 세션이 열리면 자동 운전이 가져간다
-        /// <summary>(11/11) 맵 고르기에서 고른 시작 위치 — "다시"를 누르면 같은 자리에서 다시 시작한다(예전: 늘 동네 기본 자리)</summary>
+        bool regionExact;          // 차로에 맞추지 않고 그 자리·방향 그대로(주차장 칸 출발)
+        string pendingRoute;     // 시연 경로를 골랐으면 그 경로 JSON. 세션이 열리면 자동 운전이 가져간다
+        /// <summary>맵 고르기에서 고른 시작 위치 — "다시"를 누르면 같은 자리에서 다시 시작한다(예전: 늘 동네 기본 자리)</summary>
         V2? pickedStart; int pickedRegion = -1; float pickedHeading = float.NaN; bool pickedExact;
 
         System.Collections.IEnumerator LoadRegion(int id, int spot = 0, V2? at = null, float atHeading = float.NaN)
@@ -266,7 +275,7 @@ namespace DriveCoach.Unity
             }
             else if (spot == 0)
             {
-                // (11/15 대표: "모든 출발은 주차장 칸에서") 자리를 고르지 않았으면 동네 기본 자리에서 가장 가까운 주차장 칸
+                // 자리를 고르지 않았으면 동네 기본 자리에서 가장 가까운 주차장 칸
                 var rd0 = RegionCatalog.Load(id);
                 var ps = rd0?.ParkingStarts();
                 if (rd0 != null && ps != null && ps.Count > 0)
@@ -297,10 +306,12 @@ namespace DriveCoach.Unity
                 else if (spots != null && spot - 1 < spots.Count) regionStart = spots[spot - 1].p;
             }
             pickedStart = regionStart; pickedRegion = id; pickedHeading = regionHeading; pickedExact = regionExact;
+            // 목록에서 다른 동네를 고르면 예전 동네 자료가 남아 있었다 → 고른 동네 것만 남긴다
+            if (id >= 0 && id < RegionCatalog.Entries.Count) RegionCatalog.KeepOnly(RegionCatalog.Entries[id].file);
             bool opened = false;
             try { StartSession("region", id); opened = true; }
             finally { loadingRegion = false; if (!opened && veil != null) Dc.Kill(veil.gameObject); }
-            // (11/11) 연 직후 몇 장은 느리고(에뮬레이터에서는 한 장에 몇 초) 차·HUD 가 제자리를 잡기 전 모습이 그대로 보였다
+            // 연 직후 몇 장은 느리고(에뮬레이터에서는 한 장에 몇 초) 차·HUD 가 제자리를 잡기 전 모습이 그대로 보였다
             //   (차가 없고 가운데 흰 네모) → 가림막을 주행 화면 쪽으로 옮겨 네 장 더 둔다.
             if (veil != null && hud != null)
             {
@@ -310,12 +321,16 @@ namespace DriveCoach.Unity
             }
             for (int i = 0; i < 4; i++) yield return null;
             if (veil != null) Dc.Kill(veil.gameObject);
+            GovQuiet();      // 가림막을 걷은 뒤부터 잠깐 기다렸다가 화면 수를 잰다(가림막 아래 첫 그리기 장은 재지 않는다)
         }
 
         void StartSession(string kind, int id)
         {
             Dc.Lap(null);
             EndSession(); Dc.Lap("end-session");
+            censusTick = 0;
+            // 주차·서킷 연습에서는 동네 지도·노면 자료가 필요 없다(동네로 돌아가면 다시 읽는다)
+            if (kind != "region") RegionCatalog.KeepOnly("");
             Stage st;
             switch (kind)
             {
@@ -330,12 +345,12 @@ namespace DriveCoach.Unity
                            : regionExact ? Stages.RegionExact(rd, 400 + id, regionStart.Value, regionHeading)
                            : Stages.Region(rd, 400 + id, regionStart.Value, regionHeading);
                         regionStart = null; regionHeading = float.NaN; regionExact = false;
-                        // 교통량(11/8 밤 대표: "교통량 이런 것도 반영되면 좋겠네"): 설정의 시간·날씨로
+                        // 교통량: 설정의 시간·날씨로
                         //   출근(아침) 1.4배, 낮 1, 퇴근(해질녘) 1.3배, 밤 0.45배, 눈 0.7배 — 기준 30 대(내 차 둘레 150~400 m)
                         if (st.road != null)
                         {
                             float k = new[] { 1.4f, 1f, 1.3f, 0.45f }[Prefs.TimeOfDay] * (Prefs.Weather == 4 ? 0.7f : 1f) * new[] { 0.5f, 1f, 1.6f }[Prefs.TrafficLevel];
-                            // (11/11 대표) 지역에 맞는 통행량: 동네마다 배율(index.json traffic) — 상업지는 많게, 주거지는 보통
+                            // 지역에 맞는 통행량: 동네마다 배율(index.json traffic) — 상업지는 많게, 주거지는 보통
                             var ent = id >= 0 && id < RegionCatalog.Entries.Count ? RegionCatalog.Entries[id] : null;
                             if (ent != null) k *= ent.trafficK;
                             st.road.trafficCount = Mathf.Clamp(Mathf.RoundToInt(30 * k), 4, 80);
@@ -348,12 +363,14 @@ namespace DriveCoach.Unity
             curId = id;
             Dc.Lap("stage-data");
             world = new World(st, spec); Dc.Lap("world");
+            // 다른 차의 붙는 구간(가로지름·모임)을 불러오는 화면 뒤에서 모두 찾아 둔다 — 첫 주행 장에 몰리지 않게
+            world.traffic?.PrepareCrossings(); Dc.Lap("traffic-cross");
             auto = null; autoRoute = false;
             if (pendingRoute != null && kind == "region") { auto = AutoDrive.FromRouteJson(pendingRoute); autoRoute = auto != null; }
             pendingRoute = null;
-            // (11/15 베타 5A: 앞 연습에서 끝까지 돌려 둔 화면 휠·키보드 핸들이 새 연습·"다시"로 넘어와 출발하자마자 벽에 부딪힌다)
+            // (앞 연습에서 끝까지 돌려 둔 화면 휠·키보드 핸들이 새 연습·"다시"로 넘어와 출발하자마자 벽에 부딪힌다)
             //   실제 핸들이 연결된 때와 옆 동으로 이어 달릴 때만 그대로 잇고, 그 밖에는 가운데에서 시작한다
-            // (11/15 베타 6g: 앱 안에서는 차 신호가 늘 와서 connected 인데, 핸들은 화면 휠(Prefs.VWheel)이 정한다 → 화면 휠을 쓰면 늘 가운데로)
+            // (앱 안에서는 차 신호가 늘 와서 connected 인데, 핸들은 화면 휠(Prefs.VWheel)이 정한다 → 화면 휠을 쓰면 늘 가운데로)
             if (!crossing && (!connected || Prefs.VWheel)) { steer = keySteer = 0f; if (hud != null) hud.DialDeg = 0f; }
             world.car.steerDeg = steer;
             {
@@ -369,15 +386,15 @@ namespace DriveCoach.Unity
                 }
             }
             scene = SceneRig.Build(world, worldRoot);
-            scene.Tick(world, 0.016f, true);                   // (11/11) 첫 장부터 차가 제자리에(예전에는 첫 장에 차가 안 보였다)
+            scene.Tick(world, 0.016f, true);                   // 첫 장부터 차가 제자리에(예전에는 첫 장에 차가 안 보였다)
             camMode = Prefs.StartCam;
             scene.cameraRig.Snap(camMode, world); Dc.Lap("scene-tail");
             savedResult = false;
             screenBrake = false;          // 게임 속 차는 P 로 시작하니 저절로 움직이지 않는다
             lookYaw = lookPitch = 0f;
             hud.Bind(scene);
-            // (11/14 밤) 왼쪽 위 할 일 카드를 없앤 대신 시작할 때 할 일을 잠깐 알린다(튜토리얼은 단계마다 World 가 알린다). 오른쪽 위 "할 일" 로 다시 볼 수 있다
-            // (11/15 대표) 할 일은 화면에 띄우지 않고 음성으로 한 번만(기기 밖, 편집기에서는 예전처럼 알림)
+            // 왼쪽 위 할 일 카드를 없앤 대신 시작할 때 할 일을 잠깐 알린다(튜토리얼은 단계마다 World 가 알린다). 오른쪽 위 "할 일" 로 다시 볼 수 있다
+            // 할 일은 화면에 띄우지 않고 음성으로 한 번만(기기 밖, 편집기에서는 예전처럼 알림)
             if (AndroidLink.OnDevice) AndroidLink.Call("speakHint", (GoalHint() ?? "").Replace("\n", " ").Replace("→", ",")); else world.Say(GoalHint(), 9f);
             menu.SetVisible(false);
             hud.SetVisible(true);
@@ -389,6 +406,7 @@ namespace DriveCoach.Unity
             if (scene != null) scene.Dispose();
             scene = null;
             world = null;
+            CityBuilder.Forget();   // 지을 때만 쓰던 노면·건물 격자 참조를 놓는다
         }
 
         void ShowMenu()
@@ -403,7 +421,7 @@ namespace DriveCoach.Unity
         {
             savedResult = true;
             if (world.state != PlayState.Done) return;
-            if (AutoOn) return;           // (11/15 베타 5A) 자동 운전은 기록(별)을 남기지 않는다
+            if (AutoOn) return;           // 자동 운전은 기록(별)을 남기지 않는다
             string key = curKind == "tutorial" ? "tut:" + curId : curKind + ":" + curId;
             int stars = curKind == "tutorial" ? 1 : Mathf.Max(1, world.result != null ? world.result.stars : 1);
             ProgressStore.Record(key, stars);

@@ -1,4 +1,4 @@
-// 지역 지도 자료의 부품 타입(11/15 코드 정리로 Region.cs 에서 나눈 파일).
+// 지역 지도 자료의 부품 타입(Region.cs 에서 나눈 파일).
 using System;
 using System.Collections.Generic;
 
@@ -8,18 +8,18 @@ namespace DriveCoach.Core
     {
         public string hw = "", name = "";
         public int lanes = 2, maxspeed = 30;
-        /// <summary>(11/13) 자료로 확인된 제한속도(km/h): 노면 숫자·속도제한 표지·OSM maxspeed. 0 = 모름 → 제한속도 없음으로 다룬다(과속 판정·표시 안 함). JSON "ms"</summary>
+        /// <summary>자료로 확인된 제한속도(km/h): 노면 숫자·속도제한 표지·OSM maxspeed. 0 = 모름 → 제한속도 없음으로 다룬다(과속 판정·표시 안 함). JSON "ms"</summary>
         public int posted;
         /// <summary>길 폭(m, 골목처럼 따로 잰 것). 0 = 차로 수 × 차로 폭</summary>
         public float width;
         /// <summary>실제 노면 반폭(왼쪽·오른쪽, m). 서울 T-GIS 실제 차선으로 잰 값. 0 = 모름</summary>
         public float wl, wr;
-        /// <summary>(11/12 밤) 도랑(지하차도 진입로) 바닥의 반폭을 좌우 따로 줄 때(m). 0 = wl·wr 중 넓은 쪽을 양쪽에.
+        /// <summary>도랑(지하차도 진입로) 바닥의 반폭을 좌우 따로 줄 때(m). 0 = wl·wr 중 넓은 쪽을 양쪽에.
         /// OSM 가운데선이 방향별 차도 한가운데(옆 차로 포함)에 있어, 가운데 차로만 내려가는 지하차도는 안쪽으로 치우친다.</summary>
         public float twl, twr;
         /// <summary>실제 차선으로 잰 차로 가운데(오프셋 m, 진행 방향 오른쪽 +). laneR = 정방향, laneL = 역방향(음수). null = 모름(차로 수 × 폭)</summary>
         public float[] laneR, laneL;
-        /// <summary>점마다 차로 가운데를 옆으로 더 옮길 거리(m, 오른쪽 +, pts 와 같은 길이) — OSM 선이 실제 칠과 나란하지 않은 길(11/9 노면 28차 검토: 차로 경로가 차선 위로 비스듬히). null = 없음</summary>
+        /// <summary>점마다 차로 가운데를 옆으로 더 옮길 거리(m, 오른쪽 +, pts 와 같은 길이) — OSM 선이 실제 칠과 나란하지 않은 길(차로 경로가 차선 위로 비스듬히). null = 없음</summary>
         public float[] laneShift;
         public bool oneway, bridge, tunnel;
         public int layer;

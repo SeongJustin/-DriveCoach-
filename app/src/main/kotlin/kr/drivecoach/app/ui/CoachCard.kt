@@ -1,4 +1,4 @@
-// 공용 화면 블록(11/15 코드 정리): 활동 화면(차량 조작법, 도로 법규, 주차, 코스)이 똑같이 쓰던 카드 틀을 한곳에 모았다.
+// 공용 화면 블록: 활동 화면(차량 조작법, 도로 법규, 주차, 코스)이 똑같이 쓰던 카드 틀을 한곳에 모았다.
 package kr.drivecoach.app.ui
 
 import androidx.compose.foundation.background

@@ -1,4 +1,4 @@
-// 담당: S (3D 도로 주행 — 11/8 대표 요청: "도로주행 모드는 미리 만들어만 놔줘")
+// 3D 도로 주행
 // 지금은 미리보기: 신호 있는 사거리와 2차로 도로가 있는 작은 동네를 자유롭게 달리며
 // 신호 위반·정지선 넘김·차로 이탈·제한속도를 짧은 말로 알려 준다. 나중에 코스(목적지)·점수·다른 차를 붙일 자리를 남겼다.
 using System;
@@ -12,7 +12,7 @@ namespace DriveCoach.Core
     {
         public readonly RoadDef def;
         public int redLightCount, stopLineCount, laneDepartCount, speedingCount, noSignalCount;
-        /// <summary>부딪힌 횟수(11/11: 도로 주행에서는 부딪혀도 판이 끝나지 않는다)</summary>
+        /// <summary>부딪힌 횟수(도로 주행에서는 부딪혀도 판이 끝나지 않는다)</summary>
         public int bumpCount;
         /// <summary>옆 동 지도로 바꿔 달라는 요청(그 동의 파일 이름). 없으면 null</summary>
         public string wantRegion;
@@ -29,11 +29,11 @@ namespace DriveCoach.Core
         }
         /// <summary>연석을 밟은 횟수(멈추지 않고 기록만)</summary>
         public int curbCount;
-        /// <summary>11/9 새벽 규칙: 빨간불 우회전 때 일시정지 안 함, 앞차와 너무 가까움, 밤·비에 전조등 끔, 마주 오는 차 앞 상향등, 안전벨트</summary>
+        /// <summary>추가 규칙: 빨간불 우회전 때 일시정지 안 함, 앞차와 너무 가까움, 밤·비에 전조등 끔, 마주 오는 차 앞 상향등, 안전벨트</summary>
         public int rightOnRedCount, tailgateCount, lightCount, highBeamCount, beltCount, humpCount, schoolStopCount, pedCount;
         readonly Dictionary<int, float> pedWarned = new Dictionary<int, float>();
         bool onHump;
-        // 어린이보호구역(11/9): 지금 구역(-1 = 밖), 신호 없는 구역 안 횡단보도(정해 두기), 앞에 멈춰야 할 횡단보도까지 거리(자동 속도가 본다)
+        // 어린이보호구역: 지금 구역(-1 = 밖), 신호 없는 구역 안 횡단보도(정해 두기), 앞에 멈춰야 할 횡단보도까지 거리(자동 속도가 본다)
         public int schoolZone = -1;
         public float zoneStopDist = float.PositiveInfinity;
         List<V2> zoneCrossings;
@@ -41,18 +41,18 @@ namespace DriveCoach.Core
         public float distance;
         /// <summary>지금 차로(가장 가까운 차로)와 그 제한 속도</summary>
         public Lane lane;
-        /// <summary>지금 길의 제한속도(km/h). 0 = 확인된 제한속도 없음(과속 판정·표시 안 함, 11/13 대표)</summary>
+        /// <summary>지금 길의 제한속도(km/h). 0 = 확인된 제한속도 없음(과속 판정·표시 안 함)</summary>
         public float limitKmh;
         /// <summary>지금 차로의 흐름 속도(자동 속도가 제한속도를 모를 때 쓰는 값)</summary>
         public float flowKmh;
         bool outside;
         V2 lastFront;
         bool laneOut, speeding;
-        bool joined = true;       // (11/15) 차로에 들어섰는지(주차장에서 출발하면 차로 안에서 방향이 맞을 때까지 false)
-        /// <summary>(11/15 베타 7i) 아직 차로에 들어서지 않음(주차장 안·주차장에서 나오는 중). 자동 속도가 이때는 천천히 간다</summary>
+        bool joined = true;       // 차로에 들어섰는지(주차장에서 출발하면 차로 안에서 방향이 맞을 때까지 false)
+        /// <summary>아직 차로에 들어서지 않음(주차장 안·주차장에서 나오는 중). 자동 속도가 이때는 천천히 간다</summary>
         public bool NotJoined => !joined;
         float sayCooldown;
-        // 방향지시등 규칙(11/8 밤): 회전·차로 변경 전에 그쪽 방향지시등을 켰는가(도로교통법 제38조: 시내 30 m 전부터)
+        // 방향지시등 규칙: 회전·차로 변경 전에 그쪽 방향지시등을 켰는가(도로교통법 제38조: 시내 30 m 전부터)
         readonly List<(float t, float h)> headHist = new List<(float, float)>();
         float lastLeftT = -99f, lastRightT = -99f, turnCooldown, laneChangeCooldown;
         Lane prevLane;
@@ -234,7 +234,7 @@ namespace DriveCoach.Core
         /// <summary>
         /// 어린이보호구역: 들어서면 알림(30 km/h, 신호 없는 횡단보도 일시정지 — 2022.7.12 시행), 제한 속도 30.
         /// 구역 안 신호 없는 횡단보도(30 m 안에 신호가 없는 것): 앞 25 m 안이면 zoneStopDist 로 알려(자동 속도가 그 앞에서 선다),
-        /// 13 m 안(정지선이 횡단보도 가운데에서 8~10 m 앞에 있는 곳이 있다)에서 멈추면(0.3 m/s 밑) 통과, 멈추지 않고 지나가면 안내·셈.
+        /// 13 m 안 또는 그 횡단보도 정지선(가운데에서 13.5 m 안, 8~13 m 앞에 있는 곳이 있다) 바로 앞 4 m 안에서 멈추면(0.3 m/s 밑) 통과, 멈추지 않고 지나가면 안내·셈.
         /// </summary>
         void SchoolZoneRules(World w, float dt)
         {
@@ -270,7 +270,10 @@ namespace DriveCoach.Core
                 float ahead = rel.Dot(dir), side = Math.Abs(rel.x * dir.y - rel.y * dir.x);
                 if (side > 7f || ahead < -3f || ahead > 25f) continue;
                 if (ahead > 0.5f) zoneStopDist = Math.Min(zoneStopDist, ahead);
-                if (Math.Abs(car.speed) < 0.3f && ahead < 13f) { crossCleared[i] = w.t; continue; }   // 멈췄다 → 통과
+                // 13 m 안, 또는 이 횡단보도 정지선(가운데에서 13.5 m 안에 칠해진 것) 바로 앞(4 m 안)에서 멈추면 통과 —
+                //   정지선이 횡단보도 가운데에서 11~13 m 앞인 곳(양재1동 바우뫼로 (348,-174) 12.4 m)에서는 정지선에 바르게 서도 13 m 를 넘어
+                //   '안 멈춤'으로 셌고, 자동 운전(정지선 2.4 m 앞에 섬)은 영영 섰다. 일괄 16 m 로 넓히지 않고 정지선이 있는 곳만 넓힌다.
+                if (Math.Abs(car.speed) < 0.3f && (ahead < 13f || StopLineJustAhead(rg, front, dir, ahead))) { crossCleared[i] = w.t; continue; }   // 멈췄다 → 통과
                 if (ahead < 0.5f && car.speed > 1f)
                 {
                     schoolStopCount++;
@@ -280,7 +283,15 @@ namespace DriveCoach.Core
             }
         }
 
-        // 위험 예측 한마디(11/10): 초보 운전자 훈련 연구에서 효과가 확인된 "위험이 어떻게 커질지 미리 보게 하는" 방식.
+        /// <summary>앞 4 m 안에 칠해진 정지선이 있고, 그 정지선이 횡단보도 가운데(ahead m 앞)에서 13.5 m 안인가</summary>
+        static bool StopLineJustAhead(RegionData rg, V2 front, V2 dir, float ahead)
+        {
+            if (rg.stopPaint.Count == 0 || ahead > 18f) return false;
+            float pd = rg.StopPaintAhead(front, dir, -0.5f, 4f, 1.6f);
+            return !float.IsNegativeInfinity(pd) && ahead - pd > 0.5f && ahead - pd < 13.5f;
+        }
+
+        // 위험 예측 한마디: 초보 운전자 훈련 연구에서 효과가 확인된 "위험이 어떻게 커질지 미리 보게 하는" 방식.
         // 신호 없는 횡단보도·버스 정류장 35 m 앞에서 "어디를 봐야 할까요?" 를 묻고, 지나간 뒤 답을 짚어 준다.
         // 잔소리가 되지 않게 한 곳은 한 번만, 묻는 간격은 45초 넘게.
         List<(V2 p, int type)> hazards;
@@ -289,23 +300,30 @@ namespace DriveCoach.Core
         float hazardCool = 20f;
         public int hazardQuizCount;
 
+        /// <summary>
+        /// 위험 예측 한마디를 물을 자리: 신호 없는 횡단보도(0)·버스 정류장(1).
+        /// 세우지 않는 중앙 정류장(kind 2 = JSON "m":2, 섬 없음 — BusStopBuilder 도 짓지 않음)은 뺀다. 없는 정류장을 "앞에 버스 정류장" 이라고 물었다.
+        /// </summary>
+        public static List<(V2 p, int type)> HazardPoints(RegionData rg)
+        {
+            var res = new List<(V2, int)>();
+            var pts = new List<V2>();
+            if (rg.crosswalks.Count > 0) foreach (var x in rg.crosswalks) pts.Add(x.c); else pts.AddRange(rg.crossings);
+            foreach (var c in pts)
+            {
+                bool sig = false;
+                foreach (var sp in rg.signals) if (sp.DistanceTo(c) < 30f) { sig = true; break; }
+                if (!sig) res.Add((c, 0));
+            }
+            foreach (var b in rg.busStops) if (b.kind != 2) res.Add((b.sign, 1));
+            return res;
+        }
+
         void HazardQuiz(World w, float dt)
         {
             var rg = def.region;
             if (rg == null) return;
-            if (hazards == null)
-            {
-                hazards = new List<(V2, int)>();
-                var pts = new List<V2>();
-                if (rg.crosswalks.Count > 0) foreach (var x in rg.crosswalks) pts.Add(x.c); else pts.AddRange(rg.crossings);
-                foreach (var c in pts)
-                {
-                    bool sig = false;
-                    foreach (var sp in rg.signals) if (sp.DistanceTo(c) < 30f) { sig = true; break; }
-                    if (!sig) hazards.Add((c, 0));
-                }
-                foreach (var b in rg.busStops) hazards.Add((b.sign, 1));
-            }
+            if (hazards == null) hazards = HazardPoints(rg);
             var car = w.car;
             var front = car.FrontBumperCenter;
             var dir = car.Dir;
@@ -434,8 +452,8 @@ namespace DriveCoach.Core
                 limitKmh = def.region == null ? flowKmh : alignedLane.postedKmh;      // 동네 지도: 자료로 확인된 값만(없으면 0)
             }
             if (schoolZone >= 0) limitKmh = limitKmh > 0f ? Math.Min(limitKmh, 30f) : 30f;      // 어린이보호구역
-            // (11/13) 교차로에서 꺾는 동안(핸들을 120° 넘게 돌린 상태)은 차로 가운데 판정을 하지 않는다 — 바르게 원호로 돌아도 "차로 가운데로 가세요"가 났다
-            // (11/15 대표: "모든 출발은 주차장 칸에서") 주차장 안, 그리고 주차장에서 나와 차로에 들어서기(차로 안에서 방향이 맞기) 전까지는
+            // 교차로에서 꺾는 동안(핸들을 120° 넘게 돌린 상태)은 차로 가운데 판정을 하지 않는다 — 바르게 원호로 돌아도 "차로 가운데로 가세요"가 났다
+            // 주차장 안, 그리고 주차장에서 나와 차로에 들어서기(차로 안에서 방향이 맞기) 전까지는
             //   차로 가운데 판정을 하지 않는다 — 길로 들어가는 동안은 차로를 가로지르는 것이 맞다
             bool inLot = def.region != null && def.region.InParkingLot(car.Center);
             if (!joined && bestLane != null && best < bestLane.width / 2f && alignedLane == bestLane) joined = true;
@@ -452,7 +470,7 @@ namespace DriveCoach.Core
             if (over && !speeding) { speedingCount++; w.Say($"제한속도 {limitKmh:0} km/h 입니다", 2.2f); }
             speeding = over;
 
-            // 내 동네: 동 경계(11/8 밤 대표: 막다른 길이 아니라 옆 동으로 이어진다).
+            // 내 동네: 동 경계(막다른 길이 아니라 옆 동으로 이어진다).
             //   옆 동 데이터가 앱에 있으면 그대로 넘어간다(알림). 없으면 경계 밖 4 m 안에서 속도를 0 까지 줄여 세우고
             //   "OO동 데이터를 아직 다운받지 않으셨습니다" — 동 안쪽으로 돌아가는 움직임은 막지 않는다.
             var rg = def.region;
@@ -487,7 +505,7 @@ namespace DriveCoach.Core
                     else
                     {
                         if (!outside) w.Say($"{nb.name}으로 들어갑니다", 2f);
-                        // (11/11 대표: 동 사이 이동) 옆 동 안으로 40 m 넘게 들어오면 그 동 지도로 바꿔 달라고 알린다(GameMain 이 받아서 이어 달리게 한다).
+                        // (동 사이 이동) 옆 동 안으로 40 m 넘게 들어오면 그 동 지도로 바꿔 달라고 알린다(GameMain 이 받아서 이어 달리게 한다).
                         //   40 m 여유: 경계를 따라 난 길에서 두 동을 왔다 갔다 하며 계속 바뀌지 않게.
                         if (dist > 40f) wantRegion = nb.file;
                     }
@@ -495,7 +513,7 @@ namespace DriveCoach.Core
                 outside = !inside;
                 if (dist > rg.margin - 40f)
                 {
-                    // (11/11) 판을 끝내지 않는다: 지도 끝에서는 더 못 가게 세우고 알려 준다
+                    // 판을 끝내지 않는다: 지도 끝에서는 더 못 가게 세우고 알려 준다
                     var outDir2 = (c - edge).Normalized;
                     if (car.speed * car.Dir.Dot(outDir2) > 0f) car.speed = 0f;
                     if (sayCooldown <= 0f) { w.Say("여기가 지도 끝입니다. 돌아가 주십시오.", 3f); sayCooldown = 4f; }

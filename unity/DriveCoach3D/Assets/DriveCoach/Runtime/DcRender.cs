@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 카메라 한 장 직접 그리기. URP 에서는 Camera.Render 대신 RenderPipeline.SubmitRenderRequest 를 쓴다)
+// 3D 주차 연습 — 카메라 한 장 직접 그리기. URP 에서는 Camera.Render 대신 RenderPipeline.SubmitRenderRequest 를 쓴다
 using UnityEngine;
 using UnityEngine.Rendering;
 

@@ -1,6 +1,6 @@
-// 담당: S (11/8 내 동네 도로 연수 — 실제 노면): 미리 만들어 둔 <지역>_surface.bytes 읽기.
+// 내 동네 도로 연수 — 실제 노면 — 미리 만들어 둔 <지역>_surface.bytes 읽기.
 // 아스팔트(큰길·동네길)·보도·실제 칠(흰·노랑·파랑) 삼각형, 연석 선, 소품 자리. 좌표는 지역 좌표(dm, int16).
-// 대표 요청(11/8): 칠이 아스팔트 밖으로 나가면 안 되고, 아스팔트 위에 나무 같은 물체가 들어가면 안 된다.
+// 칠이 아스팔트 밖으로 나가면 안 되고, 아스팔트 위에 나무 같은 물체가 들어가면 안 된다.
 //  → 노면은 미리 한 몸으로 만들어 두고, 실행 중에 무언가 놓을 때는 Asphalt(p) 로 아스팔트 위인지 확인한다.
 using System;
 using System.Collections.Generic;
@@ -29,7 +29,7 @@ namespace DriveCoach.Unity
 
         static readonly Dictionary<string, System.Threading.Tasks.Task<RoadSurface>> pending = new Dictionary<string, System.Threading.Tasks.Task<RoadSurface>>();
 
-        /// <summary>(11/11) 옆 동 노면 파일을 뒤에서 미리 읽어 둔다(RegionCatalog.Preload 가 부른다). 내용 꺼내기는 주 스레드, 해석은 작업 스레드.</summary>
+        /// <summary>옆 동 노면 파일을 뒤에서 미리 읽어 둔다(RegionCatalog.Preload 가 부른다). 내용 꺼내기는 주 스레드, 해석은 작업 스레드.</summary>
         public static void Preload(string file)
         {
             if (string.IsNullOrEmpty(file)) return;
@@ -40,6 +40,13 @@ namespace DriveCoach.Unity
             if (raw == null) return;
             var task = System.Threading.Tasks.Task.Run(() => Parse(raw));
             lock (cache) pending[file] = task;
+        }
+
+        /// <summary>다 지은 동네의 노면 자료를 잊는다(미리 읽는 중인 이웃 동네 것은 그대로)</summary>
+        public static void Forget(string file)
+        {
+            if (string.IsNullOrEmpty(file)) return;
+            lock (cache) cache.Remove(file);
         }
 
         public static void KeepOnly(string file)

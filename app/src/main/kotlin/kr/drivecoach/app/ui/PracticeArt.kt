@@ -1,4 +1,4 @@
-// 담당: UI-ART (차량 조작법 연습 항목 52개 ↔ 그림 drawable 매핑)
+// 차량 조작법 연습 항목 52개 ↔ 그림 drawable 매핑
 package kr.drivecoach.app.ui
 
 import kr.drivecoach.app.R
@@ -7,7 +7,7 @@ import kr.drivecoach.app.R
  * 연습 항목 ID([kr.drivecoach.core.practice.Chapter2Items] 의 id, 예: "2-6-turn-signal-right") 를
  * `res/drawable-nodpi/practice_<id 의 하이픈→밑줄>`(.webp/.png) 리소스 ID 로 바꾼다.
  *
- * (11/13) .webp 47개 항목은 현대자동차 아반떼(CN8) 2027 취급설명서 그림(경고등 3색은 설명서 그림에 색 설명을 덧붙임),
+ * .webp 47개 항목은 현대자동차 아반떼(CN8) 2027 취급설명서 그림(경고등 3색은 설명서 그림에 색 설명을 덧붙임),
  * .png 5개 항목(사각지대·안전벨트 틀린 예·페달·안개등·뒷유리 와이퍼)은 우리 그림. 출처는 docs/manual_figs/출처.md.
  * 그림 크기: 800x500.
  */

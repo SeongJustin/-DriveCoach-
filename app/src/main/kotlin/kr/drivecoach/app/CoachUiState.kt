@@ -1,5 +1,5 @@
 // 화면 상태(UI State) 데이터 클래스·열거형 — CoachController 가 StateFlow 로 내보내고 MainActivity/screens 가 그린다.
-// (11/5 정리) CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
+// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
 package kr.drivecoach.app
 
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +40,7 @@ data class PracticeUi(
 enum class SubMode { NONE, PRACTICE, PARKING, COURSE, LAW }
 
 /** 도로 법규 화면 상태: 몇 번째 주제(0부터)·제목·설명 글(= 음성). */
-data class LawUi(val topicId: String, val index: Int, val total: Int, val title: String, val text: String, val heading: String = title, val basis: String = "")
+data class LawUi(val topicId: String, val index: Int, val total: Int, val title: String, val text: String, val heading: String = title, val basis: String = "", val country: String = "KR")
 
 /**
  * 코스 주행(5-1~5-4) 단계. CHOOSE 고르기 → GENERATING 코스 계산 중(길찾기 API, 백그라운드) → READY 내비로 보내기 전
@@ -99,11 +99,11 @@ data class CourseUi(
     val generated: Boolean = false,
     val fallbackAvailable: Boolean = false,
     val routeDiag: List<String> = emptyList(),
-    /** (11/14 베타) 고른 조건과 다른 점(조건을 다 맞춘 코스면 null). 예: "좌회전 4번(원함 1~2번), 거리 10.7 km(원함 6 km 이하)" */
+    /** 고른 조건과 다른 점(조건을 다 맞춘 코스면 null). 예: "좌회전 4번(원함 1~2번), 거리 10.7 km(원함 6 km 이하)" */
     val mismatch: String? = null,
-    /** (11/14 베타 4차: 지도·출발 위치가 없어 어디를 도는지 모른다) 경로 모양 미리보기용 좌표(최대 400점) */
+    /** (지도·출발 위치가 없어 어디를 도는지 모른다) 경로 모양 미리보기용 좌표(최대 400점) */
     val routeShape: List<LatLon> = emptyList(),
-    /** (11/15 강명수) 난이도별 코스 생성기를 쓰는지(길찾기 키가 있을 때). false 면 난이도·시간 선택을 숨긴다. */
+    /** 난이도별 코스 생성기를 쓰는지(길찾기 키가 있을 때). false 면 난이도·시간 선택을 숨긴다. */
     val difficultyAvailable: Boolean = false,
     val difficulty: Int = 2,
     val targetMinutes: Int = 20,
@@ -127,17 +127,17 @@ data class ParkingUi(
     val illustration: String?,
     val recovery: Tangle?,
     val recoveryOptions: List<Tangle>,
-    /** 이 단계에서 보여 줄 체크 항목만(베타 B-22/D-20/D-45: 단계와 무관한 항목은 숨긴다). */
+    /** 이 단계에서 보여 줄 체크 항목만(단계와 무관한 항목은 숨긴다). */
     val checks: List<ParkingCheck>,
     val needsConfirm: Boolean,
     val attempt: Int,
     /** 자기평가까지 끝남(힌트 문장이 text 에 있다). */
     val done: Boolean,
-    /** 단계 문장을 구체적으로 풀어 쓴 기준점 설명(있는 단계만, 베타 2차 A-11). */
+    /** 단계 문장을 구체적으로 풀어 쓴 기준점 설명(있는 단계만). */
     val detail: String? = null,
-    /** 잠깐 보여 주는 보조 안내(아직 감지 안 됨·먼저 정지·처음부터 등, 베타 2차 A-9). */
+    /** 잠깐 보여 주는 보조 안내(아직 감지 안 됨·먼저 정지·처음부터 등). */
     val notice: String? = null,
-    /** (11/15) 직각 또는 평행 주차. */
+    /** 직각 또는 평행 주차. */
     val kind: ParkingKind = ParkingKind.PERPENDICULAR,
 )
 

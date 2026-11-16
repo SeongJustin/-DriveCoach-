@@ -1,4 +1,4 @@
-// Stages 의 동네 도로 주행 판 만들기(11/15 코드 정리로 Region.cs 에서 나눈 파일).
+// Stages 의 동네 도로 주행 판 만들기(Region.cs 에서 나눈 파일).
 using System;
 using System.Collections.Generic;
 
@@ -32,7 +32,7 @@ namespace DriveCoach.Core
             return s;
         }
 
-        /// <summary>(11/15) 주차장 칸처럼 정확한 자리·방향에서 시작(차로에 맞추지 않는다)</summary>
+        /// <summary>주차장 칸처럼 정확한 자리·방향에서 시작(차로에 맞추지 않는다)</summary>
         public static Stage RegionExact(RegionData d, int id, V2 c, float headingDeg)
         {
             var s = Region(d, id);
@@ -75,7 +75,7 @@ namespace DriveCoach.Core
             // 1) 길 → 띠·차로
             foreach (var r in d.roads)
             {
-                // (11/13) 지하차도 안(tunnel 이고 높이가 있는 길)도 차로·높이는 넣는다 — 안 넣으면 입구에서 차로가 끊기고 차가 땅 위로 튀어 오른다.
+                // 지하차도 안(tunnel 이고 높이가 있는 길)도 차로·높이는 넣는다 — 안 넣으면 입구에서 차로가 끊기고 차가 땅 위로 튀어 오른다.
                 //   땅 위 띠(strips: 인도·바닥 꾸밈)만 뺀다. 높이 없는 터널(산 밑 터널·굴다리)은 전처럼 뺀다
                 bool under = false;
                 if (r.tunnel)
@@ -101,11 +101,11 @@ namespace DriveCoach.Core
                 if (r.z != null) AddGrade(road, r, Math.Max(r.wl > 0f ? r.wl : width / 2f, r.wr > 0f ? r.wr : width / 2f));
                 if (r.laneR != null && r.laneR.Length > 0)
                 {
-                    // 11/8 밤: 실제 칠한 차로 가운데로(다른 차·자동 경로가 차선 위가 아니라 차로 가운데로 다니게)
+                    // 실제 칠한 차로 가운데로(다른 차·자동 경로가 차선 위가 아니라 차로 가운데로 다니게)
                     AddMeasuredLanes(road, r, r.laneR, false, lw);
                     if (!r.oneway && r.laneL != null) AddMeasuredLanes(road, r, r.laneL, true, lw);
                     SetLaneZ(road, r, lane0);
-                    // (11/13) 좌우 따로 준 도랑(tl·tr): 그 바닥 밖의 차로는 내려가지 않고 땅 높이에 남는다(가운데 두 차로만 지하차도로 들어가는 넓은 길)
+                    // 좌우 따로 준 도랑(tl·tr): 그 바닥 밖의 차로는 내려가지 않고 땅 높이에 남는다(가운데 두 차로만 지하차도로 들어가는 넓은 길)
                     if (r.twl > 0f || r.twr > 0f)
                         for (int i = 0; i < r.laneR.Length && lane0 + i < road.lanes.Count; i++)
                             if (r.laneR[i] < -r.twl - 0.2f || r.laneR[i] > r.twr + 0.2f) road.lanes[lane0 + i].z = null;
@@ -113,8 +113,8 @@ namespace DriveCoach.Core
                 }
                 if (!r.oneway && n == 1)
                 {
-                    // 중앙선 없는 골목: 폭 4.6 m 넘으면 두 방향을 가운데에서 1.3 m 씩(마주 오는 두 차가 겹치지 않게, 11/9 대표 "나란히 가도 충돌이 없어야"),
-                    //   좁으면 가운데로 같이 쓴다(shared) — 다른 차는 마주치면 서로 오른쪽으로 붙여 비켜 간다(11/9 대표 "골목에서 마주치면 서로 양쪽으로 쭉 붙여 주는")
+                    // 중앙선 없는 골목: 폭 4.6 m 넘으면 두 방향을 가운데에서 1.3 m 씩(마주 오는 두 차가 겹치지 않게),
+                    //   좁으면 가운데로 같이 쓴다(shared) — 다른 차는 마주치면 서로 오른쪽으로 붙여 비켜 간다
                     bool split = width >= 4.6f;
                     float off = split ? Math.Min(1.35f, width / 4f) : 0f;
                     int iF = road.lanes.Count;
@@ -125,7 +125,7 @@ namespace DriveCoach.Core
                     SetLaneZ(road, r, lane0);
                     continue;
                 }
-                // (11/13) 일방통행(잰 차로 없음): 길 가운데선이 곧 차도 한가운데 — 차로를 가운데선 양쪽으로 나눈다(전에는 모두 오른쪽으로 밀려 차로 절반이 길 밖이었다)
+                // 일방통행(잰 차로 없음): 길 가운데선이 곧 차도 한가운데 — 차로를 가운데선 양쪽으로 나눈다(전에는 모두 오른쪽으로 밀려 차로 절반이 길 밖이었다)
                 float one = bwd == 0 ? -fwd * lw / 2f : median / 2f;
                 for (int i = 0; i < fwd; i++)
                     road.lanes.Add(new Lane { center = Offset(r.pts, one + (i + 0.5f) * lw), width = lw, name = r.name, speedLimitKmh = r.maxspeed });
@@ -186,7 +186,7 @@ namespace DriveCoach.Core
             for (int i = 0; i + 1 < r.pts.Length; i++)
             {
                 if (Math.Abs(r.z[i]) < 0.05f && Math.Abs(r.z[i + 1]) < 0.05f) continue;
-                // (11/12 밤) 좌우 따로 준 도랑(twl·twr): 그 바닥 위에서만 내려간다 — 가운데선을 바닥 한가운데로 옮겨 넣는다(옆 차로는 땅 높이 그대로)
+                // 좌우 따로 준 도랑(twl·twr): 그 바닥 위에서만 내려간다 — 가운데선을 바닥 한가운데로 옮겨 넣는다(옆 차로는 땅 높이 그대로)
                 if ((r.twl > 0f || r.twr > 0f) && (r.z[i] < 0f || r.z[i + 1] < 0f))
                 {
                     var dd = (r.pts[i + 1] - r.pts[i]).Normalized; var nr = new V2(-dd.y, dd.x);      // 오른쪽
@@ -303,7 +303,7 @@ namespace DriveCoach.Core
             }
             if (seen.Count == 0) return;
             axisA = seen[0].dir;
-            // 신호 시간(11/9 아침, 대표: "신호등도 리얼하게 실제랑 똑같이 작동해야겠지(빨간불 1분 30초면 똑같이)"):
+            // 신호 시간:
             //   이 교차로의 서울 교차로 번호에 경찰청 운영계획("sp")이 있으면 그 시간대 주기·현시, 없으면 교차로 크기로 정한 값(SignalPlan).
             //   A 갈래 = 들어오는 차로가 많은 갈래(운영계획 1 현시가 보통 큰 길)
             int nA = 0, nB = 0;
@@ -360,10 +360,10 @@ namespace DriveCoach.Core
                 });
                 foreach (var (p0, d0, ln) in g)
                 {
-                    // (11/13) 정지선 자리: 교차로 가운데에서 16 m 원이 아니라, 그 앞 횡단보도의 2.5 m 앞(실제 정지선 자리).
+                    // 정지선 자리: 교차로 가운데에서 16 m 원이 아니라, 그 앞 횡단보도의 2.5 m 앞(실제 정지선 자리).
                     //   큰 교차로(폭 40 m)에서는 16 m 원이 교차로 한가운데라, 차들이 횡단보도를 지나 교차로 안에 들어가 섰다
                     var p = p0; var d2 = d0;
-                    // (11/13 저녁) 칠해진 정지선이 이 차로 위에 있으면 그 자리가 먼저다(빨간불에 선 차가 칠해진 정지선을 밟고 있었다)
+                    // 칠해진 정지선이 이 차로 위에 있으면 그 자리가 먼저다(빨간불에 선 차가 칠해진 정지선을 밟고 있었다)
                     if (d != null && StopAtPaint(ln, d, ref p, ref d2)) { }
                     else if (d != null && d.crosswalks.Count > 0) StopBeforeCrosswalk(ln, d, ref p, ref d2);
                     var r2 = new V2(-d2.y, d2.x);

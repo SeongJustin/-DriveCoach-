@@ -1,4 +1,4 @@
-// 담당: D (차량 조작법 2-1~2-9 연습 항목 데이터)
+// 차량 조작법 2-1~2-9 연습 항목 데이터
 package kr.drivecoach.core.practice
 
 import kr.drivecoach.core.signal.Gear
@@ -54,7 +54,7 @@ class GearSequenceCheck : StatefulCheck {
         return false
     }
 
-    // (11/15 베타 6f) 화면은 "지금 할 것: …" 으로 보여 준다 → 한 것만 늘어놓지 않고 다음에 넣을 기어를 말한다
+    // 화면은 "지금 할 것: …" 으로 보여 준다 → 한 것만 늘어놓지 않고 다음에 넣을 기어를 말한다
     override fun progress(): String = when {
         index == 0 -> "P에서 R로"
         index < sequence.size -> sequence.take(index).joinToString("→") + " 다음 " + sequence[index].name
@@ -166,7 +166,7 @@ object Chapter2Items {
 
         // 2-3
         item(ignition, "2-3", "시동 걸기", either(ignition, auto { prev, now -> prev.ignitionOn == false && now.ignitionOn == true })),
-        // 신호가 없거나(null) 이미 그 상태면 센서로는 영영 통과할 수 없으므로 수동 확인도 허용(베타 A-06/D-24)
+        // 신호가 없거나(null) 이미 그 상태면 센서로는 영영 통과할 수 없으므로 수동 확인도 허용
         item(epbRelease, "2-3", "전자식 주차 브레이크 풀기", either(epbRelease, auto { prev, now -> prev.parkingBrakeOn == true && now.parkingBrakeOn == false }), Capability.EPB),
         item(epbApply, "2-3", "전자식 주차 브레이크 걸기", either(epbApply, auto { prev, now -> prev.parkingBrakeOn == false && now.parkingBrakeOn == true }), Capability.EPB),
         item(autoHoldOn, "2-3", "오토 홀드 켜기", manual(autoHoldOn), Capability.AUTO_HOLD),   // 오토홀드 신호 없음 → 수동
@@ -225,7 +225,7 @@ object Chapter2Items {
     fun itemsFor(capabilities: Set<String>): List<PracticeItem> =
         all.filter { it.requiredCapability == null || it.requiredCapability in capabilities }
 
-    /** 검색용 별칭(초보가 쓰는 말). 항목 ID → 단어들. 선택 화면 검색은 제목·별칭을 먼저, 장 제목은 그 다음에 본다(베타 A-11/D-25). */
+    /** 검색용 별칭(초보가 쓰는 말). 항목 ID → 단어들. 선택 화면 검색은 제목·별칭을 먼저, 장 제목은 그 다음에 본다. */
     val aliases: Map<String, List<String>> = mapOf(
         "2-6-turn-signal-right" to listOf("깜빡이", "깜박이", "방향지시등", "우측", "오른쪽"),
         "2-6-turn-signal-left" to listOf("깜빡이", "깜박이", "방향지시등", "좌측", "왼쪽"),

@@ -1,4 +1,4 @@
-// Stages 의 도로 주행 미리보기 판(11/15 코드 정리로 Road.cs 에서 나눈 파일).
+// Stages 의 도로 주행 미리보기 판(Road.cs 에서 나눈 파일).
 using System;
 using System.Collections.Generic;
 

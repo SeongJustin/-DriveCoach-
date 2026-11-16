@@ -1,4 +1,3 @@
-// 담당: C+G
 package kr.drivecoach.core.mode
 
 import kr.drivecoach.core.signal.FakeSignalSource

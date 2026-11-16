@@ -1,4 +1,4 @@
-// 담당: B (신호 변화 이벤트 추출)
+// 신호 변화 이벤트 추출
 package kr.drivecoach.core.signal
 
 /**

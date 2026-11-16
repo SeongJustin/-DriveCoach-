@@ -1,4 +1,4 @@
-// 담당: A (신호 소스·차종·주행 규제 생명주기, 권한 요청, 진단) → S (CoachController·TTS 연결, 첫 실제 화면, 흰 바탕 스타일·연습 그림, 포그라운드 서비스 바인딩, 핸들 감각·직각 주차·코스 주행 화면)
+// 신호 소스·차종·주행 규제 생명주기, 권한 요청, 진단, CoachController·TTS 연결, 첫 화면, 흰 바탕 스타일·연습 그림, 포그라운드 서비스 바인딩, 핸들 감각·직각 주차·코스 주행 화면
 // Compose 는 compose-bom 2024.06.00(ui 1.6.8, material3 1.2.1) 의 표준 API 만 쓰고 모든 심볼을 명시 import 했다.
 package kr.drivecoach.app
 
@@ -33,14 +33,14 @@ import kr.drivecoach.app.ui.PracticeArt
 import kotlinx.coroutines.launch
 
 /**
- * 앱 진입점(화면 담당). 신호 소스·차종·주행 규제·TTS·CoachController 는 [CoachService](포그라운드 서비스)가 소유하고,
+ * 앱 진입점. 신호 소스·차종·주행 규제·TTS·CoachController 는 [CoachService](포그라운드 서비스)가 소유하고,
  * 이 Activity 는 서비스를 띄운 뒤 바인딩해서 **같은 StateFlow 를 보여 주기만** 한다. 그래서 기어 D 에서 Pleos 런처가 화면을 덮거나
  * 사용자가 앱을 닫아도 음성 코칭은 계속된다. 두 가지 화면:
- *  - P 상태 화면(미니멀, 11/3~4): "인식 차종: …" + 설정(톱니바퀴) 한 줄, 그 아래 메뉴 3개(차 기능 익히기 / 도로 법규 / 코스 주행)가 화면을 꽉 채운다(설정: 코칭 음성·음성 속도·진단·버전·앱 종료).
+ *  - P 상태 화면(미니멀): "인식 차종: …" + 설정(톱니바퀴) 한 줄, 그 아래 메뉴 3개(차 기능 익히기 / 도로 법규 / 코스 주행)가 화면을 꽉 채운다(설정: 코칭 음성·음성 속도·진단·버전·앱 종료).
  *    "차 기능 익히기" → 선택 화면(검색창, 처음부터 순서대로/이어서, 핸들 감각, 직각 주차, 장별 항목 칩). 열린 활동에 따라
  *      연습 카드(그림 + 문장) / 핸들 감각 카드(궤적 캔버스 + 문장·조향각) / 직각 주차 카드(단계 일러스트 + 문장·체크리스트) + 확인/다음/다시
  *      / 코스 주행 카드(5-1 선택지 2열 → 브리핑 요약 + "내비로 보내기" → 경로 계산/주행 상태 → 도착 리포트 / 오류·다시 시도)
- *  - 주행 화면(11/5): 미니멀 정지 그림(drawable/driving_still) + 작은 자막 "기어 P단 상태에서만 … 실행이 가능합니다". 안내는 음성뿐(런처가 앱을 덮어도 음성은 계속).
+ *  - 주행 화면: 미니멀 정지 그림(drawable/driving_still) + 작은 자막 "기어 P단 상태에서만 … 실행이 가능합니다". 안내는 음성뿐(런처가 앱을 덮어도 음성은 계속).
  *    직각 주차 슬로우 모드 중(R/D)에는 단계 한 줄을 더 보여 주고, 차가 서 있고 "확인"으로만 넘어가는 단계면 확인 버튼 하나를 둔다
  *    (STT·휠 버튼 연결 전 대체. 정지 상태에서만 보이므로 0장 "주행 중 화면 조작 없음" 과 충돌하지 않는다).
  * 앱 시작 직후에는 앱 이름 화면을 2.5초 보여 준다(탭으로 건너뛰기). 바인딩 전에는 "서비스 연결 중…" 한 줄만 보인다(같은 프로세스라 보통 수십 ms).
@@ -64,11 +64,11 @@ class MainActivity : ComponentActivity() {
     internal val confirmExit = mutableStateOf(false)
     /** "차 기능 익히기" 선택 화면이 열려 있는지(하위 연습이 끝나면 이 화면으로 돌아온다). */
     internal val practiceMenuOpen = mutableStateOf(false)
-    /** (11/15 대표: 직각·평행 주차는 주차·핸들 연습으로) "주차·핸들 연습" 선택 화면(3D 연습·직각 주차·평행 주차)이 열려 있는지. */
+    /** (직각·평행 주차는 주차·핸들 연습으로) "주차·핸들 연습" 선택 화면(3D 연습·직각 주차·평행 주차)이 열려 있는지. */
     internal val parkingMenuOpen = mutableStateOf(false)
     /** 선택 화면의 검색어. */
     internal val practiceQuery = mutableStateOf("")
-    /** (11/14 베타: 항목을 보고 목록으로 돌아오면 맨 위로 돌아간다) 목록 스크롤 자리를 화면 밖에 둔다 */
+    /** (항목을 보고 목록으로 돌아오면 맨 위로 돌아간다) 목록 스크롤 자리를 화면 밖에 둔다 */
     internal val practiceScroll = androidx.compose.foundation.ScrollState(0)
 
     /** 서비스가 붙기 전에 온 Gleo 음성 호출(붙자마자 처리, Gleo 는 7초 기다린다) */
@@ -154,7 +154,7 @@ class MainActivity : ComponentActivity() {
         bound = bindService(CoachService.startIntent(this), connection, Context.BIND_AUTO_CREATE)
         wheel = WheelButtonReceiver(onPress = { press -> service.value?.let { it.coach.onWheelButton(press) } })
 
-        // 패키지 전체 스캔(진단용)은 설정 > 진단 보기를 켤 때만 백그라운드에서 한다(베타 D-27). 여기서는 거부된 권한만 가볍게.
+        // 패키지 전체 스캔(진단용)은 설정 > 진단 보기를 켤 때만 백그라운드에서 한다. 여기서는 거부된 권한만 가볍게.
         permDiag.value = inspectPermissions().filter { !it.startsWith("OK") }
         // 부여되지 않은 권한 전부를 런타임으로 요청해 본다 (dangerous 면 대화상자, normal 이면 즉시 결과, 미정의면 거부).
         // API 33+ 에서는 알림 권한(POST_NOTIFICATIONS)도 같이 요청한다. 거부돼도 서비스는 동작한다(알림만 안 보임).
@@ -166,16 +166,16 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) missing += POST_NOTIFICATIONS
         if (missing.isNotEmpty()) multiPermission.launch(missing.toTypedArray())
-        // 패키지·권한 조사(진단용)는 설정에서 '진단 보기' 를 켤 때만, 백그라운드에서(베타 D-27: 매 시작마다 메인 스레드 전체 스캔).
+        // 패키지·권한 조사(진단용)는 설정에서 '진단 보기' 를 켤 때만, 백그라운드에서(매 시작마다 메인 스레드 전체 스캔).
 
-        // Pleos CCP 가이드(11/8): Back 은 설정·선택 화면·열린 활동이면 한 단계 뒤로, 최상단이면 앱을 숨긴다
+        // Pleos CCP 가이드: Back 은 설정·선택 화면·열린 활동이면 한 단계 뒤로, 최상단이면 앱을 숨긴다
         // (moveTaskToBack — finish 로 끝내면 심사 반려 사유). 숨겨도 CoachService(코칭·음성)는 계속 돈다.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val svc = service.value
                 when {
                     settingsOpen.value -> settingsOpen.value = false
-                    // (11/15 오류 검수) 연습 카드가 열려 있으면 카드부터 닫는다(전에는 첫 Back 에 화면 변화가 없었다)
+                    // 연습 카드가 열려 있으면 카드부터 닫는다(전에는 첫 Back 에 화면 변화가 없었다)
                     svc != null && svc.coach.subMode.value != SubMode.NONE -> svc.coach.endActivity()
                     practiceMenuOpen.value -> practiceMenuOpen.value = false
                     parkingMenuOpen.value -> parkingMenuOpen.value = false
@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
-        // (11/15 오류 검수) 화면을 되살릴 때나 최근 앱에서 다시 열 때는 처음 받은 Gleo 인텐트가 그대로 다시 온다 → 처음 한 번만 처리
+        // 화면을 되살릴 때나 최근 앱에서 다시 열 때는 처음 받은 Gleo 인텐트가 그대로 다시 온다 → 처음 한 번만 처리
         val fromHistory = ((intent?.flags ?: 0) and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
         if (savedInstanceState == null && !fromHistory) handleGleo(intent)
 
@@ -228,7 +228,7 @@ class MainActivity : ComponentActivity() {
         }
         when (fn) {
             GleoActions.LEARN -> {
-                val name = GleoActions.params(i).optString("featureName", "").trim().take(40)   // 11/15: 밖에서 온 글이라 길이 제한
+                val name = GleoActions.params(i).optString("featureName", "").trim().take(40)   // 밖에서 온 글이라 길이 제한
                 settingsOpen.value = false
                 svc.coach.endActivity()
                 practiceQuery.value = name
@@ -246,7 +246,7 @@ class MainActivity : ComponentActivity() {
             GleoActions.COURSE -> {
                 settingsOpen.value = false
                 practiceMenuOpen.value = false
-                // (11/15 오류 검수) 키가 없는 제출 APK 에는 길이(연습 시간) 칩이 없다. 화면에서 고르는 것은 연습 목적이다
+                // 키가 없는 제출 APK 에는 길이(연습 시간) 칩이 없다. 화면에서 고르는 것은 연습 목적이다
                 val already = svc.coach.courseUi.value != null
                 svc.coach.startCourse()
                 GleoActions.respond(this, fn, "success",

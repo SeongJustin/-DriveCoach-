@@ -1,4 +1,4 @@
-// CityBuilder 의 노면(실제 노면, 길 띠, 보도, 교차로) 부분(11/15 코드 정리로 CityBuilder.cs 에서 나눈 파일). 전체 설명은 CityBuilder.cs 맨 위.
+// CityBuilder 의 노면(실제 노면, 길 띠, 보도, 교차로) 부분(CityBuilder.cs 에서 나눈 파일). 전체 설명은 CityBuilder.cs 맨 위.
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -8,9 +8,9 @@ namespace DriveCoach.Unity
 {
     public static partial class CityBuilder
     {
-        // ───────────────────────── 실제 노면(서울 T-GIS, 11/8) ─────────────────────────
+        // ───────────────────────── 실제 노면(서울 T-GIS) ─────────────────────────
 
-        /// <summary>(11/11 대표: "맵에서 맨홀은 다 없애줘") 맨홀 뚜껑을 놓을지. 끔.</summary>
+        /// <summary>맨홀 뚜껑을 놓을지. 끔.</summary>
         const bool Manholes = false;
         const float CurbH = 0.15f;
         public const float WalkH = 0.14f;
@@ -38,15 +38,19 @@ namespace DriveCoach.Unity
                 for (int i = 0; i + 2 < v.Length; i += 3)
                 {
                     var c = new V2((v[i].x + v[i + 1].x + v[i + 2].x) / 3f, (v[i].y + v[i + 1].y + v[i + 2].y) / 3f);
-                    tiles.Get(mat, c, uv).TriUp(Space3D.W(new V2(v[i].x, v[i].y), y), Space3D.W(new V2(v[i + 1].x, v[i + 1].y), y), Space3D.W(new V2(v[i + 2].x, v[i + 2].y), y));
+                    var mk = tiles.Get(mat, c, uv);
+                    mk.weld = true;   // 이웃 삼각형과 같은 자리 점은 하나로(모양 같음, 점 수 절반 아래)
+                    mk.TriUp(Space3D.W(new V2(v[i].x, v[i].y), y), Space3D.W(new V2(v[i + 1].x, v[i + 1].y), y), Space3D.W(new V2(v[i + 2].x, v[i + 2].y), y));
                 }
             }
-            Add("AMAJ", "asphalt-major", h + 0.03f, 5f);
-            Add("AMIN", "asphalt-minor", h + 0.03f, 4f);
-            Add("SIDE", "sidewalk", h + WalkH, 1.6f);
-            Add("PNTW", "paint-w", h + 0.043f, 4f);
-            Add("PNTY", "paint-y", h + 0.046f, 4f);
-            Add("PNTB", "paint-b", h + 0.049f, 4f);
+            // 재질마다 다 모으면 바로 메시로 내보내고 점 목록을 치운다(예전: 여섯 가지를 다 모은 뒤 한꺼번에 → 스크립트 힙 최고치)
+            void AddEmit(string tag, string mat, float y, float uv) { Add(tag, mat, y, uv); tiles.Emit(node, SurfaceMat, k => false, false, mat); Dc.Trim(); }
+            AddEmit("AMAJ", "asphalt-major", h + 0.03f, 5f);
+            AddEmit("AMIN", "asphalt-minor", h + 0.03f, 4f);
+            AddEmit("SIDE", "sidewalk", h + WalkH, 1.6f);
+            AddEmit("PNTW", "paint-w", h + 0.043f, 4f);
+            AddEmit("PNTY", "paint-y", h + 0.046f, 4f);
+            AddEmit("PNTB", "paint-b", h + 0.049f, 4f);
             Dc.Lap("rs-tris");
             // 연석(화강석 경계석 흉내): 선의 (−dy, dx) 쪽이 길. 윗면 0.18 m(보도보다 1 cm 높게) + 길 쪽 모서리 2.5 cm 모따기 + 길 쪽 면
             foreach (var line in s.curbs)
@@ -66,7 +70,7 @@ namespace DriveCoach.Unity
                     var oa = Space3D.W(a - road * 0.18f, 0f); var ob = Space3D.W(b - road * 0.18f, 0f);
                     var ca = Space3D.W(a - road * 0.025f, 0f); var cb = Space3D.W(b - road * 0.025f, 0f);
                     var roadDir = (Space3D.W(road, 0f) - Space3D.W(V2.Zero, 0f)).normalized;
-                    // (11/11 낮, 대표: "연석 모양이 안 예쁘다") 질감 좌표를 1 m = 1 로: 연석 질감(CityTextures.Curb)이 1 m 마다 이음매가 있는 밝은 화강석 경계석
+                    // 질감 좌표를 1 m = 1 로: 연석 질감(CityTextures.Curb)이 1 m 마다 이음매가 있는 밝은 화강석 경계석
                     float u0 = along, u1 = along + len;
                     const float Ch = 0.025f;
                     mk.Quad(Lift(ca, h + CurbH), Lift(cb, h + CurbH), Lift(ob, h + CurbH), Lift(oa, h + CurbH), Vector3.up,
@@ -126,10 +130,10 @@ namespace DriveCoach.Unity
             switch (key)
             {
                 case "asphalt-major": return DcAssets.Pbr("clean_asphalt", DcAssets.Hex("#4C5056"), new Color(1.05f, 1.05f, 1.08f), 0.9f);
-                // (11/11 낮, 바닥 검사) 골목 질감(asphalt_02)은 긴 금이 대각선으로 되풀이돼 줄무늬처럼 보였다 → 큰길과 같은 질감에 조금 어둡게
+                // (바닥 검사) 골목 질감(asphalt_02)은 긴 금이 대각선으로 되풀이돼 줄무늬처럼 보였다 → 큰길과 같은 질감에 조금 어둡게
                 case "asphalt-minor": return DcAssets.Pbr("clean_asphalt", DcAssets.Hex("#4C5056"), new Color(0.96f, 0.96f, 0.99f), 0.9f);   // 큰길과 너무 다르면 교차로에 밝은 조각처럼 보인다(2차 검토)
                 case "sidewalk": return DcAssets.Pbr("square_concrete_pavers", DcAssets.Hex("#CFCBC2"), new Color(1f, 0.98f, 0.96f), 0.8f);
-                case "curb": return DcAssets.LitTex("curb-granite", CityTextures.Curb(), 0.22f);   // (11/11 낮) 밝은 화강석 경계석 + 1 m 이음매(예전: 어두운 콘크리트 질감이 길게 늘어져 얼룩 띠처럼 보였다)
+                case "curb": return DcAssets.LitTex("curb-granite", CityTextures.Curb(), 0.22f);   // 밝은 화강석 경계석 + 1 m 이음매(예전: 어두운 콘크리트 질감이 길게 늘어져 얼룩 띠처럼 보였다)
                 case "grate": return DcAssets.Pbr("storm_grate", DcAssets.Hex("#3A3C3E"), Color.white, 0.7f);
                 case "paint-w": return DcAssets.Lit(DcAssets.Hex("#E6E6E1"), 0.4f);
                 case "paint-y": return DcAssets.Lit(DcAssets.Hex("#DDA92B"), 0.4f);
@@ -193,7 +197,7 @@ namespace DriveCoach.Unity
             foreach (var a in rg.areas)
             {
                 var mk = a.kind == "water" ? water : (a.kind == "forest" ? forest : park);
-                // 11/9: 하천(양재천 등)은 땅을 판 둑 아래 낮은 물 — 노면 파일의 땅 구멍과 짝. 둘레에 돌 옹벽
+                // 하천(양재천 등)은 땅을 판 둑 아래 낮은 물 — 노면 파일의 땅 구멍과 짝. 둘레에 돌 옹벽
                 if (a.kind == "water" && rg.waterCut > 0f && Math.Abs(PolyArea(a.poly)) > 300f)
                 {
                     float depth = rg.waterCut;
@@ -230,11 +234,11 @@ namespace DriveCoach.Unity
                     if (--want <= 0) break;
                 }
             }
-            // (11/11) 큰 공원·숲·물은 삼각형이 수백 m — 안개가 꼭짓점에서 계산돼 가까운 풀밭까지 뿌옇게 보이지 않도록 60 m 아래로 자른다
+            // 큰 공원·숲·물은 삼각형이 수백 m — 안개가 꼭짓점에서 계산돼 가까운 풀밭까지 뿌옇게 보이지 않도록 60 m 아래로 자른다
             park.SplitLong(60f); forest.SplitLong(60f); water.SplitLong(60f);
             if (!park.IsEmpty) park.ToObject("parks", DcAssets.Pbr("leafy_grass", DcAssets.Hex("#7FA35A"), new Color(0.95f, 1f, 0.9f), 0.6f), node);
             if (!forest.IsEmpty) forest.ToObject("forests", DcAssets.Pbr("leafy_grass", DcAssets.Hex("#5E8746"), new Color(0.72f, 0.8f, 0.68f), 0.6f), node);
-            // 11/9 사진: 물(양재천 등)이 거울처럼(매끈함 0.85) 하늘·건물을 거꾸로 비춰 땅이 뚫린 것처럼 보였다 → 짙은 물빛, 덜 매끈하게
+            // 물(양재천 등)이 거울처럼(매끈함 0.85) 하늘·건물을 거꾸로 비춰 땅이 뚫린 것처럼 보였다 → 짙은 물빛, 덜 매끈하게
             if (!water.IsEmpty) water.ToObject("water", DcAssets.Lit(DcAssets.Hex("#2E4A57"), 0.12f), node);
             if (!bank.IsEmpty) bank.ToObject("river-banks", DcAssets.Pbr("brushed_concrete", DcAssets.Hex("#8E8C86"), new Color(0.78f, 0.77f, 0.74f), 0.4f), node, true);
             tk?.Emit(node, "park-trees");

@@ -1,4 +1,4 @@
-// 담당: I (직각 주차 슬로우 모드 테스트)
+// 직각 주차 슬로우 모드 테스트
 package kr.drivecoach.core.parking
 
 import kr.drivecoach.core.signal.FakeSignalSource
@@ -36,7 +36,7 @@ private fun Rig.creep(t: Long, kmh: Double = 3.0, rpm: Double = 800.0) = src.upd
 /** D(0) → 접근 정지(1) → 핸들 왼쪽 끝(2) → 전진 45° 정지(3) → R(4) → 핸들 오른쪽 끝(5) 까지 진행. */
 private fun Rig.runUntilReverse(): Long {
     mode.start(1_000)
-    // 0: D 넣기(11/5 추가). 시작 시점엔 아직 신호가 없어 대기 → 첫 신호(기어 D)로 자동 통과
+    // 0: D 넣기. 시작 시점엔 아직 신호가 없어 대기 → 첫 신호(기어 D)로 자동 통과
     assertEquals(PhraseId("parking_step_gear_d"), rec.lastSay())
     assertEquals(0, mode.currentStep!!.index)
     src.update(1_500) { it }
@@ -76,7 +76,7 @@ private fun testHappyPath() {
     assertTrue(r.rec.warns.isEmpty(), "크리핑 후진에는 경고가 없어야 한다")
     r.mode.confirm(14_500)
     assertEquals(7, r.mode.currentStep!!.index)
-    // 7: 핸들 풀기 — 조향각이 가운데(±20°)로 오면 센서로 통과(베타 B-24/D-45). '확인' 으로는 못 넘긴다.
+    // 7: 핸들 풀기 — 조향각이 가운데(±20°)로 오면 센서로 통과. '확인' 으로는 못 넘긴다.
     r.mode.confirm(14_800)
     assertEquals(7, r.mode.currentStep!!.index, "센서 단계는 확인으로 넘어가지 않는다")
     assertEquals(ParkingProcedure.NOT_DETECTED_PHRASE, r.rec.lastSay())
@@ -86,7 +86,7 @@ private fun testHappyPath() {
     r.creep(16_000, kmh = 2.0); r.stopped(18_000)
     r.mode.confirm(18_500)
     assertEquals(9, r.mode.currentStep!!.index)
-    // 9: P → 10: 주차브레이크(11/5 추가). 확인으로는 못 넘기고 신호로 통과
+    // 9: P → 10: 주차브레이크. 확인으로는 못 넘기고 신호로 통과
     r.src.update(19_000) { it.copy(gear = Gear.P, speedKmh = 0.0) }
     assertEquals(10, r.mode.currentStep!!.index)
     assertEquals(PhraseId("parking_finish_epb"), r.rec.lastSay())
@@ -184,7 +184,7 @@ private fun testRecoveryBranch() {
 private fun testReverseAccelWarningOnce() {
     val r = rig(idleRpm = 750.0)
     r.runUntilReverse()
-    // R 에서 RPM 상승(액셀) 경고는 DangerRules 가 담당한다(베타 B-35) → 슬로우 모드는 속도 초과만 1회 경고
+    // R 에서 RPM 상승(액셀) 경고는 DangerRules 가 담당한다 → 슬로우 모드는 속도 초과만 1회 경고
     r.creep(11_000, kmh = 2.0, rpm = 1_300.0)
     r.creep(11_500, kmh = 2.5, rpm = 1_400.0)
     assertEquals(emptyList<PhraseId>(), r.rec.warns)
@@ -219,7 +219,7 @@ private fun testProcedureData() {
     println("  단계 데이터 OK")
 }
 
-/** (11/15 베타 6f) 탈출법 고르기에서 "하던 단계로": 공식 단계·탈출 단계 모두 고르기 전 자리로 돌아간다. */
+/** 탈출법 고르기에서 "하던 단계로": 공식 단계·탈출 단계 모두 고르기 전 자리로 돌아간다. */
 private fun testCancelHelp() {
     val r = rig()
     r.runUntilReverse()

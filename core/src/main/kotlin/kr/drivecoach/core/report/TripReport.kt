@@ -1,4 +1,4 @@
-// 담당: M (리포트 · 모의 시험 · 성장 기록)
+// 리포트 · 모의 시험 · 성장 기록
 package kr.drivecoach.core.report
 
 /**

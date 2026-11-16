@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 화면 글자·버튼을 코드로 만드는 도구. 앱(CoachTheme)과 같은 흰 바탕·검정 글씨·현대 블루, 둥근 카드)
+// 3D 주차 연습 — 화면 글자·버튼을 코드로 만드는 도구. 앱(CoachTheme)과 같은 흰 바탕·검정 글씨·현대 블루, 둥근 카드
 using System;
 using UnityEngine;
 using UnityEngine.Events;
@@ -177,7 +177,8 @@ namespace DriveCoach.Unity
             var fill = b.transform.Find("fill")?.GetComponent<Image>();
             Color f = DcAssets.Card, border = DcAssets.UiLine, tc = DcAssets.UiText;
             if (kind == Kind.Primary) { f = DcAssets.Lime; border = DcAssets.Lime; tc = DcAssets.OnLime; }
-            else if (kind == Kind.Danger) { f = DcAssets.OnLime; border = DcAssets.Lime; tc = Color.white; }   // (11/14 베타: 어두운 대시보드에 묻힌다) 테두리는 라임   // 브레이크 등: 빨강 대신 흰 바탕·검은 글씨
+            // 상태는 빨간색으로 보이게: 밟은 브레이크는 빨강 채움·흰 글씨. 어두운 대시보드에 묻히지 않게 흰 테두리
+            else if (kind == Kind.Danger) { f = DcAssets.Red; border = Color.white; tc = Color.white; }
             outline.color = border;
             if (fill != null) fill.color = f;
             text.color = tc;

@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 한 판의 3D 장면 전체: 지형·내 차·안내·카메라·조명·후방 카메라)
+// 3D 주차 연습 — 한 판의 3D 장면 전체: 지형·내 차·안내·카메라·조명·후방 카메라
 using DriveCoach.Core;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,7 +19,7 @@ namespace DriveCoach.Unity
         public Vector3 eyeLocal = new Vector3(-0.48f, 1.17f, 0.2f);
         public float lookYaw, lookPitch;
         float turnLook;
-        // 11/8 "유로트럭 느낌": 몸으로 느끼는 차 — 제동하면 앞으로 숙고, 돌면 바깥으로 기울고, 빠를수록 노면 떨림
+        // 몸으로 느끼는 차 — 제동하면 앞으로 숙고, 돌면 바깥으로 기울고, 빠를수록 노면 떨림
         float bodyPitch, bodyRoll, lastSpeed, lastHeading, shakeT;
         bool bodyInit;
 
@@ -96,7 +96,7 @@ namespace DriveCoach.Unity
         {
             var car = w.car;
             float gy = el != null ? el.At(car.Center, w.floorI) : 0f;
-            gy += car.z;      // (11/13) 지하차도·고가에서는 차 높이를 따라간다 — 전에는 땅 높이에 남아 터널 안에서는 차가 안 보이고(덮개 위), 고가에서는 다리 밑을 비췄다
+            gy += car.z;      // 지하차도·고가에서는 차 높이를 따라간다 — 전에는 땅 높이에 남아 터널 안에서는 차가 안 보이고(덮개 위), 고가에서는 다리 밑을 비췄다
             var c = Space3D.W(car.Center, gy);
             var fwd = Space3D.W(car.Dir) - Space3D.W(V2.Zero);
             bool reverse = car.gear == Gear.R;
@@ -131,10 +131,10 @@ namespace DriveCoach.Unity
                     {
                         // 뒤 위에서 따라가기. 후진이면 차 앞쪽 위로 옮겨 차 뒤 공간이 보이게.
                         float back = 7.5f, height = 6.2f;
-                        // (11/15 베타 7i: 동네 주차장 칸에서 출발하면 낮은 도로용 카메라를 뒤에 선 차들이 가려 화면 아래 1/3 이 차 지붕) 차로에 들어서기 전에는 주차 연습처럼 높이
+                        // (동네 주차장 칸에서 출발하면 낮은 도로용 카메라를 뒤에 선 차들이 가려 화면 아래 1/3 이 차 지붕) 차로에 들어서기 전에는 주차 연습처럼 높이
                         bool inLot = w.roadRun != null && w.roadRun.NotJoined;
                         if (w.st.mode != StageMode.Parking && !inLot) { back = 9f; height = 4.2f; }
-                        // (11/14 베타: 후진하면 차를 앞에서 보는 화면으로 뒤집혀 좌우가 헷갈린다) 후진도 차 뒤 위에서 — 화면 위쪽이 늘 차 앞.
+                        // (후진하면 차를 앞에서 보는 화면으로 뒤집혀 좌우가 헷갈린다) 후진도 차 뒤 위에서 — 화면 위쪽이 늘 차 앞.
                         //   뒤 공간이 보이게 더 높이 올라가 차 뒤쪽을 내려다본다(뒤는 후방 카메라 창도 같이 뜬다).
                         p = reverse ? c - fwd * 3.5f + Vector3.up * (height + 4.5f) : c - fwd * back + Vector3.up * height;
                         l = reverse ? c - fwd * 3.0f : c + fwd * 2.0f;
@@ -178,7 +178,7 @@ namespace DriveCoach.Unity
             Dc.Lap(null);
             el = new Elevation(w.st); Dc.Lap("elevation");
             StageBuilder.Build(w.st, el, root.transform); Dc.Lap("stage-rest");
-            // (11/11) 동네: 가로수·가로등·보도 시설물도 부딪히는 물체로(예전에는 차가 나무를 뚫고 지나갔다)
+            // 동네: 가로수·가로등·보도 시설물도 부딪히는 물체로(예전에는 차가 나무를 뚫고 지나갔다)
             if (w.st.road?.region != null)
                 foreach (var (sp, half, kind) in CityBuilder.Solids)
                     w.obstacles.Add(new Obstacle { poly = Geom.RectPoly(sp, half * 2f, half * 2f, 0f), c = sp, r = half * 1.5f, kind = kind });
@@ -234,7 +234,7 @@ namespace DriveCoach.Unity
             if (w.st.road?.region != null && w.st.road.region.countdowns.Count > 0) { countdownView = new CountdownView(root.transform, w.st.road, el.At(V2.Zero, 0)); countdownView.Tick(w.t, 1f); }
             Dc.Lap("cockpit-traffic-peds");
             mapCam.cullingMask = ~(1 << RearGuide.Layer);
-            foreach (var mc2 in new[] { mirrors.left, mirrors.right, mirrors.center }) mc2.cullingMask = ~((1 << RearGuide.Layer) | (1 << Cockpit.RearCabinLayer));   // (11/14) 뒷좌석은 거울에 안 찍히게
+            foreach (var mc2 in new[] { mirrors.left, mirrors.right, mirrors.center }) mc2.cullingMask = ~((1 << RearGuide.Layer) | (1 << Cockpit.RearCabinLayer));   // 뒷좌석은 거울에 안 찍히게
             cameraRig.eyeLocal = cockpit.eyeLocal + Prefs.SeatOffset;
             foreach (var aux in new[] { rearCam, mapCam, mirrors.left, mirrors.right, mirrors.center }) Look.AuxCamera(aux);
         }
@@ -251,7 +251,7 @@ namespace DriveCoach.Unity
             float gy = el.At(car.Center, w.floorI);
             // 경사로 기울기(앞뒤 높이 차)
             float yf = el.At(car.FrontBumperCenter, w.floorI), yr = el.At(car.RearBumperCenter, w.floorI);
-            // 입체 교차(11/8 밤): 고가·지하 길 높이를 더한다(앞뒤 범퍼 높이로 기울기도)
+            // 입체 교차: 고가·지하 길 높이를 더한다(앞뒤 범퍼 높이로 기울기도)
             var rd = w.st.road;
             if (rd != null && rd.HasGrade)
             {
@@ -260,7 +260,7 @@ namespace DriveCoach.Unity
                 yr += rd.HeightAt(car.RearBumperCenter, car.z);
             }
             float pitch = Mathf.Atan2(yf - yr, car.length) * Mathf.Rad2Deg;
-            // 과속방지턱(11/9): 앞·뒤 바퀴가 올라선 높이만큼 차가 들리고 기운다(빨리 넘으면 운전석 시점도 크게 출렁)
+            // 과속방지턱: 앞·뒤 바퀴가 올라선 높이만큼 차가 들리고 기운다(빨리 넘으면 운전석 시점도 크게 출렁)
             var rgn = rd?.region;
             if (rgn != null && rgn.humps.Count > 0 && Mathf.Abs(car.z) < 0.5f)
             {
@@ -310,8 +310,8 @@ namespace DriveCoach.Unity
             envSet = true;
             darkNow = dark;
             var cam = cameraRig.cam;
-            // 11/8 "유로트럭 느낌": 하늘(CC0 HDRI)·안개·따뜻한 낮은 해·후처리(Look)
-            // 11/8 밤: 설정의 날씨·시간(바깥만. 지하 주차장은 늘 실내등)
+            // 하늘(CC0 HDRI)·안개·따뜻한 낮은 해·후처리(Look)
+            // 설정의 날씨·시간(바깥만. 지하 주차장은 늘 실내등)
             int wx = Prefs.Weather, tm = Prefs.TimeOfDay;
             envWeather = wx; envTime = tm;
             float expo = 0f;
@@ -362,8 +362,8 @@ namespace DriveCoach.Unity
             overlays.Dispose();
             weatherFx?.Dispose();
             Dc.Kill(root);
-            // 11/10: 코드로 만든 메시·재질·텍스처는 물체를 지워도 메모리에 남는다(맵 하나에 수 GB) → 안 쓰는 것을 내린다.
-            // (11/9 밤 PC 사진 단계가 맵을 22번 지으며 92 GB 까지 불어나 꺼진 원인. 차에서도 스테이지를 바꿀 때마다 쌓였다.)
+            // 코드로 만든 메시·재질·텍스처는 물체를 지워도 메모리에 남는다(맵 하나에 수 GB) → 안 쓰는 것을 내린다.
+            // (PC 사진 단계가 맵을 22번 지으며 92 GB 까지 불어나 꺼진 원인. 차에서도 스테이지를 바꿀 때마다 쌓였다.)
             Resources.UnloadUnusedAssets();
         }
     }

@@ -1,8 +1,6 @@
-// 담당: S
 // 차 한 대의 움직임(위에서 본 2D). 기준점 = 뒷축 가운데. 좌표 m, x 오른쪽 / y 아래, heading 0 = +x, 시계 방향 +.
-//
 // 조향: 자전거 모델. 바퀴 각 δ = 핸들 각 / 조향비(제원에서 역산). θ' = v·tan(δ)/축거.
-// 속도: 1차 지연 시스템(대표 결정 11/5).
+// 속도: 1차 지연 시스템.
 //   브레이크를 밟고 있으면  dv/dt = −v/τ_brake  (가장 약하게 밟았다고 가정)
 //   떼면(D/R) 크리프 속도로  dv/dt = (v_creep − v)/τ_creep
 //   N 은 굴러가며 서서히 줄고, 경사에서는 아래로 흐른다.
@@ -107,7 +105,7 @@ namespace DriveCoach.Core
         public float steerDeg;      // 핸들 각(양수 = 오른쪽)
         public float odometer;
 
-        // 11/8 밤(조사 P1 "실차 스위치 연동"): 실제 차의 방향지시등·비상등·전조등·와이퍼·안전벨트(앱이 Pleos 신호로 보냄).
+        // 실제 차의 방향지시등·비상등·전조등·와이퍼·안전벨트(앱이 Pleos 신호로 보냄).
         // 차가 안 주면 화면·키보드(Z 왼쪽, C 오른쪽, X 비상등)로 켠다. signalKnown = 방향지시등 값을 받을 수 있는가(규칙 안내를 할지)
         public int turnSignal;      // -1 왼쪽, 0 끔, +1 오른쪽
         public bool hazard;
@@ -115,7 +113,7 @@ namespace DriveCoach.Core
         public int headlight = -1;  // -1 모름, 0 끔, 1 하향(켜짐), 2 상향, 3 자동
         public int wiper = -1;      // -1 모름, 0 끔, 1 간헐, 2 느리게, 3 빠르게
         public int belt = -1;       // -1 모름, 0 안 맴, 1 맴
-        /// <summary>땅에서 높이(m): 고가 위 +, 지하차도 −(11/8 밤 입체 교차). 물리·충돌은 2D 그대로, 층이 다르면 서로 닿지 않는다</summary>
+        /// <summary>땅에서 높이(m): 고가 위 +, 지하차도 −(입체 교차). 물리·충돌은 2D 그대로, 층이 다르면 서로 닿지 않는다</summary>
         public float z;
 
         public Vehicle(CarSpec s) { SetSpec(s); }

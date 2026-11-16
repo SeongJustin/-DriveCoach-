@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 매 프레임 바뀌는 안내: 지나갈 자리(초록 띠)·내륜차(주황), 목표 칸, 튜토리얼 안내선·맞출 점,
+// (3D 주차 연습 — 매 프레임 바뀌는 안내: 지나갈 자리(초록 띠)·내륜차(주황), 목표 칸, 튜토리얼 안내선·맞출 점,
 // 주차 센서 호, 실패 표시, 보행자, 도로 신호등 불빛, 서킷 다음 체크포인트)
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -216,7 +216,9 @@ namespace DriveCoach.Unity
                 for (int s = 0; s < signalLamps.Count; s++)
                 {
                     var col = w.st.road.signals[s].At(w.t);
-                    var on = new[] { col == SignalColor.Red, col == SignalColor.Yellow, col == SignalColor.Green };
+                    // 독일: 초록 직전 빨강+노랑(나라 표 redAmberSec, 한국 0 = 예전 그대로)
+                    bool ra = CountryStyle.Current.redAmberSec > 0f && col == SignalColor.Red && w.st.road.signals[s].RedLeft(w.t) <= CountryStyle.Current.redAmberSec;
+                    var on = new[] { col == SignalColor.Red, col == SignalColor.Yellow || ra, col == SignalColor.Green };
                     var cols = new[] { DcAssets.Red, new Color(1f, 0.75f, 0f), DcAssets.Green };
                     for (int k = 0; k < 3; k++)
                     {
@@ -316,13 +318,123 @@ namespace DriveCoach.Unity
     public static class Dc
     {
         static System.Diagnostics.Stopwatch lapSw;
-        /// <summary>(11/11) 동네를 여는 데 걸리는 시간을 단계별로 적는다("DC3D lap 이름 ms") — 어디가 느린지 보려고. 처음 부르면 시계를 켠다.</summary>
+        /// <summary>동네를 여는 데 걸리는 시간을 단계별로 적는다("DC3D lap 이름 ms") — 어디가 느린지 보려고. 처음 부르면 시계를 켠다.</summary>
         public static void Lap(string label)
         {
             if (lapSw == null) { lapSw = System.Diagnostics.Stopwatch.StartNew(); return; }
-            // (11/13) 단계마다 메모리도 함께(스크립트 힙 사용/크기, Unity 사용/예약 MB) — 어느 단계에서 부푸는지 보려고
+            // 단계마다 메모리도 함께(스크립트 힙 사용/크기, Unity 사용/예약 MB) — 어느 단계에서 부푸는지 보려고
             if (label != null) Debug.Log($"DC3D lap {label} {lapSw.ElapsedMilliseconds} | mono {UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong() >> 20}/{UnityEngine.Profiling.Profiler.GetMonoHeapSizeLong() >> 20} unity {UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() >> 20}/{UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong() >> 20}");
             lapSw.Restart();
+        }
+
+        /// <summary>동네를 짓는 단계 사이에 다 쓴 임시 자료를 치운다(스크립트 힙이 최고치까지 부풀지 않게). 편집기 사진에서는 하지 않는다.</summary>
+        public static void Trim()
+        {
+            if (Application.isPlaying) System.GC.Collect();
+        }
+
+        /// <summary>true 면 판을 연 뒤 약 10초에 주행 중 census·smaps 를 한 번 더 찍는다(그 프레임이 90 ms 남짓 멈춤). 평소에는 끔</summary>
+        public static bool CensusInPlay = false;
+
+        static global::Unity.Profiling.ProfilerRecorder gfxRec, sysRec;
+        static bool recOn;
+        static long Rec(ref global::Unity.Profiling.ProfilerRecorder r, string name)
+        {
+            if (!recOn)
+            {
+                recOn = true;
+                try
+                {
+                    gfxRec = global::Unity.Profiling.ProfilerRecorder.StartNew(global::Unity.Profiling.ProfilerCategory.Memory, "Gfx Used Memory");
+                    sysRec = global::Unity.Profiling.ProfilerRecorder.StartNew(global::Unity.Profiling.ProfilerCategory.Memory, "System Used Memory");
+                }
+                catch (System.Exception e) { Debug.LogWarning("recorder: " + e.Message); }
+            }
+            return r.Valid ? r.LastValue >> 20 : -1;
+        }
+        /// <summary>그래픽 메모리(텍스처·메시·그림판, Unity 추정 MB) — release 빌드에서도 읽힌다. 못 읽으면 -1</summary>
+        public static long GfxMB() => Rec(ref gfxRec, "gfx");
+        /// <summary>운영체제가 보는 이 프로세스의 메모리(MB). 못 읽으면 -1</summary>
+        public static long SysMB() => Rec(ref sysRec, "sys");
+
+        /// <summary>
+        /// 장면 속 물체 수와 메시 크기(정점·인덱스 버퍼 MB)를 한 줄로("DC3D census"). 무엇이 큰지, 줄인 효과가 기기에서 얼마인지 보려고.
+        /// </summary>
+        public static void Census(string tag)
+        {
+            try
+            {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                int tfs = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+                int rends = Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+                long vb = 0, ib = 0, verts = 0, readBytes = 0;
+                int meshes = 0, readable = 0;
+                foreach (var m in Resources.FindObjectsOfTypeAll<Mesh>())
+                {
+                    if (m == null) continue;
+                    meshes++;
+                    long vc = m.vertexCount, stride = 0;
+                    for (int s = 0; s < m.vertexBufferCount; s++) stride += m.GetVertexBufferStride(s);
+                    long ic = 0;
+                    for (int sm = 0; sm < m.subMeshCount; sm++) ic += m.GetIndexCount(sm);
+                    long b = vc * stride, bi = ic * (m.indexFormat == UnityEngine.Rendering.IndexFormat.UInt32 ? 4 : 2);
+                    verts += vc; vb += b; ib += bi;
+                    if (m.isReadable) { readable++; readBytes += b + bi; }
+                }
+                Debug.Log($"DC3D census {tag} transforms={tfs} meshRenderers={rends} meshes={meshes} vertices={verts} vbMB={vb >> 20} ibMB={ib >> 20} readable={readable} readableMB={readBytes >> 20} texMB={(long)(Texture.currentTextureMemory >> 20)} gfxUsedMB={GfxMB()} sysUsedMB={SysMB()} ms={sw.ElapsedMilliseconds}");
+                Smaps(tag);
+            }
+            catch (System.Exception e) { Debug.LogWarning("census: " + e.Message); }
+        }
+
+        /// <summary>
+        /// 이 프로세스의 /proc/self/smaps 를 이름별 PSS 합으로 줄여 한 줄("DC3D smaps"). adb 로는 읽을 수 없어(SELinux) 게임이 스스로 읽는다.
+        /// 이름 없는 익명 영역은 크기(<1M, 1-8M, 8-64M, 64M+)로 묶는다(Unity 할당기 블록·스크립트 힙이 여기). 안드로이드(리눅스)에서만.
+        /// </summary>
+        static void Smaps(string tag)
+        {
+            const string path = "/proc/self/smaps";
+            if (!System.IO.File.Exists(path)) return;
+            var agg = new System.Collections.Generic.Dictionary<string, long>();
+            var cnt = new System.Collections.Generic.Dictionary<string, int>();
+            string cur = null; long total = 0;
+            foreach (var line in System.IO.File.ReadLines(path))
+            {
+                if (line.Length == 0) continue;
+                char c0 = line[0];
+                bool header = ((c0 >= '0' && c0 <= '9') || (c0 >= 'a' && c0 <= 'f')) && line.IndexOf('-') > 0 && line.IndexOf('-') < 17 && line.IndexOf(' ') > line.IndexOf('-');
+                if (header)
+                {
+                    // 주소-주소 권한 오프셋 장치 inode [이름]
+                    var parts = line.Split(new[] { ' ' }, 6, System.StringSplitOptions.RemoveEmptyEntries);
+                    string name = parts.Length >= 6 ? parts[5].Trim() : "";
+                    if (name.Length == 0)
+                    {
+                        var ab = parts[0].Split('-');
+                        long size = (System.Convert.ToInt64(ab[1], 16) - System.Convert.ToInt64(ab[0], 16)) >> 20;
+                        name = size < 1 ? "(anon <1M)" : size < 8 ? "(anon 1-8M)" : size < 64 ? "(anon 8-64M)" : "(anon 64M+)";
+                    }
+                    else if (name[0] == '/') { int k = name.LastIndexOf('/'); name = name.Substring(k + 1); }
+                    else if (name.StartsWith("[anon:scudo")) name = "[anon:scudo]";
+                    else if (name.StartsWith("[anon:dalvik")) name = "[anon:dalvik]";
+                    else if (name.StartsWith("[anon:stack_and_tls")) name = "[anon:stack]";
+                    cur = name;
+                    cnt[cur] = cnt.TryGetValue(cur, out var n0) ? n0 + 1 : 1;
+                    continue;
+                }
+                if (cur != null && line.StartsWith("Pss:"))
+                {
+                    var t = line.Substring(4).Trim();
+                    int sp = t.IndexOf(' ');
+                    if (sp > 0 && long.TryParse(t.Substring(0, sp), out long kb)) { agg[cur] = (agg.TryGetValue(cur, out var a0) ? a0 : 0) + kb; total += kb; }
+                }
+            }
+            var list = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, long>>(agg);
+            list.Sort((x, y) => y.Value.CompareTo(x.Value));
+            var sb = new System.Text.StringBuilder();
+            sb.Append("DC3D smaps ").Append(tag).Append(" pssMB=").Append(total >> 10);
+            for (int i = 0; i < list.Count && i < 14; i++) sb.Append(" | ").Append(list[i].Key).Append('=').Append(list[i].Value >> 10).Append("MB x").Append(cnt[list[i].Key]);
+            Debug.Log(sb.ToString());
         }
 
         public static void Kill(Object o)

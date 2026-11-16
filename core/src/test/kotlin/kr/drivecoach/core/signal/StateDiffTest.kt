@@ -1,4 +1,4 @@
-// 담당: B (StateDiff 테스트)
+// StateDiff 테스트
 package kr.drivecoach.core.signal
 
 import kotlin.test.assertEquals

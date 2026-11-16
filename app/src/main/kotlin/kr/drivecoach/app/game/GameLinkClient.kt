@@ -1,4 +1,4 @@
-// 담당: S (11/8) 게임 프로세스 쪽 GameLink 수신기(3D 게임용). CoachService 에 바인딩해 차량 신호·제원을 Messenger 로 받는다.
+// 게임 프로세스 쪽 GameLink 수신기(3D 게임용). CoachService 에 바인딩해 차량 신호·제원을 Messenger 로 받는다.
 package kr.drivecoach.app.game
 
 import android.content.ComponentName
@@ -17,7 +17,7 @@ class GameLinkClient(
     private val ctx: Context,
     private val onState: (steer: Double, gear: String, brake: Boolean, speedKmh: Double, rpm: Double, accelPct: Double, switches: String) -> Unit,
     private val onSpec: (json: String) -> Unit,
-    /** (11/16) 서비스 연결이 끊겼을 때. 차량 신호가 더 오지 않으므로 3D 화면은 스스로 닫는다(실제 차가 움직여도 멈추지 못하는 일을 막는다). */
+    /** 서비스 연결이 끊겼을 때. 차량 신호가 더 오지 않으므로 3D 화면은 스스로 닫는다(실제 차가 움직여도 멈추지 못하는 일을 막는다). */
     private val onLost: () -> Unit = {},
 ) {
     private var service: Messenger? = null
@@ -69,7 +69,7 @@ class GameLinkClient(
         bound = ctx.bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 
-    /** (11/15 대표) 3D 연습의 할 일을 코치 음성으로 한 번 읽어 달라고 보낸다. */
+    /** 3D 연습의 할 일을 코치 음성으로 한 번 읽어 달라고 보낸다. */
     fun speak(text: String) {
         val m = service ?: return
         runCatching { m.send(Message.obtain(null, GameLink.MSG_SPEAK).apply { data = android.os.Bundle().apply { putString(GameLink.KEY_TEXT, text) } }) }

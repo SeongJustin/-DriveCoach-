@@ -1,4 +1,4 @@
-// 담당: S (11/8) 3D 주차 게임·도로 주행 화면(Unity as a Library). 첫 화면 "주차 연습" → "주차 게임" 카드와 "도로 주행 연습" 카드에서 GameLauncher 가 연다.
+// 3D 주차 게임·도로 주행 화면(Unity as a Library). 첫 화면 "주차 연습" → "주차 게임" 카드와 "도로 주행 연습" 카드에서 GameLauncher 가 연다.
 // 별도 프로세스(:game3d, AndroidManifest): Unity 는 화면을 닫을 때 자기 프로세스를 끝내므로 메인 프로세스(CoachService)와 떨어뜨린다.
 // 차량 신호·제원은 CoachService 의 GameLink 에서 받아(GameLinkClient) Unity 의 "DriveCoachBridge" 오브젝트(GameMain.cs)로 넘긴다.
 // Unity 쪽은 준비되면 onUnityReady(), 닫을 때 closeGame() 을 부른다(C# AndroidLink.Call).
@@ -51,7 +51,7 @@ class Game3DActivity : UnityPlayerActivity() {
         super.onStop()
     }
 
-    // ── 오디오 포커스(Pleos 오디오 포커스 가이드, 11/9): 효과음(경고 삐 소리)을 내기 전에 포커스를 잡고, 변화에 대응한다.
+    // ── 오디오 포커스(Pleos 오디오 포커스 가이드): 효과음(경고 삐 소리)을 내기 전에 포커스를 잡고, 변화에 대응한다.
     // 게임 소리(USAGE_GAME → MUSIC 컨텍스트)는 짧은 효과음뿐이라 음악을 끊지 않고 줄이게(MAY_DUCK) 요청한다.
     // 잃으면(통화·Gleo·다른 미디어) Unity 소리를 멈추고, 다시 얻으면 켠다. 화면을 떠나면 반납한다.
     private val audio by lazy { getSystemService(Context.AUDIO_SERVICE) as? AudioManager }
@@ -110,7 +110,7 @@ class Game3DActivity : UnityPlayerActivity() {
 
     /**
      * Unity 로 보내는 줄: "핸들각;기어;브레이크;속도;회전수;액셀%;방향;비상;전조등;와이퍼;벨트" (모르는 값은 -1 · U · UNKNOWN)
-     * 뒤 다섯 칸(11/8 밤 실차 스위치)은 GameLink.switches — 비어 있으면 붙이지 않는다(예전 Unity 도 앞 여섯 칸만 읽으면 된다).
+     * 뒤 다섯 칸(실차 스위치)은 GameLink.switches — 비어 있으면 붙이지 않는다(예전 Unity 도 앞 여섯 칸만 읽으면 된다).
      */
     private fun onState(steer: Double, gear: String, brake: Boolean, speedKmh: Double, rpm: Double, accelPct: Double, switches: String) {
         lastState = String.format(Locale.ROOT, "%.1f;%s;%d;%.1f;%.0f;%.0f", steer, gear, if (brake) 1 else 0, speedKmh, rpm, accelPct) +
@@ -147,7 +147,7 @@ class Game3DActivity : UnityPlayerActivity() {
         }
     }
 
-    /** (11/15 대표) Unity 가 판을 시작할 때 할 일을 넘긴다. 코치 음성으로 한 번 읽는다. */
+    /** Unity 가 판을 시작할 때 할 일을 넘긴다. 코치 음성으로 한 번 읽는다. */
     @Keep
     fun speakHint(text: String) {
         runOnUiThread { link.speak(text) }
@@ -160,7 +160,7 @@ class Game3DActivity : UnityPlayerActivity() {
     }
 
     /**
-     * (11/16) 코치 서비스와 연결이 끊기면 차량 신호(기어·속도)가 더 오지 않아, 실제 차가 움직여도 3D 를 멈출 수 없다.
+     * 코치 서비스와 연결이 끊기면 차량 신호(기어·속도)가 더 오지 않아, 실제 차가 움직여도 3D 를 멈출 수 없다.
      * 그래서 3D 화면을 닫는다. 다시 열면 새로 연결한다.
      */
     private fun onLinkLost() {
@@ -180,6 +180,6 @@ class Game3DActivity : UnityPlayerActivity() {
     companion object {
         private const val TAG = "Game3DActivity"
         private const val BRIDGE = "DriveCoachBridge"
-        private const val READY_TIMEOUT_MS = 40_000L   // 11/8 에뮬레이터 첫 실행이 17초 걸림 → 넉넉히
+        private const val READY_TIMEOUT_MS = 40_000L   // 에뮬레이터 첫 실행이 17초 걸림 → 넉넉히
     }
 }

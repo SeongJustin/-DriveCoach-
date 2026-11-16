@@ -1,4 +1,4 @@
-// 담당: S (11/8) 주차·핸들 연습 열기: 3D(Unity). 3D 가 들어 있지 않은 빌드면 안내만 띄운다.
+// 주차·핸들 연습 열기: 3D(Unity). 3D 가 들어 있지 않은 빌드면 안내만 띄운다.
 // 3D 가 준비 신호(onUnityReady)를 못 보내고 끝나면(멈춤·강제 종료·시간 초과) 실패로 기록한다. 두 번 연속이면(시간 초과는 한 번에)
 // [use3d] 가 false 가 된다(자가 검사가 읽는다). 3D 가 한 번이라도 정상으로 열리면 기록을 지운다.
 // 기록은 앱 버전 + 3D 빌드 시각(UNITY_STAMP)마다 따로: 3D 를 새로 만들어 넣으면 다시 3D 부터 시도한다.
@@ -36,7 +36,7 @@ object GameLauncher {
             i.putExtra("dc_menu", menu ?: "practice")
             if (unityArgs != null) i.putExtra("unity", unityArgs)   // Unity 명령줄(자가 검사: -dcScreen stage:7 -dcAutoExit 20)
             ctx.startActivity(i)
-            // (11/15 대표) 공회전 제한: 엔진이 도는지는 앱이 읽을 수 없어(엔진 회전수는 권한 밖) 들어갈 때 한 번 알린다
+            // 공회전 제한: 엔진이 도는지는 앱이 읽을 수 없어(엔진 회전수는 권한 밖) 들어갈 때 한 번 알린다
             if (unityArgs == null) android.widget.Toast.makeText(ctx, ctx.getString(kr.drivecoach.app.R.string.game_idle_notice), android.widget.Toast.LENGTH_LONG).show()
         } else {
             android.widget.Toast.makeText(ctx, "이 빌드에는 3D 연습이 들어 있지 않습니다", android.widget.Toast.LENGTH_LONG).show()

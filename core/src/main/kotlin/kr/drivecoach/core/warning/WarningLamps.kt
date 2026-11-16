@@ -1,4 +1,4 @@
-// 담당: L (경고등 3색 분류 데이터)
+// 경고등 3색 분류 데이터
 package kr.drivecoach.core.warning
 
 import kr.drivecoach.core.tts.PhraseId
@@ -30,7 +30,7 @@ data class WarningLamp(
     val description: String,
     val aaosPropertyHint: String?,
 ) {
-    /** 음성용 짧은 이름: 괄호·슬래시 설명을 뗀 것("과속 경고(120km/h)" → "과속 경고", "방향지시등/비상등 표시등" → "방향지시등 표시등"). `warning_lamp_on` 의 {lamp} 에 넣는다(베타 B-31). */
+    /** 음성용 짧은 이름: 괄호·슬래시 설명을 뗀 것("과속 경고(120km/h)" → "과속 경고", "방향지시등/비상등 표시등" → "방향지시등 표시등"). `warning_lamp_on` 의 {lamp} 에 넣는다. */
     val spokenName: String get() = nameKo.replace(Regex("\\([^)]*\\)"), "").replace(Regex("/[^ ]*"), "").trim()
 
     /** 이 경고등의 행동 멘트 ID(`warning_action_<id 소문자>`). 문장은 [action] 과 같고 K 의 Phrases 카탈로그에 등록 요청. */
@@ -38,7 +38,7 @@ data class WarningLamp(
 }
 
 /**
- * 경고등 모듈이 쓰는 멘트 ID 모음. 실제 문장은 core/tts/Phrases.kt(K 담당)에 있다.
+ * 경고등 모듈이 쓰는 멘트 ID 모음. 실제 문장은 core/tts/Phrases.kt에 있다.
  * 하드코딩 멘트 금지 규약에 따라 사용자에게 들리는 문장은 이 ID 로만 참조한다.
  * "카탈로그에 이미 있음"으로 표시한 것은 K 가 이미 등록한 ID 를 재사용한 것.
  */

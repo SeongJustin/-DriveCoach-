@@ -1,4 +1,3 @@
-// 담당: S (11/8 밤, 대표: "주차장 … 주유소 휴게소 이런 것도 넣어야겠지. 너무 단조롭지 않게")
 // 내 동네 지도의 시설:
 //   주차장: 바닥(아스팔트 질감, 길보다 1 cm 아래라 길이 덮는다), 흰 주차칸 선, 세워 둔 차(낮은 다각형 차 — 색마다 한 메시로 합쳐 가볍게)
 //   주유소·충전소: 콘크리트 바닥, 기둥 4개 캐노피(흰 판 + 회색 띠, 상표 없음), 주유기 섬, 길가 가격판(주유소 그림 칸)
@@ -11,7 +10,7 @@ namespace DriveCoach.Unity
 {
     public static class FacilityBuilder
     {
-        // 세운 차 색: 다니는 차와 같은 비율(TrafficView 승용 색, 11/9 대표: "도색 여러가지 색으로")
+        // 세운 차 색: 다니는 차와 같은 비율(TrafficView 승용 색)
         static (Color c, float w)[] CarColors => TrafficView.PaletteOf(0);
 
         public static void Build(RoadDef r, float h, Transform node)
@@ -83,11 +82,14 @@ namespace DriveCoach.Unity
                     // 가격판: 넓이에서 가장 가까운 길 쪽 모서리(없으면 캐노피 한쪽 끝)
                     var sp = c + ax * (L * 0.5f + 3f);
                     if (surf != null) sp = surf.PushOff(sp, 0.5f);
-                    steel.Box(Space3D.W(sp, h + 2.4f), new Vector3(0.25f, 4.8f, 0.25f), yaw);
-                    SignPanel(signFace, sp, h + 4.4f, ang, f.kind);
+                    if (CountryStyle.Current.stationBoard != null)      // 가격판 그림은 나라 표(없으면 판·기둥을 세우지 않음)
+                    {
+                        steel.Box(Space3D.W(sp, h + 2.4f), new Vector3(0.25f, 4.8f, 0.25f), yaw);
+                        SignPanel(signFace, sp, h + 4.4f, ang, f.kind);
+                    }
                 }
             }
-            // 이면도로 가장자리에 세워 둔 차(11/9)
+            // 이면도로 가장자리에 세워 둔 차
             int nStreet = 0;
             foreach (var pc in d.parked)
             {
@@ -111,14 +113,16 @@ namespace DriveCoach.Unity
                 canopyBand.ToObject("canopy-band", DcAssets.Lit(DcAssets.Hex("#5E6670"), 0.5f, 0.3f), node, false, true);
                 steel.ToObject("canopy-posts", DcAssets.Lit(DcAssets.Hex("#B9BEC4"), 0.6f, 0.7f), node, true, true);
                 pumps.ToObject("pumps", DcAssets.Lit(DcAssets.Hex("#D9DCDF"), 0.5f, 0.2f), node, true, true);
-                var tex = Resources.Load<Texture2D>("DC/Signs/station");
-                if (tex != null && !signFace.IsEmpty) signFace.ToObject("station-sign", DcAssets.LitTex("station-sign", tex, 0.3f), node, false, true);
+                // 한국: 원화·한글 가격판(DC/Signs/station), 독일: 유로 가격판(DC/Signs/station_de)
+                var cs = CountryStyle.Current;
+                var tex = cs.stationBoard != null ? Resources.Load<Texture2D>(cs.stationBoard) : null;
+                if (tex != null && !signFace.IsEmpty) signFace.ToObject("station-sign", DcAssets.LitTex(cs.IsKorea ? "station-sign" : "station-sign-" + cs.code, tex, 0.3f), node, false, true);
             }
             Debug.Log($"FacilityBuilder: 주차장 {nLots}(세운 차 {nCars}), 주유소·충전소 {nFuel}, 길가 세운 차 {nStreet}, 차 모델로 그린 것 {nFleet}");
         }
 
         /// <summary>
-        /// 세워 둔 차를 다니는 차와 같은 모델(FleetModels: 세단·SUV·해치백·승합·1톤 트럭·택시)로(11/9 대표: "최대한 외부 리소스 … 최상급으로").
+        /// 세워 둔 차를 다니는 차와 같은 모델(FleetModels: 세단·SUV·해치백·승합·1톤 트럭·택시)로.
         /// 160 m 칸·재질마다 한 메시로 합친다(1,500 대도 그리기 횟수는 칸 수 × 재질 수). 모델이 없으면 false(상자 차로).
         /// </summary>
         class ParkedFleet
@@ -127,16 +131,17 @@ namespace DriveCoach.Unity
             // 세워 둔 차 비율: 세단 46 · SUV 26 · 해치백 12 · 승합 7 · 1톤 트럭 7 · 택시 2 (이면도로·주차장)
             static readonly (int kind, float w)[] Mix = { (0, 46f), (1, 26f), (2, 12f), (4, 7f), (5, 7f), (3, 2f) };
             static readonly string[] Name = { "sedan", "suv", "hatch", "taxi", "van", "truck" };
-            // (11/11) 예전에는 칸·재질마다 차의 점을 전부 복사해 한 메시로 합쳤다(동네 하나에 244 MB). 이제 차종마다 메시 두 개(차체 / 나머지)만 만들어 두고
+            // 예전에는 칸·재질마다 차의 점을 전부 복사해 한 메시로 합쳤다(동네 하나에 244 MB). 이제 차종마다 메시 두 개(차체 / 나머지)만 만들어 두고
             //   세워 둔 차마다 그 메시를 가리키는 물체 두 개를 둔다. 모양·색은 그대로.
-            class Kind { public Mesh body, rest; public Material[] restMats; public bool bodyShadow, restShadow; }
+            /// <summary>all = 차체(서브메시 0) + 나머지(재질별 서브메시) 한 메시 → 세운 차 하나가 물체 하나(예전: 차체·나머지 둘, 동네 하나에 1,600대)</summary>
+            class Kind { public Mesh body, rest, all; public Material[] restMats; public bool bodyShadow, restShadow; }
             static readonly Dictionary<string, Kind> kinds = new Dictionary<string, Kind>();
             readonly Dictionary<(int tx, int ty), List<(Kind k, Material paint, Vector3 pos, Quaternion rot)>> cars = new Dictionary<(int, int), List<(Kind, Material, Vector3, Quaternion)>>();
             public int count;
 
             static Kind KindOf(string name)
             {
-                if (kinds.TryGetValue(name, out var k) && (k == null || k.rest != null || k.body != null)) return k;
+                if (kinds.TryGetValue(name, out var k) && (k == null || k.rest != null || k.body != null || k.all != null)) return k;
                 var proto = FleetModels.Proto(name);
                 if (proto == null) { kinds[name] = null; return null; }
                 k = new Kind();
@@ -160,7 +165,6 @@ namespace DriveCoach.Unity
                     k.body = new Mesh { name = "parked-body-" + name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
                     k.body.CombineMeshes(bodyParts.ToArray(), true, true);
                     k.body.RecalculateBounds();
-                    k.body.UploadMeshData(true);
                 }
                 if (order.Count > 0)
                 {
@@ -171,14 +175,31 @@ namespace DriveCoach.Unity
                         one.CombineMeshes(byMat[order[i]].ToArray(), true, true);
                         subs[i] = new CombineInstance { mesh = one, transform = Matrix4x4.identity };
                     }
-                    k.rest = new Mesh { name = "parked-rest-" + name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
-                    k.rest.CombineMeshes(subs, false, false);
-                    k.rest.RecalculateBounds();
-                    foreach (var c in subs) Dc.Kill(c.mesh);
-                    k.rest.UploadMeshData(true);
                     k.restMats = order.ToArray();
                     foreach (var m in k.restMats) if (m != null && !m.enableInstancing) m.enableInstancing = true;
+                    if (k.body != null && k.bodyShadow == k.restShadow)
+                    {
+                        // 차체 + 나머지를 서브메시로 한 메시에(그림자 설정이 같을 때만)
+                        var all = new CombineInstance[subs.Length + 1];
+                        all[0] = new CombineInstance { mesh = k.body, transform = Matrix4x4.identity };
+                        for (int i = 0; i < subs.Length; i++) all[i + 1] = subs[i];
+                        k.all = new Mesh { name = "parked-" + name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+                        k.all.CombineMeshes(all, false, false);
+                        k.all.RecalculateBounds();
+                        k.all.UploadMeshData(true);
+                        Dc.Kill(k.body);
+                        k.body = null;
+                    }
+                    else
+                    {
+                        k.rest = new Mesh { name = "parked-rest-" + name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+                        k.rest.CombineMeshes(subs, false, false);
+                        k.rest.RecalculateBounds();
+                        k.rest.UploadMeshData(true);
+                    }
+                    foreach (var c in subs) Dc.Kill(c.mesh);
                 }
+                if (k.body != null) k.body.UploadMeshData(true);
                 kinds[name] = k;
                 return k;
             }
@@ -216,6 +237,19 @@ namespace DriveCoach.Unity
                         car.transform.SetParent(tile.transform, false);
                         car.transform.localPosition = pos;
                         car.transform.localRotation = rot;
+                        if (k.all != null)
+                        {
+                            if (!paint.enableInstancing) paint.enableInstancing = true;
+                            var mats = new Material[k.restMats.Length + 1];
+                            mats[0] = paint;
+                            System.Array.Copy(k.restMats, 0, mats, 1, k.restMats.Length);
+                            car.AddComponent<MeshFilter>().sharedMesh = k.all;
+                            var ra = car.AddComponent<MeshRenderer>();
+                            ra.sharedMaterials = mats;
+                            ra.shadowCastingMode = k.bodyShadow ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+                            rs.Add(ra);
+                            continue;
+                        }
                         if (k.body != null)
                         {
                             if (!paint.enableInstancing) paint.enableInstancing = true;
@@ -264,7 +298,7 @@ namespace DriveCoach.Unity
             float w = 1.6f, hh = 2.4f;
             var n2 = new V2(Mathf.Cos(ang), Mathf.Sin(ang));
             var face = new Vector3(n2.x, 0f, -n2.y);
-            var right = Vector3.Cross(face, Vector3.up).normalized;      // 판을 마주 본 사람의 오른쪽((11/11) 반대라 그림이 좌우로 뒤집혀 있었다)
+            var right = Vector3.Cross(face, Vector3.up).normalized;      // 판을 마주 본 사람의 오른쪽(반대라 그림이 좌우로 뒤집혀 있었다)
             var c = Space3D.W(p, y);
             float u0 = kind == "charging" ? 0.5f : 0f, u1 = u0 + 0.5f;
             foreach (var s in new[] { 1f, -1f })

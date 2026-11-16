@@ -1,5 +1,5 @@
-// 코스 주행(5장) 동작 — 팀원 담당 영역. 내비 리스너(naviListener)는 CoachController 클래스 안에 있다.
-// (11/5 정리) CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
+// 코스 주행(5장) 동작. 내비 리스너(naviListener)는 CoachController 클래스 안에 있다.
+// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
 package kr.drivecoach.app
 
 import android.util.Log
@@ -29,7 +29,7 @@ import kr.drivecoach.core.tts.Phrases
  */
 fun CoachController.startCourse() {
     if (coursePhase != null) return
-    coachingPaused = false   // (11/15 오류 검수) 운전자가 새 활동을 열면 "세울래요"로 멈춘 코칭을 푼다
+    coachingPaused = false   // 운전자가 새 활동을 열면 "세울래요"로 멈춘 코칭을 푼다
     endActivity()
     coursePhase = CoursePhase.CHOOSE
     courseChosen = null; course = null; naviRequest = null
@@ -66,7 +66,7 @@ fun CoachController.endCourse() {
  */
 fun CoachController.chooseCourseOption(id: CourseOptionId, difficulty: Int = courseDifficulty, targetMinutes: Int = courseTargetMinutes) {
     if (coursePhase == null) return
-    // (11/15 강명수) 난이도 1~5·연습 시간. 키가 있을 때(난이도별 생성기)만 코스에 반영된다. 바꾸면 지난 결과(courseCache)는 버린다.
+    // 난이도 1~5·연습 시간. 키가 있을 때(난이도별 생성기)만 코스에 반영된다. 바꾸면 지난 결과(courseCache)는 버린다.
     if (difficulty !in 1..5 || targetMinutes !in 5..90) return
     if (difficulty != courseDifficulty || targetMinutes != courseTargetMinutes) courseCache.clear()
     courseDifficulty = difficulty
@@ -101,9 +101,9 @@ internal fun CoachController.generateCourse(source: CourseSource, isGenerated: B
         setCourseError("no_location")
         return
     }
-    // (11/15 강명수) 길찾기 코스는 난이도·연습 시간·출발지 복귀(순환)를 조건에 넣는다. 오프셋 기본 코스는 예전 조건 그대로.
-    // (11/15 오류 검수) 합류 연습은 생성기가 난이도 3 이상에서만 만든다 → 낮게 골랐으면 3으로 올린다.
-    //   직진 위주(페달 헷갈림)는 꺾지 않는 편도 코스라 순환으로 바꾸지 않는다(11/14 베타 수정 유지).
+    // 길찾기 코스는 난이도·연습 시간·출발지 복귀(순환)를 조건에 넣는다. 오프셋 기본 코스는 예전 조건 그대로.
+    // 합류 연습은 생성기가 난이도 3 이상에서만 만든다 → 낮게 골랐으면 3으로 올린다.
+    //   직진 위주(페달 헷갈림)는 꺾지 않는 편도 코스라 순환으로 바꾸지 않는다.
     val spec = CourseOptions.spec(id).let { base ->
         if (isGenerated) base.copy(
             difficulty = if (base.includeMerge) maxOf(courseDifficulty, 3) else courseDifficulty,
@@ -115,7 +115,7 @@ internal fun CoachController.generateCourse(source: CourseSource, isGenerated: B
     val heading = naviLoc?.headingDeg
     // 이전 생성이 돌고 있으면 버린다(늦게 끝나도 seq 가 달라 무시).
     courseGenJob?.cancel()
-    // (11/15 베타 7h: 같은 목적을 다시 고르면 길찾기 응답에 따라 다른 코스가 나와 "가장 가까운 코스"가 무엇인지 알 수 없었다)
+    // (같은 목적을 다시 고르면 길찾기 응답에 따라 다른 코스가 나와 "가장 가까운 코스"가 무엇인지 알 수 없었다)
     //   같은 자리(300 m 안)에서 같은 방식으로 고른 목적은 지난 결과를 그대로 쓴다
     courseCache[id]?.let { (at, cached, gen) ->
         if (gen == isGenerated && kr.drivecoach.core.course.Geo.distanceM(at, start) < 300.0) {
@@ -132,7 +132,7 @@ internal fun CoachController.generateCourse(source: CourseSource, isGenerated: B
     publishCourseUi()
     courseGenJob = scope.launch(Dispatchers.Main) {
         val outcome: Result<CourseResult> = try {
-            // (11/15 강명수) runInterruptible: 닫기·재선택으로 취소하면 길찾기 스레드도 멈춘다(생성기가 interrupt 를 확인)
+            // runInterruptible: 닫기·재선택으로 취소하면 길찾기 스레드도 멈춘다(생성기가 interrupt 를 확인)
             Result.success(runInterruptible(Dispatchers.IO) { source.generate(start, heading, spec) })
         } catch (e: java.util.concurrent.CancellationException) {
             throw e   // 닫기·재선택으로 취소된 것 — 코루틴 규약대로 전파
@@ -153,9 +153,9 @@ internal fun CoachController.generateCourse(source: CourseSource, isGenerated: B
     }
 }
 
-/** (11/14 베타: 고른 목적과 나온 코스가 다르다) 조건과 다른 점을 사람 말로. 다 맞으면 null. */
+/** (고른 목적과 나온 코스가 다르다) 조건과 다른 점을 사람 말로. 다 맞으면 null. */
 internal fun mismatchText(spec: CourseSpec, s: CourseSummary): String? {
-    // (11/15 베타 7h: "좌회전 4번(고른 조건 3번)" — 숫자를 고른 적이 없는데 '고른 조건', 연습 목적이면 많아도 괜찮은데 안 맞음으로 표시)
+    // (숫자를 고른 적이 없는데 '고른 조건', 연습 목적이면 많아도 괜찮은데 안 맞음으로 표시)
     //   괄호는 "이 목적은 …", 좌회전·차로 변경 연습은 모자랄 때만 적는다
     fun range(r: IntRange) = if (r.first == r.last) "${r.first}번" else "${r.first}~${r.last}번"
     val out = ArrayList<String>()
@@ -165,7 +165,7 @@ internal fun mismatchText(spec: CourseSpec, s: CourseSummary): String? {
     else if (if (leftDrill) s.leftTurns < spec.leftTurns.first else s.leftTurns !in spec.leftTurns) out += "좌회전 ${s.leftTurns}번(이 목적은 ${range(spec.leftTurns)})"
     if (if (laneDrill) s.laneChangeEstimate < spec.laneChanges.first else s.laneChangeEstimate !in spec.laneChanges) out += "차로 변경 ${s.laneChangeEstimate}번(이 목적은 ${range(spec.laneChanges)})"
     if (spec.includeMerge && s.merges + s.highwayEnters == 0) out += "합류 구간 없음"
-    if (s.distanceKm > spec.maxDistanceKm) out += "거리 ${"%.1f".format(s.distanceKm)}km(이 목적은 ${"%.0f".format(spec.maxDistanceKm)}km 이하)"   // 같은 화면 안내("…km입니다")와 같이 붙여 쓴다(베타 6f)
+    if (s.distanceKm > spec.maxDistanceKm) out += "거리 ${"%.1f".format(s.distanceKm)}km(이 목적은 ${"%.0f".format(spec.maxDistanceKm)}km 이하)"   // 같은 화면 안내("…km입니다")와 같이 붙여 쓴다
     if (spec.loop && !s.returnsToStart) out += "출발지로 돌아오지 않음"
     return out.takeIf { it.isNotEmpty() }?.joinToString(", ")
 }
@@ -184,8 +184,8 @@ internal fun CoachController.applyCourseResult(id: CourseOptionId, result: Cours
     // 넘기는 점은 전부 길찾기 경로 path 위의 점(경유지 ≤ 2 + 목적지). 오프셋 코스는 그 직선 경로의 점.
     naviRequest = NaviHandoff.toNaviRequest(best.course, destinationLabel = COURSE_DESTINATION_LABEL)
     courseSummaryText = CourseBriefing.notes(best.course).joinToString(" ") { n -> Phrases.render(PhraseId(n.phraseId), n.params) }
-    // (11/15 강명수) 난이도별 생성기의 평가가 있으면 그 숫자를 앞에 붙인다(추정치임을 밝힘).
-    //   (11/15 오류 검수) 코스 요약(거리, 좌회전·우회전·차로 변경 수)은 지우지 않고 뒤에 둔다
+    // 난이도별 생성기의 평가가 있으면 그 숫자를 앞에 붙인다(추정치임을 밝힘).
+    //   코스 요약(거리, 좌회전·우회전·차로 변경 수)은 지우지 않고 뒤에 둔다
     best.assessment?.let { a ->
         val loopNote = if (CourseOptions.spec(id).fearFocus == Fear.PEDAL_CONFUSION) "" else " 출발지 근처로 돌아옵니다."
         courseSummaryText = "난이도 추정 ${a.score.toInt()}/100, 예상 ${best.course.route.totalDurationMs / 60000}분.$loopNote " + courseSummaryText
@@ -196,7 +196,7 @@ internal fun CoachController.applyCourseResult(id: CourseOptionId, result: Cours
     val s = best.course.summary
     Log.i(COACH_TAG, "코스 ${id.name} (${if (isGenerated) "길찾기" else "오프셋"}, 호출 ${result.apiCalls}회, 조건충족 ${best.meetsSpec}): ${best.reasons} / " +
         "${s.distanceKm}km 좌 ${s.leftTurns} 우 ${s.rightTurns} 차선 ${s.laneChangeEstimate} 비보호 ${s.unprotectedLefts} / " +
-        "경유지 ${naviRequest?.waypoints?.size ?: 0}개")   // (11/15 보안 점검) 좌표는 logcat 에 남기지 않는다
+        "경유지 ${naviRequest?.waypoints?.size ?: 0}개")   // 좌표는 logcat 에 남기지 않는다
     publishCourseUi()
 }
 

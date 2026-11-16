@@ -1,5 +1,5 @@
 // 직각 주차(4-5) 화면
-// (11/5 정리) MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
+// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -18,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,21 +51,22 @@ import kr.drivecoach.core.parking.Tangle
  */
 @Composable
 internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
-    val selfEval = remember(p.attempt) { mutableStateOf(setOf<SelfEvalItem>()) }   // 시도마다 초기화(베타 D-30)
+    val selfEval = remember(p.attempt) { mutableStateOf(setOf<SelfEvalItem>()) }   // 시도마다 초기화
     CoachCard {
         Text(text = parkingCaption(p), style = CoachType.Caption, maxLines = 1)
         Spacer(Modifier.height(12.dp))
         val fraction = if (p.stepTotal > 0) (p.stepIndex + 1).toFloat() / p.stepTotal.toFloat() else 0f
         LinearProgressIndicator(
             progress = { fraction.coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxWidth().height(6.dp),
+            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
             color = if (p.recovery != null) CoachColors.Danger else CoachColors.Primary,
             trackColor = CoachColors.Outline,
         )
         Spacer(Modifier.height(20.dp))
-        // 그림 + 문장: 넓은 화면은 좌우, 좁은(세로) 화면은 위아래(11/6 Pleos 가이드)
+        Spacer(Modifier.weight(1f))   // 남는 높이는 그림 위아래로 나눠 버튼 줄을 화면 아래에 붙인다
+        // 그림 + 문장: 넓은 화면은 좌우, 좁은(세로) 화면은 위아래(Pleos 가이드)
         ArtWithText(ParkingArt.resIdFor(p.illustration), p.illustration, videoRes = ParkingArt.videoResFor(this@ParkingScreen, p.illustration), keepArtSlot = p.phase != SlowModePhase.IDLE) {
-            // (11/14 베타 2차: 자기평가 화면에 시작 전 안내문이 그대로 남는다)
+            // (자기평가 화면에 시작 전 안내문이 그대로 남는다)
             val bodyText = if (p.phase == SlowModePhase.SELF_EVAL) getString(if (p.kind == ParkingKind.PARALLEL) R.string.parking_par_selfeval_body else R.string.parking_selfeval_body) else p.text
             val longText = bodyText.length > 60   // 시작 전 설명 등
             Text(
@@ -72,7 +75,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
                 lineHeight = if (longText) 40.sp else 44.sp,
                 maxLines = if (longText) 9 else 4,
             )
-            // 기준점 설명(어느 선·어느 미러인지, 베타 2차 A-11)과 잠깐 보이는 보조 안내(아직 감지 안 됨 등, 베타 2차 A-9)
+            // 기준점 설명(어느 선·어느 미러인지)과 잠깐 보이는 보조 안내(아직 감지 안 됨 등)
             p.detail?.let {
                 Spacer(Modifier.height(8.dp))
                 Text(text = it, fontSize = CoachSize.Label, color = CoachColors.Secondary, maxLines = 2)
@@ -91,6 +94,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
             }
         }
         Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.weight(1f))
         when (p.phase) {
             SlowModePhase.STEP, SlowModePhase.RECOVERY_STEP -> {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -100,7 +104,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
                     SecondaryButton(onClick = { coach.onCommand(Command.SKIP) }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_skip), fontSize = CoachSize.Button)
                     }
-                    // '다시' = 이번 단계 안내를 다시 듣기('처음부터' 와 헷갈리던 것, 베타 2차 A-16)
+                    // '다시' = 이번 단계 안내를 다시 듣기('처음부터' 와 헷갈리던 것)
                     SecondaryButton(onClick = { coach.onCommand(Command.AGAIN) }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_listen_again), fontSize = CoachSize.Button)
                     }
@@ -113,7 +117,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
                     SecondaryButton(onClick = { coach.parkingRestart() }, modifier = Modifier.weight(1f), minHeight = CoachChipMinHeight) {
                         Text(text = getString(R.string.btn_parking_restart), fontSize = CoachSize.Label)
                     }
-                    // 닫기도 같은 크기 버튼으로(베타 2차 A-6)
+                    // 닫기도 같은 크기 버튼으로
                     SecondaryButton(onClick = { coach.endActivity() }, modifier = Modifier.weight(1f), minHeight = CoachChipMinHeight) {
                         Text(text = getString(R.string.btn_to_list), fontSize = CoachSize.Label)
                     }
@@ -121,7 +125,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
             }
             SlowModePhase.RECOVERY_CHOICE -> {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    // 상태 이름만으로는 무엇인지 몰라 고르기 어렵던 것(베타 2차 A-12): 한 줄 설명을 같이
+                    // 상태 이름만으로는 무엇인지 몰라 고르기 어렵던 것: 한 줄 설명을 같이
                     for (t in p.recoveryOptions) {
                         SecondaryButton(onClick = { coach.parkingChooseRecovery(t) }, modifier = Modifier.weight(1f)) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -132,7 +136,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
                     }
                 }
                 Spacer(Modifier.height(16.dp))
-                // (11/15 베타 6f) 잘못 눌렀을 때 하던 단계로 돌아갈 길이 '목록으로' 밖에 없었다
+                // 잘못 눌렀을 때 하던 단계로 돌아갈 길이 '목록으로' 밖에 없었다
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     SecondaryButton(onClick = { coach.parkingCancelHelp() }, modifier = Modifier.weight(1f), minHeight = CoachChipMinHeight) {
                         Text(text = getString(R.string.btn_parking_back_to_step), fontSize = CoachSize.Label)
@@ -166,7 +170,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
                     }
                 }
             }
-            // 시작 전 설명 화면(베타 2차 A-3)
+            // 시작 전 설명 화면
             SlowModePhase.IDLE -> {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     PrimaryButton(onClick = { coach.parkingBegin() }, modifier = Modifier.weight(1f)) {
@@ -246,7 +250,7 @@ internal fun MainActivity.selfEvalLabel(item: SelfEvalItem, kind: ParkingKind = 
 )
 
 
-/** (11/15 대표) 주차 배우기 카드: 단계 영상 + 설명, 이전 / 다음 / 목록으로. 따라 하기와 확인은 없다. */
+/** 주차 배우기 카드: 단계 영상 + 설명, 이전 / 다음 / 목록으로. 따라 하기와 확인은 없다. */
 @Composable
 internal fun MainActivity.ParkLearnScreen(coach: CoachController, p: ParkLearnUi) {
     CoachCard {
@@ -256,10 +260,11 @@ internal fun MainActivity.ParkLearnScreen(coach: CoachController, p: ParkLearnUi
         Spacer(Modifier.height(12.dp))
         LinearProgressIndicator(
             progress = { ((p.index + 1).toFloat() / p.total.toFloat()).coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxWidth().height(6.dp),
+            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
             color = CoachColors.Primary, trackColor = CoachColors.Outline,
         )
         Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.weight(1f))   // 남는 높이는 그림 위아래로 나눠 버튼 줄을 화면 아래에 붙인다
         ArtWithText(ParkingArt.resIdFor(p.illustration), p.illustration, videoRes = ParkingArt.videoResFor(this@ParkLearnScreen, p.illustration), keepArtSlot = true) {
             Text(text = p.text, style = CoachType.Body, lineHeight = 44.sp, maxLines = 5)
             p.detail?.let {
@@ -268,6 +273,7 @@ internal fun MainActivity.ParkLearnScreen(coach: CoachController, p: ParkLearnUi
             }
         }
         Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.weight(1f))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
             SecondaryButton(onClick = { coach.parkLearnGo(-1) }, modifier = Modifier.weight(1f)) {
                 Text(text = getString(R.string.btn_prev), fontSize = CoachSize.Button, color = if (p.index > 0) CoachColors.OnBackground else CoachColors.Secondary)

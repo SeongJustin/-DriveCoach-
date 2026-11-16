@@ -1,4 +1,4 @@
-// MenuScreen 의 도로 주행(동네 지도에서 출발 자리 고르기) 부분(11/15 코드 정리로 MenuScreen.cs 에서 나눈 파일). 전체 설명은 MenuScreen.cs 맨 위.
+// MenuScreen 의 도로 주행(동네 지도에서 출발 자리 고르기) 부분(MenuScreen.cs 에서 나눈 파일). 전체 설명은 MenuScreen.cs 맨 위.
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -37,10 +37,10 @@ namespace DriveCoach.Unity
             UiKit.Stretch(img.rectTransform, 4, 4, 4, 4);
             var mrt = img.rectTransform;
             Func<V2, Vector2> toUi = p => new Vector2((p.x - mapX0) / (mapX1 - mapX0) * mw, -(p.y - mapY0) / (mapY1 - mapY0) * mh);   // 지도 왼쪽 위 기준
-            // (11/15 대표: "모든 출발은 주차장 칸에서") 지도 위 P 표시 = 출발할 수 있는 주차장(길로 바로 나갈 수 있는 빈 칸). 지도를 누르면 가장 가까운 P 를 고른다
+            // 지도 위 P 표시 = 출발할 수 있는 주차장(길로 바로 나갈 수 있는 빈 칸). 지도를 누르면 가장 가까운 P 를 고른다
             var lots = rd.ParkingStarts();
             {
-                // (11/15 베타 6g: 가까운 두 주차장의 P 가 겹쳐 하나를 골라 누르기 어렵다) 지도에서 P 크기보다 가까운 것은 하나만 둔다
+                // (가까운 두 주차장의 P 가 겹쳐 하나를 골라 누르기 어렵다) 지도에서 P 크기보다 가까운 것은 하나만 둔다
                 var shownLots = new List<RegionData.ParkStart>();
                 foreach (var lp in lots)
                 {
@@ -90,7 +90,7 @@ namespace DriveCoach.Unity
             float px = mw + 40f, pw = Mathf.Max(260f, cw - px);
             var t1 = UiKit.Label(content, lots.Count > 0 ? "지도에서 출발할 주차장(P)을 누르십시오" : "지도에서 출발할 곳을 누르십시오", 30, DcAssets.UiText, true, TextAnchor.UpperLeft);
             UiKit.Place(t1.rectTransform, new Vector2(0, 1), new Vector2(px, 0), new Vector2(pw, 90));
-            // (11/15 대표: "출발 자리를 골라야만 시작") 고르기 전에는 출발이 눌리지 않는다
+            // 고르기 전에는 출발이 눌리지 않는다
             var t2 = UiKit.Label(content, startAt.HasValue ? "고른 곳: " + startName : "출발 자리를 고르면 '출발'을 누를 수 있습니다", 28, DcAssets.UiText, false, TextAnchor.UpperLeft);
             UiKit.Place(t2.rectTransform, new Vector2(0, 1), new Vector2(px, -100), new Vector2(pw, 80));
             var go = UiKit.Btn(content, "출발", 34, startAt.HasValue ? UiKit.Kind.Primary : UiKit.Kind.Plain, () =>
@@ -108,7 +108,11 @@ namespace DriveCoach.Unity
                 var db = UiKit.Btn(content, "자동 운전 경로", 28, startDemo ? UiKit.Kind.Primary : UiKit.Kind.Plain, () => { startAt = dv; startHeading = float.NaN; startName = dn + " (자동 운전)"; startDemo = true; Refresh(); }, out _);
                 UiKit.Place((RectTransform)db.transform, new Vector2(0, 1), new Vector2(px, -306), new Vector2(Mathf.Min(pw, 360f), 80));
             }
-            var at = UiKit.Label(content, "지도 © OpenStreetMap contributors", 20, DcAssets.UiText, false, TextAnchor.LowerLeft);
+            // 목록에 출처(license·attribution)가 있는 지역은 지역 파일의 출처 줄을 그대로(가운뎃점마다 줄 바꿈), 없으면 예전 글
+            var ent = RegionCatalog.Entries[ri];
+            string attr = string.IsNullOrEmpty(ent.attribution) ? "© OpenStreetMap contributors"
+                : (rd.attribution != "© OpenStreetMap contributors" && rd.attribution != "" ? rd.attribution : ent.attribution);
+            var at = UiKit.Label(content, "지도 " + attr.Replace(" · ", "\n"), 20, DcAssets.UiText, false, TextAnchor.LowerLeft);
             UiKit.Place(at.rectTransform, new Vector2(0, 0), new Vector2(px, 0), new Vector2(pw, 40));
         }
 
@@ -193,7 +197,7 @@ namespace DriveCoach.Unity
             for (int i = 0; i < px.Length; i++) px[i] = bg;
             float fx0 = x0, fy1 = y1;
             Func<V2, Vector2> T = p => new Vector2((p.x - fx0) * sc, (fy1 - p.y) * sc);   // 그림 좌표(아래쪽이 0)
-            // (11/15 대표: 지도를 색으로) ColorMap 을 false 로 바꾸면 예전 회색 지도로 돌아간다
+            // (지도를 색으로) ColorMap 을 false 로 바꾸면 예전 회색 지도로 돌아간다
             if (ColorMap)
             {
                 var land = new Color32(240, 236, 226, 255);
@@ -234,7 +238,7 @@ namespace DriveCoach.Unity
             return tex;
         }
 
-        /// <summary>(11/15 대표) 색 지도(땅, 녹지, 물, 건물, 길). false = 예전 회색 선 지도</summary>
+        /// <summary>색 지도(땅, 녹지, 물, 건물, 길). false = 예전 회색 선 지도</summary>
         const bool ColorMap = true;
 
         /// <summary>다각형 채우기(가로줄마다 변과 만나는 곳을 찾아 사이를 칠한다)</summary>
@@ -301,7 +305,7 @@ namespace DriveCoach.Unity
         }
 
         /// <summary>내용 맨 아래 한 줄(검정). 지도 출처 표시(OpenStreetMap 이용 조건)에 쓴다</summary>
-        /// <summary>(11/15 대표: 취급설명서 표기) "직각 후진 주차(양옆 차)" → 두 줄(종류 / 조건)</summary>
+        /// <summary>(취급설명서 표기) "직각 후진 주차(양옆 차)" → 두 줄(종류 / 조건)</summary>
         static string TwoLines(string t)
         {
             int i = t.IndexOf('(');
@@ -319,7 +323,7 @@ namespace DriveCoach.Unity
             float W = root.rect.width;
             if (W < 100f) W = 1080f * Screen.width / Mathf.Max(1, Screen.height);   // 캔버스 크기가 아직 안 잡혔을 때
             W -= 96f;
-            // (11/15 대표) 왼쪽 '따라 하기' 카드는 뺐다(배우기는 앱의 주차 연습 화면에서 영상으로)
+            // 왼쪽 '따라 하기' 카드는 뺐다(배우기는 앱의 주차 연습 화면에서 영상으로)
             float gx = 0f;
             var grid = UiKit.Node("grid", content);
             UiKit.Stretch(grid, gx, 0, 0, 0);
@@ -336,7 +340,7 @@ namespace DriveCoach.Unity
                 rt.anchorMax = new Vector2((col + 1) / 5f, 1f - row / 5f);
                 rt.offsetMin = new Vector2(col == 0 ? 0 : gap / 2f, row == 4 ? 0 : gap / 2f);
                 rt.offsetMax = new Vector2(col == 4 ? 0 : -gap / 2f, row == 0 ? 0 : -gap / 2f);
-                // (11/15 대표) 칸에는 번호만
+                // 칸에는 번호만
                 var num = UiKit.Label(c.transform, n.ToString(), 48, DcAssets.UiText, true, TextAnchor.MiddleCenter);
                 UiKit.Stretch(num.rectTransform, 0, 0, 0, 0);
             }

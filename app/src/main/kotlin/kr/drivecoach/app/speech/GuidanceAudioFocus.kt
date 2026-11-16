@@ -1,4 +1,4 @@
-// 담당: S (앱 연결 — 코치 음성의 오디오 포커스, 11/7)
+// 앱 연결 — 코치 음성의 오디오 포커스
 package kr.drivecoach.app.speech
 
 import android.content.Context
@@ -34,7 +34,7 @@ class GuidanceAudioFocus(
     private val listener = AudioManager.OnAudioFocusChangeListener { change ->
         when (change) {
             AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                // Pleos 오디오 포커스 가이드(11/9 재확인): Gleo 음성 비서·통화 등으로 LOSS_TRANSIENT 를 받으면 즉시 멈추고 포커스를 반납한다.
+                // Pleos 오디오 포커스 가이드: Gleo 음성 비서·통화 등으로 LOSS_TRANSIENT 를 받으면 즉시 멈추고 포커스를 반납한다.
                 // 다음 문장 때 새로 요청한다(포커스를 쥔 채 기다리지 않는다).
                 Log.i(TAG, "포커스 잃음($change) → 코치 음성 멈춤·포커스 반납")
                 onMustStop()

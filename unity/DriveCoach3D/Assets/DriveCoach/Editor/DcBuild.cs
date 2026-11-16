@@ -1,4 +1,4 @@
-// 담당: S (3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 3단계: 안드로이드 라이브러리 내보내기, 4단계: 화면 캡처)
+// 3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 3단계: 안드로이드 라이브러리 내보내기, 4단계: 화면 캡처
 // 내보내기: Unity.exe -batchmode -quit -buildTarget Android -projectPath <프로젝트> -executeMethod DriveCoach.EditorTools.DcBuild.ExportAndroid -dcOut <폴더>
 // 캡처:     Unity.exe -batchmode -quit -buildTarget Android -projectPath <프로젝트> -executeMethod DriveCoach.EditorTools.DcBuild.Shots -dcOut <폴더>
 using System;
@@ -55,32 +55,32 @@ namespace DriveCoach.EditorTools
             public Func<Stage> st;
             public CamMode cam = CamMode.Chase;
             public float steer, sim, look;
-            public float[] eye;      // (11/11 밤) 공중에서 비스듬히: { 뒤로 거리 m, 높이 m } — at 의 자리를 at[2] 방향으로 바라본다
+            public float[] eye;      // 공중에서 비스듬히: { 뒤로 거리 m, 높이 m } — at 의 자리를 at[2] 방향으로 바라본다
             public Gear gear = Gear.D;
             public bool hud, mirrors;
             public string tag = "", kind = "stage";
-            public int weather = -1, time = -1;   // 11/8 밤: 날씨·시간 사진(-1 = 설정 그대로)
-            public float[] at;                     // 11/9: 차를 이 자리(지역 좌표 x, y, 차 가운데)·방향(도)에 두고 찍는다(없으면 출발 자리)
-            public int spawnKind = -1;             // 11/9 아침: 내 차 앞(18 m)에 이 종류 차를 한 대(버스가 정류장에 서는 사진)
+            public int weather = -1, time = -1;   // 날씨·시간 사진(-1 = 설정 그대로)
+            public float[] at;                     // 차를 이 자리(지역 좌표 x, y, 차 가운데)·방향(도)에 두고 찍는다(없으면 출발 자리)
+            public int spawnKind = -1;             // 내 차 앞(18 m)에 이 종류 차를 한 대(버스가 정류장에 서는 사진)
             public float spawnAhead = 18f;
-            /// <summary>(11/14) 앞에 세운 차 지붕에 빨강·파랑 경광등을 얹는다(긴급자동차 설명 그림)</summary>
+            /// <summary>앞에 세운 차 지붕에 빨강·파랑 경광등을 얹는다(긴급자동차 설명 그림)</summary>
             public bool emergency;
             /// <summary>앞에 세울 차를 내 차 왼쪽으로 이만큼(m) 옮겨 놓는다(옆 차로로 지나가는 긴급자동차)</summary>
             public float spawnLeft;
-            // (11/13 대표: "검수를 위해 자동운전") drive > 0 이면 그 초만큼 자동 운전으로 달리며 every 초마다 한 장(drive/이름_번호.jpg). route = 갈림길 글자(S·L·R), kmh = 순항 속도
+            // drive > 0 이면 그 초만큼 자동 운전으로 달리며 every 초마다 한 장(drive/이름_번호.jpg). route = 갈림길 글자(S·L·R), kmh = 순항 속도
             public float drive, every = 2f, kmh = 40f;
-            /// <summary>(11/13) 정해 둔 시연 경로(Resources/DC/Routes/이름.json)를 따라 달린다. 출발 자리도 경로에서</summary>
+            /// <summary>정해 둔 시연 경로(Resources/DC/Routes/이름.json)를 따라 달린다. 출발 자리도 경로에서</summary>
             public string routeFile;
-            /// <summary>(11/14 대표: "시연 영상을 찍는 툴") 0 보다 크면 달리는 동안 초당 이만큼 영상 장면을 쓴다(unity/video/이름/d_·c_번호.jpg = 운전석·따라가기, 1280x720)</summary>
+            /// <summary>0 보다 크면 달리는 동안 초당 이만큼 영상 장면을 쓴다(unity/video/이름/d_·c_번호.jpg = 운전석·따라가기, 1280x720)</summary>
             public int video;
             public string route = "";
-            /// <summary>(11/13 대표: 일러스트를 3D 장면으로) 바닥에 그릴 굵은 화살표(지역 좌표 x,y 쌍). 설명 그림 견본용</summary>
+            /// <summary>(일러스트를 3D 장면으로) 바닥에 그릴 굵은 화살표(지역 좌표 x,y 쌍). 설명 그림 견본용</summary>
             public float[] arrow;
             /// <summary>앞 정지선 신호가 빨간불이고 가까운 횡단보도에 사람이 건너는 순간까지 시간을 돌린 뒤 찍는다</summary>
             public bool untilRedPed;
             /// <summary>공중 사진이 바라볼 자리(지역 좌표 x, y). 없으면 at</summary>
             public float[] aim;
-            /// <summary>(11/14) 공중 사진의 카메라 자리를 차와 상관없이 고정: { x, y, 높이 m }. 직각 주차 7장을 같은 자리에서 찍는다</summary>
+            /// <summary>공중 사진의 카메라 자리를 차와 상관없이 고정: { x, y, 높이 m }. 직각 주차 7장을 같은 자리에서 찍는다</summary>
             public float[] eyeAbs;
             /// <summary>설명 그림: 화살표 여러 개(각각 x,y 쌍)와 모양(0 = 검정, 1 = 빨강, 2 = 검정 점선)</summary>
             public float[][] arrows; public int[] arrowStyle;
@@ -131,7 +131,7 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "circuit1", st = () => Stages.Circuit(1), hud = true, kind = "circuit" },
                     new Plan { name = "circuit1_driver", st = () => Stages.Circuit(1), cam = CamMode.Driver, steer = 90f, hud = true, mirrors = true, kind = "circuit" },
                     new Plan { name = "circuit2_top", st = () => Stages.Circuit(2), cam = CamMode.Overview },
-                    // (11/13) 일러스트 견본: 역삼역 교차로 빨간불 우회전(테헤란로 동행 → 논현로 남행), 비스듬히 내려다봄
+                    // 일러스트 견본: 역삼역 교차로 빨간불 우회전(테헤란로 동행 → 논현로 남행), 비스듬히 내려다봄
                     new Plan { name = "illust_right_turn", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P, untilRedPed = true,
                         at = new[] { 104.2f, 32.7f, -20f }, eye = new[] { 20f, 36f }, aim = new[] { 119f, 33f },
                         arrow = new[] { 107.6f, 31.4f, 114.0f, 29.2f, 120.5f, 28.4f, 125.6f, 31.6f, 128.6f, 38.0f, 130.9f, 44.0f, 133.0f, 49.5f, 136.0f, 57.5f } },
@@ -147,14 +147,14 @@ namespace DriveCoach.EditorTools
                         arrows = new[] { new[] { -567.0f, -774.0f, -566.5f, -781.0f, -565.8f, -787.7f, -559.7f, -793.8f, -557.5f, -802.0f, -559.7f, -810.2f, -565.8f, -816.3f, -574.0f, -818.5f, -582.2f, -816.3f, -588.3f, -810.2f, -596.0f, -808.5f, -606.0f, -812.0f } } },
                     new Plan { name = "illust_highway", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -684.8f, -1566.1f, 53.2f }, eye = new[] { 30f, 34f }, aim = new[] { -664.4f, -1541.4f },
                         arrows = new[] { new[] { -681.2f, -1561.3f, -676.5f, -1554.9f, -665.2f, -1545.8f, -655.6f, -1533.0f, -650.1f, -1519.6f, -641.7f, -1508.4f } } },
-                    // (11/14 대표: "법규 그림 3장의 3D 사진 — 시도해 보자") 주정차 금지(정류장·횡단보도), 긴급자동차(경광등 단 승합차에 길을 내줌), 기본 준수사항(운전석·제한 속도)
+                    // 주정차 금지(정류장·횡단보도), 긴급자동차(경광등 단 승합차에 길을 내줌), 기본 준수사항(운전석·제한 속도)
                     new Plan { name = "illust_parking_ban", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, sim = 12f, spawnKind = 6, spawnAhead = 16f, at = new[] { -561.0f, -2014.9f, -116.4f }, eye = new[] { 12f, 12f }, aim = new[] { -571.8f, -2018.5f },
                         arrows = new[] { new[] { -558.1f, -2016.3f, -571.5f, -2043.2f } }, arrowStyle = new[] { 1 } },
                     new Plan { name = "illust_emergency", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P, spawnKind = 4, spawnAhead = 5f, spawnLeft = 5.5f, emergency = true, at = new[] { -97.4f, 102.5f, -22f }, eye = new[] { 12f, 9f }, aim = new[] { -95.2f, 91.9f } },
                     new Plan { name = "illust_basics", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", cam = CamMode.Driver, weather = 0, time = 1, gear = Gear.D, at = new[] { -99.9f, 96.4f, -22f } },
                     new Plan { name = "illust_right_turn_d", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", cam = CamMode.Driver, weather = 0, time = 1, gear = Gear.P, untilRedPed = true,
                         at = new[] { 104.2f, 32.7f, -20f } },
-                    // (11/13) 시연 경로 점검: 경로를 바닥에 그려 놓고 곳곳을 위에서 본다(차선 안으로 다니는지)
+                    // 시연 경로 점검: 경로를 바닥에 그려 놓고 곳곳을 위에서 본다(차선 안으로 다니는지)
                     new Plan { name = "routeair_00", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -183.9f, 128.8f, -22f }, eye = new[] { 14f, 38f }, arrow = RouteArrow },
                     new Plan { name = "routeair_01", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -53.2f, 78.5f, -20f }, eye = new[] { 14f, 38f }, arrow = RouteArrow },
                     new Plan { name = "routeair_02", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 57.0f, 36.4f, -20f }, eye = new[] { 14f, 38f }, arrow = RouteArrow },
@@ -171,7 +171,7 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "routeair_13", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 17.9f, 32.4f, 158f }, eye = new[] { 14f, 38f }, arrow = RouteArrow },
                     new Plan { name = "routeair_14", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -22.2f, -41.4f, -110f }, eye = new[] { 14f, 38f }, arrow = RouteArrow },
                     new Plan { name = "routeair_15", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -10.2f, -88.0f, -68f }, eye = new[] { 14f, 38f }, arrow = RouteArrow },
-                    // (11/13) 청계산로 동쪽 끝 여의천 다리(6 m 로 솟아 있던 곳) 전후 비교
+                    // 청계산로 동쪽 끝 여의천 다리(6 m 로 솟아 있던 곳) 전후 비교
                     new Plan { name = "fix_cg_bridge", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 195f, -990f, 15f }, eye = new[] { 70f, 40f } },
                     new Plan { name = "fix_cg_bridge2", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 205f, -1010f, -70f }, eye = new[] { 55f, 30f } },
                     new Plan { name = "road_preview", st = () => Stages.RoadPreview(), hud = true, kind = "road" },
@@ -180,28 +180,28 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "region_driver", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Driver, hud = true, mirrors = true, kind = "region" },
                     new Plan { name = "region_top", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Top, kind = "region" },
                     new Plan { name = "region_look", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Driver, look = -60f, kind = "region" },
-                    // 11/8 밤: 날씨·시간(밤 가로등·다른 차 전조등, 비 젖은 노면·빗줄기, 해질녘 안개)
+                    // 날씨·시간(밤 가로등·다른 차 전조등, 비 젖은 노면·빗줄기, 해질녘 안개)
                     new Plan { name = "region_night_chase", st = () => Stages.Region(RegionCatalog.Load(0)), hud = true, kind = "region", weather = 0, time = 3 },
                     new Plan { name = "region_night_driver", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Driver, hud = true, mirrors = true, kind = "region", weather = 0, time = 3 },
                     new Plan { name = "region_rain_driver", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Driver, hud = true, mirrors = true, kind = "region", weather = 2, time = 1 },
                     new Plan { name = "region_sunset_fog", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 3, time = 2 },
                     new Plan { name = "region_snow_chase", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 4, time = 0 },
-                    // 11/9 새벽: 과속방지턱(양재2동 T-GIS 험프 하나 앞 9 m, 오른쪽 차로)
+                    // 과속방지턱(양재2동 T-GIS 험프 하나 앞 9 m, 오른쪽 차로)
                     new Plan { name = "region_hump_chase", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, at = new[] { 456.9f, -202.4f, 143.5f } },
-                    // 11/9 새벽: 어린이보호구역 입구 빨간 노면(양재2동 동산로)
+                    // 어린이보호구역 입구 빨간 노면(양재2동 동산로)
                     new Plan { name = "region_school_chase", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, at = new[] { -392.85f, -2052.29f, -39.3f } },
-                    // 11/9 새벽: 횡단보도 보행자(25초 흘려 사람이 생기게, 차는 P)
+                    // 횡단보도 보행자(25초 흘려 사람이 생기게, 차는 P)
                     new Plan { name = "region_peds_chase", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, sim = 25f, at = new[] { -392.85f, -2052.29f, -39.3f } },
-                    // 11/9 새벽: 고가도로(경부고속도로 밑 바우뫼로, 양재대로12길 고가 밑 청계산로) — 높이 데이터가 들어간 노면부터 보인다
+                    // 고가도로(경부고속도로 밑 바우뫼로, 양재대로12길 고가 밑 청계산로) — 높이 데이터가 들어간 노면부터 보인다
                     new Plan { name = "region_overpass_chase", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, at = new[] { -1405.0f, -2461.6f, -35.7f } },
                     new Plan { name = "region_overpass2_driver", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Driver, hud = true, kind = "region", weather = 0, time = 1, at = new[] { 309.3f, -854.3f, -125.0f } },
-                    // 11/9 새벽: 지하차도 입구(양재2동 신원지하차도) — 높이 데이터가 들어간 노면부터
-                    // 11/9 아침: 버스정류장(양재2동주민센터.양재꽃시장, 강남대로 길가) — 시내버스가 오른쪽 깜빡이 켜고 정류장에 선 모습, 다른 차 종류
+                    // 지하차도 입구(양재2동 신원지하차도) — 높이 데이터가 들어간 노면부터
+                    // 버스정류장(양재2동주민센터.양재꽃시장, 강남대로 길가) — 시내버스가 오른쪽 깜빡이 켜고 정류장에 선 모습, 다른 차 종류
                     new Plan { name = "region_busstop_chase", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, sim = 12f, spawnKind = 6, spawnAhead = 16f, at = new[] { -561.0f, -2014.9f, -116.4f } },
-                    // (11/11) 조사용: 버스정류장·고가 자리를 위에서 — 길 옆 땅이 하늘색으로 비어 보이는 원인 찾기
+                    // 조사용: 버스정류장·고가 자리를 위에서 — 길 옆 땅이 하늘색으로 비어 보이는 원인 찾기
                     new Plan { name = "diag_busstop_top", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Top, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -561.0f, -2014.9f, -116.4f } },
                     new Plan { name = "diag_overpass_top", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Top, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -1405.0f, -2461.6f, -35.7f } },
-                    // (11/11 저녁) 양재2동 D6 고가(경부고속도로 본선이 양재대로 위로): 북서 진입·남동 진입·양재대로에서 밑으로·옆에서
+                    // 양재2동 D6 고가(경부고속도로 본선이 양재대로 위로): 북서 진입·남동 진입·양재대로에서 밑으로·옆에서
                     new Plan { name = "d6_nw", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, sim = 4f, at = new[] { -639.6f, -1506.5f, 52.7f } },
                     new Plan { name = "d6_se", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, sim = 4f, at = new[] { -409.4f, -1235.5f, -127.3f } },
                     new Plan { name = "d6_under", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, sim = 4f, at = new[] { -475.4f, -1430.5f, 142.7f } },
@@ -209,8 +209,8 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "d6_air1", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -525.4f, -1372.3f, -17.3f }, eye = new[] { 300f, 110f } },
                     new Plan { name = "d6_air2", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -525.4f, -1372.3f, 167.7f }, eye = new[] { 300f, 110f } },
                     new Plan { name = "d6_air3", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -525.4f, -1372.3f, -107.3f }, eye = new[] { 230f, 60f } },
-                    // (11/11 낮) 동네 전체를 4 × 4 칸으로 위에서(대표가 고칠 자리를 칸 번호로 짚을 수 있게)
-                    // (11/13 0시, 대표: "지하도로는 직접 가서 확인") 지하차도·진입로·옆길·이은 길을 차 높이에서(뒤따라·운전석). at 넷째 값 = 차 높이(m)
+                    // 동네 전체를 4 × 4 칸으로 위에서(가 고칠 자리를 칸 번호로 짚을 수 있게)
+                    // 지하차도·진입로·옆길·이은 길을 차 높이에서(뒤따라·운전석). at 넷째 값 = 차 높이(m)
                     new Plan { name = "up_cg_exit_c", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -502.4f, -775.3f, 5.2f, -6.50f } },
                     new Plan { name = "up_cg_exit_d", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Driver, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -502.4f, -775.3f, 5.2f, -6.50f } },
                     new Plan { name = "up_cg_mid_c", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -375.6f, -784.9f, -5.2f, -6.50f } },
@@ -251,7 +251,7 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "up_hw_north_d", st = () => Stages.Region(RegionCatalog.Load(2)), cam = CamMode.Driver, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 288.9f, -1678.9f, 78.5f, 6.00f } },
                     new Plan { name = "up_nb_gap_c", st = () => Stages.Region(RegionCatalog.Load(2)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 596.4f, -1585.9f, -8.0f, 0.00f } },
                     new Plan { name = "up_nb_gap_d", st = () => Stages.Region(RegionCatalog.Load(2)), cam = CamMode.Driver, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 596.4f, -1585.9f, -8.0f, 0.00f } },
-                    // (11/13) 자동 운전 검수: 지하차도·이은 길을 실제로 달려 보며 2초마다 한 장(drive/)
+                    // 자동 운전 검수: 지하차도·이은 길을 실제로 달려 보며 2초마다 한 장(drive/)
                     new Plan { name = "drive_cg", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, drive = 80f, every = 2f, route = "", at = new[] { -725.7f, -925.8f, 45.8f, 0.00f } },
                     new Plan { name = "drive_cg_d", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Driver, kind = "region", weather = 0, time = 1, drive = 80f, every = 2f, route = "", at = new[] { -725.7f, -925.8f, 45.8f, 0.00f } },
                     new Plan { name = "drive_cgw", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, drive = 50f, every = 2f, route = "", at = new[] { -238.0f, -805.4f, 174.9f, -6.50f } },
@@ -266,7 +266,7 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "drive_hw", st = () => Stages.Region(RegionCatalog.Load(2)), kind = "region", weather = 0, time = 1, drive = 40f, every = 2f, route = "", at = new[] { 277.3f, -1735.7f, 78.5f, 6.00f } },
                     new Plan { name = "drive_route1", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, drive = 320f, every = 2.5f, kmh = 50f, routeFile = "yeoksam1_demo1" },
                     new Plan { name = "drive_route1_d", st = () => Stages.Region(RegionCatalog.Load(1)), cam = CamMode.Driver, hud = true, kind = "region", weather = 0, time = 1, drive = 320f, every = 5f, kmh = 50f, routeFile = "yeoksam1_demo1" },
-                    // (11/14 대표) 실제 차 직각 주차 안내 7단계: 게임 주차장에서 단계마다 차를 그 자리에 놓고 같은 자리에서 내려다본다
+                    // 실제 차 직각 주차 안내 7단계: 게임 주차장에서 단계마다 차를 그 자리에 놓고 같은 자리에서 내려다본다
                     new Plan { name = "illust_park1", st = () => Stages.ParkingGuide(), gear = Gear.D, steer = 0f, at = new[] { 7.38f, 1.07f, 0f }, eyeAbs = new[] { 6.8f, -7.5f, 11f }, aim = new[] { 6.8f, 2.0f } },
                     new Plan { name = "illust_park2", st = () => Stages.ParkingGuide(), gear = Gear.D, steer = -480f, at = new[] { 9.64f, -0.93f, -45f }, eyeAbs = new[] { 6.8f, -7.5f, 11f }, aim = new[] { 6.8f, 2.0f } },
                     new Plan { name = "illust_park3", st = () => Stages.ParkingGuide(), gear = Gear.R, steer = 480f, at = new[] { 9.64f, -0.93f, -45f }, eyeAbs = new[] { 6.8f, -7.5f, 11f }, aim = new[] { 6.8f, 2.0f } },
@@ -275,7 +275,7 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "illust_park6", st = () => Stages.ParkingGuide(), gear = Gear.R, steer = 0f, at = new[] { 6.25f, 4.32f, -90f }, eyeAbs = new[] { 6.8f, -7.5f, 11f }, aim = new[] { 6.8f, 2.0f } },
                     new Plan { name = "illust_park7", st = () => Stages.ParkingGuide(), gear = Gear.P, steer = 0f, at = new[] { 6.25f, 5.50f, -90f }, eyeAbs = new[] { 6.8f, -7.5f, 11f }, aim = new[] { 6.8f, 2.0f } },
                     new Plan { name = "video_park", st = () => Stages.ParkingGuide(), gear = Gear.D, at = new[] { -1.72f, 1.07f, 0f }, eyeAbs = new[] { 6.8f, -7.5f, 11f }, aim = new[] { 6.8f, 2.0f }, video = 15 },
-                    // (11/15 대표: 실제 차 평행 주차) 평행 주차 7단계 영상(앱 parking_parNN)
+                    // (실제 차 평행 주차) 평행 주차 7단계 영상(앱 parking_parNN)
                     new Plan { name = "video_ppark", st = () => Stages.ParallelGuide(), gear = Gear.D, at = new[] { 6.25f, -0.47f, 0f }, eyeAbs = new[] { 11.8f, -6.2f, 8.6f }, aim = new[] { 11.8f, 1.0f }, video = 15 },
                     new Plan { name = "video_route1", st = () => Stages.Region(RegionCatalog.Load(1)), cam = CamMode.Driver, hud = true, kind = "region", weather = 0, time = 1, drive = 400f, every = 5f, kmh = 50f, routeFile = "yeoksam1_demo1", video = 10 },
                     new Plan { name = "drive_rand0", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, drive = 120f, every = 3f },
@@ -287,7 +287,7 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "grid_r0", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Top, kind = "region", weather = 0, time = 1, gear = Gear.P },
                     new Plan { name = "grid_r1", st = () => Stages.Region(RegionCatalog.Load(1)), cam = CamMode.Top, kind = "region", weather = 0, time = 1, gear = Gear.P },
                     new Plan { name = "grid_r2", st = () => Stages.Region(RegionCatalog.Load(2)), cam = CamMode.Top, kind = "region", weather = 0, time = 1, gear = Gear.P },
-                    // (11/11 낮) 바닥 검사: 어린이보호구역 빨간 노면, 과속방지턱, 버스정류장 큰길, 골목(세 동네)
+                    // 바닥 검사: 어린이보호구역 빨간 노면, 과속방지턱, 버스정류장 큰길, 골목(세 동네)
                     new Plan { name = "floor_school", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -392.85f, -2052.29f, -39.3f } },
                     new Plan { name = "floor_hump", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 456.9f, -202.4f, 143.5f } },
                     new Plan { name = "fleet_show", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -561.0f, -2014.9f, -116.4f } },
@@ -295,7 +295,7 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "floor_alley0", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P },
                     new Plan { name = "floor_alley1", st = () => Stages.Region(RegionCatalog.Load(1)), kind = "region", weather = 0, time = 1, gear = Gear.P },
                     new Plan { name = "floor_alley2", st = () => Stages.Region(RegionCatalog.Load(2)), kind = "region", weather = 0, time = 1, gear = Gear.P },
-                    // (11/11) 나머지 두 동네도 눈으로 확인(대표: "세 개 맵은 눈에 띄는 버그가 없어야")
+                    // 나머지 두 동네도 눈으로 확인
                     new Plan { name = "region1_chase", st = () => Stages.Region(RegionCatalog.Load(1)), hud = true, kind = "region", weather = 0, time = 1 },
                     new Plan { name = "region1_driver", st = () => Stages.Region(RegionCatalog.Load(1)), cam = CamMode.Driver, kind = "region", weather = 0, time = 1 },
                     new Plan { name = "region1_top", st = () => Stages.Region(RegionCatalog.Load(1)), cam = CamMode.Top, kind = "region", weather = 0, time = 1 },
@@ -305,11 +305,21 @@ namespace DriveCoach.EditorTools
                     new Plan { name = "region_traffic_chase", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, gear = Gear.P, sim = 30f, at = new[] { -561.0f, -2014.9f, -116.4f } },
                     new Plan { name = "region_underpass_chase", st = () => Stages.Region(RegionCatalog.Load(0)), kind = "region", weather = 0, time = 1, at = new[] { 40.7f, -830.2f, 174.5f } },
                     new Plan { name = "region_hump_driver", st = () => Stages.Region(RegionCatalog.Load(0)), cam = CamMode.Driver, hud = true, kind = "region", weather = 0, time = 1, at = new[] { 456.9f, -202.4f, 143.5f } },
+                    // 첫 해외 지역(독일, 목록의 country 로 찾음 — 없으면 건너뜀): 아데나워 광장 지하차도 진입로(브란덴부르크 거리 오른쪽 차로 +2.9 m),
+                    //   도랑 안(높이 −3.5 m), 위에서·공중에서, 독일 표지가 많은 기둥 셋(우선 도로·주차·50, 양보, 우선 도로·50)
+                    new Plan { name = "de_ramp_driver", st = DeStage, cam = CamMode.Driver, hud = true, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -5.1f, 303.6f, -102.1f } },
+                    new Plan { name = "de_ramp_chase", st = DeStage, hud = true, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -5.1f, 303.6f, -102.1f } },
+                    new Plan { name = "de_trench_driver", st = DeStage, cam = CamMode.Driver, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -21.8f, 225.4f, -102.1f, -3.5f } },
+                    new Plan { name = "de_trench_top", st = DeStage, cam = CamMode.Top, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { -21.8f, 225.4f, -102.1f, -3.5f }, eye = new[] { 70f, 45f } },
+                    new Plan { name = "de_signs_driver", st = DeStage, cam = CamMode.Driver, hud = true, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 14.3f, 355.9f, -101.4f },
+                        eyeAbs = new[] { 13.3f, 337.7f, 2.4f }, aim = new[] { 9.5f, 318.1f } },
+                    new Plan { name = "de_signs2_driver", st = DeStage, cam = CamMode.Driver, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 365.9f, -318.6f, -84.1f } },
+                    new Plan { name = "de_signs3_driver", st = DeStage, cam = CamMode.Driver, kind = "region", weather = 0, time = 1, gear = Gear.P, at = new[] { 331.9f, 48.9f, -69.6f } },
                 };
-                // (11/11) 조사를 빨리 돌리려고: 사진 폴더에 only.txt 가 있으면 이름에 그 글자(줄마다 하나)가 든 사진만 찍는다(메뉴 사진은 건너뜀)
+                // 조사를 빨리 돌리려고: 사진 폴더에 only.txt 가 있으면 이름에 그 글자(줄마다 하나)가 든 사진만 찍는다(메뉴 사진은 건너뜀)
                 string onlyFile = Path.Combine(outDir, "only.txt");
                 string[] only = File.Exists(onlyFile) ? File.ReadAllLines(onlyFile).Select(x => x.Trim()).Where(x => x.Length > 0).ToArray() : null;
-                // (11/14) 시연 영상: 실행 인자 -dcVideo 1 이면 영상 장면(video_*)만, 아니면 영상 장면은 건너뛴다
+                // 시연 영상: 실행 인자 -dcVideo 1 이면 영상 장면(video_*)만, 아니면 영상 장면은 건너뛴다
                 //   값이 이름이면(-dcVideo park) 그 영상만: video_park = 직각 주차 7단계, video_route1 = 시연 경로
                 string videoArg = Arg("-dcVideo", "");
                 bool videoRun = videoArg != "";
@@ -318,15 +328,20 @@ namespace DriveCoach.EditorTools
                 {
                     if (!videoRun && plan.video > 0) continue;
                     if (only != null && only.Length > 0 && !only.Any(o => plan.name.Contains(o))) continue;
+                    if (plan.name.StartsWith("de_") && DeIndex() < 0) { Debug.Log("DCSETUP shot " + plan.name + " skip (독일 지역 없음)"); continue; }
                     try { Shoot(plan, outDir); }
                     catch (Exception e) { Debug.LogError("DCSETUP shot " + plan.name + " failed: " + e); code = 1; }
                 }
-                try { if (only == null || only.Length == 0) MenuShots(outDir); }
+                try { if (only == null || only.Length == 0 || only.Any(o => o.StartsWith("menu"))) MenuShots(outDir); }   // only.txt 에 menu… 가 있으면 메뉴 사진도
                 catch (Exception e) { Debug.LogError("DCSETUP menu shots failed: " + e); code = 1; }
             }
             catch (Exception e) { Debug.LogError("DCSETUP shots failed: " + e); code = 1; }
             EditorApplication.Exit(code);
         }
+
+        /// <summary>목록에서 나라가 독일인 첫 지역(나라 값으로 찾는다, 없으면 -1)</summary>
+        static int DeIndex() => RegionCatalog.Entries.FindIndex(e => CountryStyle.For(e.country).code == "DE");
+        static Stage DeStage() => Stages.Region(RegionCatalog.Load(DeIndex()));
 
         static void Shoot(Plan plan, string outDir)
         {
@@ -440,15 +455,15 @@ namespace DriveCoach.EditorTools
             rt.Release();
             UnityEngine.Object.DestroyImmediate(rt);
             scene.Dispose();
-            // 11/10: 사진마다 지은 맵의 메시·텍스처를 바로 내린다(안 내리면 22장 찍는 동안 92 GB 까지 불어나 메모리 부족으로 꺼짐)
+            // 사진마다 지은 맵의 메시·텍스처를 바로 내린다(안 내리면 22장 찍는 동안 92 GB 까지 불어나 메모리 부족으로 꺼짐)
             EditorUtility.UnloadUnusedAssetsImmediate(true);
             GC.Collect();
             Debug.Log("DCSETUP shot " + plan.name + " | mem " + (UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() >> 20) + " MB, gfx " + (UnityEngine.Profiling.Profiler.GetAllocatedMemoryForGraphicsDriver() >> 20) + " MB");
         }
 
-        /// <summary>(11/11) 장면 하나가 메모리를 어디에 쓰는지: 종류별 합계와 큰 것 25개. 에뮬레이터(3 GB)에서 실제 동네가 메모리 부족으로 죽는 원인 찾기.</summary>
+        /// <summary>장면 하나가 메모리를 어디에 쓰는지: 종류별 합계와 큰 것 25개. 에뮬레이터(3 GB)에서 실제 동네가 메모리 부족으로 죽는 원인 찾기.</summary>
         /// <summary>
-        /// (11/11) 조사용: 길 옆 땅이 하늘빛으로 비어 보이는 자리에서 땅(Floor/ground)이 실제로 그려지는지.
+        /// 조사용: 길 옆 땅이 하늘빛으로 비어 보이는 자리에서 땅(Floor/ground)이 실제로 그려지는지.
         /// 땅의 재질·셰이더·키워드를 적고, 차 오른쪽 25 m 점을 덮는 삼각형이 있는지와 앞면 방향을 보고,
         /// </summary>
         static void GroundDiag(Plan plan, World world, Camera cam, RenderTexture rt, string outDir)
@@ -482,15 +497,15 @@ namespace DriveCoach.EditorTools
                     + $" mat={(mat != null ? mat.name : "-")} shader={(mat != null ? mat.shader.name : "-")} kw=[{(mat != null ? string.Join(",", mat.shaderKeywords) : "")}]"
                     + $" metal={(mat != null && mat.HasProperty("_Metallic") ? mat.GetFloat("_Metallic") : -1f)} smooth={(mat != null && mat.HasProperty("_Smoothness") ? mat.GetFloat("_Smoothness") : -1f)}"
                     + $" color={(mat != null && mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor").ToString() : "-")} queue={(mat != null ? mat.renderQueue : -1)} recv={mr.receiveShadows} layer={mr.gameObject.layer} camMask={cam.cullingMask} camY={cam.transform.position.y:0.0} far={cam.farClipPlane}");
-                // 땅을 빨강으로 칠한 사진·끈 사진은 원인을 찾은 뒤 뺐다(11/11 04:15: 땅이 서쪽 절반에 안 깔리던 버그). 기록 줄만 남긴다.
+                // 땅을 빨강으로 칠한 사진·끈 사진은 원인을 찾은 뒤 뺐다(땅이 서쪽 절반에 안 깔리던 버그). 기록 줄만 남긴다.
             }
         }
 
         /// <summary>
-        /// (11/11 대표: "사물 말고 바닥도 봐야 한다 — 연석 모양, 어린이 구역 빨간 바닥 칠") 바닥 검사 사진.
+        /// 바닥 검사 사진.
         /// 차 둘레의 바닥을 가까이서 여러 각도로 찍는다: 오른쪽 연석, 왼쪽 연석, 앞 노면(비스듬히), 앞 노면(위에서), 뒤 노면.
         /// </summary>
-        /// <summary>(11/11 낮 대표: "다른 차들 모델링도 신경써줘") 다른 차 8종을 내 차 앞 12 m 에 하나씩 세워 앞·뒤 비스듬히, 옆에서 찍는다</summary>
+        /// <summary>다른 차 8종을 내 차 앞 12 m 에 하나씩 세워 앞·뒤 비스듬히, 옆에서 찍는다</summary>
         static void FleetShots(Plan plan, World world, Camera cam, RenderTexture rt, string outDir)
         {
             var c = Space3D.W(world.car.Center, 0f);
@@ -550,10 +565,10 @@ namespace DriveCoach.EditorTools
         }
 
         /// <summary>
-        /// (11/11 낮 대표: "전체 지역을 N분할 해서 위에서 바라본 뷰") 동네 경계를 감싼 네모를 4 × 4 칸으로 나눠 곧바로 위에서 찍는다(북쪽이 위).
+        /// 동네 경계를 감싼 네모를 4 × 4 칸으로 나눠 곧바로 위에서 찍는다(북쪽이 위).
         /// shot_grid_이름_all.png(전체) + shot_grid_이름_A1 … D4.png(줄 A~D = 북→남, 칸 1~4 = 서→동). 칸 자리는 grid_이름.txt 에 적는다.
         /// </summary>
-        /// <summary>(11/13) 설명 그림용: 바닥에 굵은 화살표(흰 테두리 + 검정). 점들을 부드럽게 이어 0.5 m 간격으로 띠를 깐다</summary>
+        /// <summary>설명 그림용: 바닥에 굵은 화살표(흰 테두리 + 검정). 점들을 부드럽게 이어 0.5 m 간격으로 띠를 깐다</summary>
         static float[] RouteSlice(float s0, float s1)
         {
             var a = RouteArrow; if (a == null) return null;
@@ -610,7 +625,7 @@ namespace DriveCoach.EditorTools
             Ribbon(0.62f, 1.7f, y0 + 0.04f, style == 1 ? new Color(0.86f, 0.12f, 0.10f) : new Color(0.07f, 0.07f, 0.07f), "illust-arrow");
         }
 
-        /// <summary>(11/11 밤 대표: "클로버형은 층이 나뉜다 — 위에서 보면 다 같아 보이면 안 돼") 입체 교차를 비스듬히 내려다본 사진</summary>
+        /// <summary>입체 교차를 비스듬히 내려다본 사진</summary>
         static void AirShot(Plan plan, Camera cam, RenderTexture rt, string outDir)
         {
             float h = plan.at[2] * Mathf.Deg2Rad;
@@ -623,11 +638,11 @@ namespace DriveCoach.EditorTools
             RenderSettings.fog = fog; cam.farClipPlane = far; cam.fieldOfView = fov;
         }
 
-        /// <summary>(11/13) 자동 운전 검수: 자동 운전(AutoDrive + AutoSpeed)으로 plan.drive 초를 달리며 every 초마다 사진. 끝에 기록(거리·차로 벗어남·부딪힘·막다른 곳).</summary>
+        /// <summary>자동 운전 검수: 자동 운전(AutoDrive + AutoSpeed)으로 plan.drive 초를 달리며 every 초마다 사진. 끝에 기록(거리·차로 벗어남·부딪힘·막다른 곳).</summary>
         static Hud vidHud; static HudModel vidModel;
 
         /// <summary>
-        /// (11/14 대표: "주차 튜토리얼 영상 … 단계마다") 실제 차 직각 주차 7단계를 단계별 영상 장면으로: unity/video/video_park/s단계_번호.jpg (1280x720, 초당 plan.video 장).
+        /// 실제 차 직각 주차 7단계를 단계별 영상 장면으로: unity/video/video_park/s단계_번호.jpg (1280x720, 초당 plan.video 장).
         /// 차는 운전해서가 아니라 회전 반경으로 계산한 자리에 장면마다 놓는다(뒤축 가운데가 도는 반지름 r, 핸들 끝까지 = 원호).
         ///   1 접근(직진) → 2 왼쪽 끝까지 돌리고 45° 전진 → 3 R·오른쪽 끝까지(제자리) → 4 후진해 칸과 나란히 → 5 핸들 풀기 → 6 똑바로 뒤로 → 7 P
         /// 좌표: 목표 칸 x 5~7.5, y 3~8(통로 y -3~3), 차 방향 0° = +x, 오른쪽 = +y.
@@ -682,7 +697,7 @@ namespace DriveCoach.EditorTools
         }
 
         /// <summary>
-        /// (11/15 대표: "실제 차로 주차는 평행 주차와 직각 주차 둘 다") 실제 차 평행 주차 7단계 영상: unity/video/video_ppark/s단계_번호.jpg.
+        /// 실제 차 평행 주차 7단계 영상: unity/video/video_ppark/s단계_번호.jpg.
         /// 앱 core ParallelParkingProcedure 와 같은 순서. 차는 회전 반경으로 계산한 자리에 장면마다 놓는다(뒤축 가운데가 반지름 r 원호).
         ///   1 앞차 옆 0.8 m 띄워 나란히, 뒤 범퍼를 맞춰 정지 → 2 R, 똑바로 1.5 m 후진(앞차 뒤 끝이 내 뒷좌석 창) → 3 핸들 오른쪽 끝 →
         ///   4 후진해 45° → 5 핸들 가운데, 똑바로 후진(내 오른쪽 앞 끝이 앞차 뒤 끝을 지날 때까지) → 6 핸들 왼쪽 끝, 후진해 길과 나란히 → 7 핸들 가운데, D 로 앞뒤 가운데, P
@@ -702,7 +717,7 @@ namespace DriveCoach.EditorTools
             const float frontRear = 12.65f, laneY = 2.2f, curbY = 3.2f, slotMid = 9.0f, frontCarHalfW = 0.94f;
             float y0 = laneY - frontCarHalfW - 0.8f - car.width / 2f;          // 앞차 왼쪽 옆에서 0.8 m
             float yf = curbY - 0.3f - car.width / 2f;                          // 끝: 연석에서 0.3 m
-            float xA = frontRear + car.rearOh, xB = xA - 1.1f, xC = slotMid - back;   // (11/15 베타 6f) 1.5 m 후진이면 끝에서 뒤차와 0.35 m·뒤 범퍼가 칸 밖 → 1.1 m(앞차 뒤 끝 = 내 뒷바퀴)
+            float xA = frontRear + car.rearOh, xB = xA - 1.1f, xC = slotMid - back;   // 1.5 m 후진이면 끝에서 뒤차와 0.35 m·뒤 범퍼가 칸 밖 → 1.1 m(앞차 뒤 끝 = 내 뒷바퀴)
             int fps = Mathf.Max(5, plan.video);
             Func<float, V2> right = th => new V2(-Mathf.Sin(th), Mathf.Cos(th));
             Func<float, V2> fwd = th => new V2(Mathf.Cos(th), Mathf.Sin(th));
@@ -743,7 +758,7 @@ namespace DriveCoach.EditorTools
             Debug.Log("DCVIDEO " + plan.name + " done");
         }
 
-        /// <summary>(11/14) 영상 한 장: 지금 카메라 그림(rt)을 1280x720 으로 줄여 JPG 로</summary>
+        /// <summary>영상 한 장: 지금 카메라 그림(rt)을 1280x720 으로 줄여 JPG 로</summary>
         static void VideoFrame(RenderTexture rt, RenderTexture small, Texture2D tex, string path)
         {
             Graphics.Blit(rt, small);
@@ -755,14 +770,14 @@ namespace DriveCoach.EditorTools
 
         static void DriveShots(Plan plan, World world, SceneRig scene, Camera cam, RenderTexture rt, string outDir)
         {
-            // (11/14) 시연 영상: 초당 plan.video 장을 운전석(d_)·따라가기(c_) 두 시점으로 쓰고, 장마다 위치·속도·위반 수를 표(frames.csv)로 남긴다
+            // 시연 영상: 초당 plan.video 장을 운전석(d_)·따라가기(c_) 두 시점으로 쓰고, 장마다 위치·속도·위반 수를 표(frames.csv)로 남긴다
             int vfrom = 0, vcount = 500; bool vmore = false;
             string vdir = null; RenderTexture small = null; Texture2D vtex = null; float vnext = 0f; int vn = 0;
             var csv = new System.Text.StringBuilder("n,t,x,y,z,head,kmh,limit,lane,routeS,laneDepart,bump,redLight,stopLine,speeding,noSignal,why\n");
             if (plan.video > 0)
             {
                 vdir = Path.GetFullPath(Path.Combine(outDir, "..", "video", plan.name));
-                // 한 번에 수천 장을 그리면 그래픽 장치 오류(d3d12)로 편집기가 죽는다(11/14, 1400장째) → 실행 한 번에 -dcVideoCount 장씩.
+                // 한 번에 수천 장을 그리면 그래픽 장치 오류(d3d12)로 편집기가 죽는다(1400장째) → 실행 한 번에 -dcVideoCount 장씩.
                 // 다음 실행은 처음부터 다시 달리되(같은 결과) -dcVideoFrom 장까지는 그리지 않고 건너뛴다. 다 달리면 summary.txt 를 쓴다.
                 int.TryParse(Arg("-dcVideoFrom", "0"), out vfrom); if (!int.TryParse(Arg("-dcVideoCount", "500"), out vcount)) vcount = 500;
                 if (vfrom == 0 && Directory.Exists(vdir)) foreach (var f in Directory.GetFiles(vdir, "*.*")) File.Delete(f);
@@ -855,9 +870,9 @@ namespace DriveCoach.EditorTools
             if (rg == null || rg.boundary.Length < 3) return;
             float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
             foreach (var p in rg.boundary) { x0 = Mathf.Min(x0, p.x); y0 = Mathf.Min(y0, p.y); x1 = Mathf.Max(x1, p.x); y1 = Mathf.Max(y1, p.y); }
-            // (11/11 낮 대표: "격자사진 더 작게 잘라서") 칸 = 300 m 정사각형. 열 = A,B,…(서→동), 줄 = 1,2,…(y 작은 쪽부터). 길이 없는 칸은 건너뛴다
+            // 칸 = 300 m 정사각형. 열 = A,B,…(서→동), 줄 = 1,2,…(y 작은 쪽부터). 길이 없는 칸은 건너뛴다
             const float Cell = 300f; const int Px = 1000;
-            // (11/13 대표: "격자를 새로 잡고 평가") grid_s* = 반 칸(150 m)씩 옮긴 격자 — 먼젓번 격자의 칸 경계에 걸려 있던 곳이 칸 한가운데에 온다
+            // grid_s* = 반 칸(150 m)씩 옮긴 격자 — 먼젓번 격자의 칸 경계에 걸려 있던 곳이 칸 한가운데에 온다
             if (plan.name.StartsWith("grid_s")) { x0 -= Cell / 2f; y0 -= Cell / 2f; }
             int nx = Mathf.Max(1, Mathf.CeilToInt((x1 - x0) / Cell)), ny = Mathf.Max(1, Mathf.CeilToInt((y1 - y0) / Cell));
             var used = new bool[nx, ny];
@@ -876,7 +891,7 @@ namespace DriveCoach.EditorTools
             var rt = new RenderTexture(Px, Px, 24);
             var keepT = cam.targetTexture; bool keepO = cam.orthographic; float keepFar = cam.farClipPlane, keepSize = cam.orthographicSize; bool keepFog = RenderSettings.fog;
             cam.targetTexture = rt; cam.orthographic = true; cam.farClipPlane = 1500f; RenderSettings.fog = false;
-            // (11/11 밤 대표: "위에서 본 모양이랑 대각선으로 본 모양 두 개 다") oblique = 남쪽 하늘에서 북쪽으로 45° 내려다봄(화면 위 = 북, 같은 칸)
+            // oblique = 남쪽 하늘에서 북쪽으로 45° 내려다봄(화면 위 = 북, 같은 칸)
             void Snap(float cx, float cy, float half, string name, bool oblique = false)
             {
                 var c = Space3D.W(new V2(cx, cy), 0f);
@@ -969,7 +984,18 @@ namespace DriveCoach.EditorTools
                 Save(cam, rt, Path.Combine(outDir, "shot_" + name + ".png"));
                 Debug.Log("DCSETUP shot " + name);
             }
-            foreach (var (path, name) in new[] { (new string[0], "menu_road"), (new[] { "유럽" }, "menu_road_europe"), (new[] { "아시아 태평양" }, "menu_road_asia"), (new[] { "아시아 태평양", "한국", "서울" }, "menu_road_city"), (new[] { "아시아 태평양", "한국" }, "menu_road_korea"), (new[] { "아시아 태평양", "한국", "서울", "서초구" }, "menu_road_dong"), (new[] { "아시아 태평양", "한국", "서울", "강남구" }, "menu_road_dong2"), (new[] { "아시아 태평양", "한국", "서울", "서초구", "양재2동" }, "menu_road_start") })
+            var menuPaths = new System.Collections.Generic.List<(string[], string)> { (new string[0], "menu_road"), (new[] { "유럽" }, "menu_road_europe"), (new[] { "아시아 태평양" }, "menu_road_asia"), (new[] { "아시아 태평양", "한국", "서울" }, "menu_road_city"), (new[] { "아시아 태평양", "한국" }, "menu_road_korea"), (new[] { "아시아 태평양", "한국", "서울", "서초구" }, "menu_road_dong"), (new[] { "아시아 태평양", "한국", "서울", "강남구" }, "menu_road_dong2"), (new[] { "아시아 태평양", "한국", "서울", "서초구", "양재2동" }, "menu_road_start") };
+            // 독일 지역이 있으면 유럽 › 독일 › 도시 › 구 › 지역(Beta) 화면도
+            int dei = DeIndex();
+            if (dei >= 0)
+            {
+                var de = RegionCatalog.Entries[dei];
+                menuPaths.Add((new[] { "유럽", de.country }, "menu_road_de"));
+                menuPaths.Add((new[] { "유럽", de.country, de.city }, "menu_road_de_city"));
+                menuPaths.Add((new[] { "유럽", de.country, de.city, de.district }, "menu_road_de_dong"));
+                menuPaths.Add((new[] { "유럽", de.country, de.city, de.district, de.name + (de.beta ? " Beta" : "") }, "menu_road_de_start"));
+            }
+            foreach (var (path, name) in menuPaths)
             {
                 menu.RoadGo(path);
                 Canvas.ForceUpdateCanvases();

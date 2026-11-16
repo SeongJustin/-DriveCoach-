@@ -1,4 +1,4 @@
-// 담당: S (11/8 "유로트럭 느낌" — 거리 소품: 한전 변압기함·통신함, 쓰레기통, 맨홀, 화분, 벤치. Poly Haven CC0 모델)
+// 거리 소품: 한전 변압기함·통신함, 쓰레기통, 맨홀, 화분, 벤치. Poly Haven CC0 모델
 // 같은 소품은 160 m 칸마다 한 메시로 합친다(드로우 콜이 늘지 않게). 질감은 DcAssets.Pbr(사진 질감 세트).
 // 모델이 없으면(Resources 에 없으면) 아무것도 놓지 않는다.
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace DriveCoach.Unity
         }
 
         static readonly Dictionary<string, Proto> protos = new Dictionary<string, Proto>();
-        // (11/11) 예전에는 칸마다 소품을 한 메시로 합쳤다(CombineMeshes). 소품 하나하나의 점이 전부 복사돼 동네 하나에 메시만 6 GB(점 1.3억 개)가 됐고
+        // 예전에는 칸마다 소품을 한 메시로 합쳤다(CombineMeshes). 소품 하나하나의 점이 전부 복사돼 동네 하나에 메시만 6 GB(점 1.3억 개)가 됐고
         //   에뮬레이터(3 GB)에서 메모리 부족으로 시스템이 죽었다. 이제 모델 메시는 하나만 두고, 놓는 자리마다 그 메시를 가리키는 물체를 만든다.
         readonly Dictionary<(int tx, int ty), List<(string id, Mesh mesh, Matrix4x4 m, Material[] mats)>> items = new Dictionary<(int, int), List<(string, Mesh, Matrix4x4, Material[])>>();
 
@@ -28,11 +28,12 @@ namespace DriveCoach.Unity
 
         static Proto Get(string id)
         {
-            if (protos.TryGetValue(id, out var p)) return p;
+            // 합친 메시는 실행 중에 만든 것이라, 혹시 지워졌으면(Unity null) 다시 만든다
+            if (protos.TryGetValue(id, out var p) && (p == null || p.parts.Count == 0 || p.parts[0].mesh != null)) return p;
             var go = DcAssets.Model(IsPoly(id) ? "PolyHaven/Models/" + id : id);
             if (go == null) { protos[id] = null; return null; }
             p = new Proto();
-            // 11/9: 본(프리팹) 뿌리의 회전·크기까지 넣는다(위치만 뺀다). 뿌리에 축 변환(−90° X)이 있는 FBX(Quaternius 가로등)를
+            // 본(프리팹) 뿌리의 회전·크기까지 넣는다(위치만 뺀다). 뿌리에 축 변환(−90° X)이 있는 FBX(Quaternius 가로등)를
             //   뿌리 기준으로만 합치면 기둥이 눕고, 높이 맞춤(크기 = 원하는 높이 / 누운 두께)이 15 배쯤 커져 길 위에 거대한 초록 막대가 떴다
             var root = Matrix4x4.Translate(-go.transform.position);
             bool first = true;
@@ -52,8 +53,32 @@ namespace DriveCoach.Unity
                         }
             }
             if (p.parts.Count == 0) p = null;
+            else if (IsPoly(id) && p.parts.Count > 1) MergeParts(p, id);
             protos[id] = p;
             return p;
+        }
+
+        /// <summary>
+        /// Poly Haven 소품은 조각(쓰레기통은 손잡이·뚜껑 등 8개)이 모두 같은 재질(사진 질감 한 벌)로 그려진다 →
+        /// 조각을 제자리 그대로 한 메시로 합쳐 소품 하나가 물체 하나가 되게 한다(동네 하나에 쓰레기통 849개 × 8 = 6,792 물체 → 849). 모양·재질 같음.
+        /// 조각마다 서브메시가 하나일 때만(아니면 예전처럼 조각마다).
+        /// </summary>
+        static void MergeParts(Proto p, string id)
+        {
+            var cis = new List<CombineInstance>();
+            long verts = 0;
+            foreach (var (mesh, local, _) in p.parts)
+            {
+                if (mesh.subMeshCount != 1 || !mesh.isReadable) return;
+                cis.Add(new CombineInstance { mesh = mesh, transform = local });
+                verts += mesh.vertexCount;
+            }
+            var merged = new Mesh { name = id + "-merged" };
+            if (verts > 65535) merged.indexFormat = IndexFormat.UInt32;
+            merged.CombineMeshes(cis.ToArray(), true, true);
+            merged.RecalculateBounds();
+            p.parts.Clear();
+            p.parts.Add((merged, Matrix4x4.identity, new Material[0]));
         }
 
         public static bool Has(string id) => Get(id) != null;

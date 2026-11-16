@@ -1,4 +1,3 @@
-// 담당: S (11/8 밤, 대표: "고가도로나 지하도로 … 최대한 다 반영해봐")
 // 고가도로: 길 모양 그대로 높이를 따라 오르내리는 상판(아스팔트),
 //   양옆 콘크리트 방호벽(높이 1 m), 상판 아래 두께 1.2 m 보, 높이 2.5 m 넘는 곳은 25 m 마다 기둥(교각), 그보다 낮은 경사로는
 //   상판 가장자리에서 땅까지 옹벽(흙을 쌓은 진입로처럼). 상판 위 칠: 차로 경계 흰 점선, 양방향이면 가운데 황색 복선, 바깥 흰 실선.
@@ -54,7 +53,7 @@ namespace DriveCoach.Unity
                 if (rd.oneway && rd.wl <= 0f) { wl = wr = Mathf.Max(3.5f, rd.lanes * 3.3f / 2f); }
                 decks.Add((rd, wl, wr));
             }
-            // (11/11 낮 대표: "길이 끊어지는 곳") 고가 길이 다른 길로 이어지는 이음에서 폭이 계단처럼 바뀌었다 →
+            // 고가 길이 다른 길로 이어지는 이음에서 폭이 계단처럼 바뀌었다 →
             //   끝이 맞닿은 고가 길끼리는 이음 폭을 두 길의 평균으로 맞추고 30 m 에 걸쳐 제 폭으로 돌아간다
             var joint = new Dictionary<(int, int), List<(int k, bool start)>>();
             (int, int) Key(V2 p) => (Mathf.RoundToInt(p.x * 5f), Mathf.RoundToInt(p.y * 5f));
@@ -98,16 +97,16 @@ namespace DriveCoach.Unity
                 Deck(rd, h, WL, WR, deck, concrete, white, yellow);
             }
             if (n == 0) return;
-            deck.ToObject("overpass-deck", DcAssets.Pbr("clean_asphalt", DcAssets.Hex("#4C5056"), new Color(1.05f, 1.05f, 1.08f), 0.9f), node, true, true);   // (11/11 낮) 갈색 아스팔트 질감이라 위에서 보면 보도처럼 보였다 → 땅 큰길과 같은 질감
+            deck.ToObject("overpass-deck", DcAssets.Pbr("clean_asphalt", DcAssets.Hex("#4C5056"), new Color(1.05f, 1.05f, 1.08f), 0.9f), node, true, true);   // 갈색 아스팔트 질감이라 위에서 보면 보도처럼 보였다 → 땅 큰길과 같은 질감
             concrete.ToObject("overpass-concrete", DcAssets.Pbr("concrete", DcAssets.Hex("#A9A9A4"), Color.white), node, true, true);
             if (!white.IsEmpty) white.ToObject("overpass-paint-w", DcAssets.Unlit(DcAssets.Paint), node);
-            if (!yellow.IsEmpty) yellow.ToObject("overpass-paint-y", DcAssets.Unlit(DcAssets.Hex("#E2B33C")), node);
+            if (!yellow.IsEmpty) yellow.ToObject(CountryStyle.Current.IsKorea ? "overpass-paint-y" : "overpass-paint-c", DcAssets.Unlit(CountryStyle.Current.centre), node);   // 중앙선 색은 나라 표(한국 #E2B33C 그대로)
             Debug.Log($"GradeBuilder: 고가 길 {n}, 땅 길 위라 뺀 교각 {piersSkipped}");
         }
 
         static Vector3 P(V2 p, float y) => Space3D.W(p, y);
 
-        // (11/11 밤 대표: "클로버형 … 실제로 도로가 이어져야해") 연결로가 본선에 붙는 곳: 두 상판이 겹치는 자리에는
+        // 연결로가 본선에 붙는 곳: 두 상판이 겹치는 자리에는
         //   방호벽·가장자리 실선을 그리지 않는다(예전에는 길마다 양옆에 벽을 세워 합류 자리가 벽으로 막혔다).
         static readonly List<(RegionRoad rd, float wl, float wr)> all = new List<(RegionRoad, float, float)>();
 
@@ -246,9 +245,10 @@ namespace DriveCoach.Unity
                         mk.Quad(P(a + o, ypa), P(a - o, ypa), P(b - o, ypb), P(b + o, ypb), Vector3.up, Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
                         return;
                     }
-                    for (float s0 = 0f; s0 < L; s0 += 8f)
+                    var cst = CountryStyle.Current;                 // 점선 길이·간격은 나라 표(한국 3 m / 5 m 그대로, 독일 3 m / 6 m)
+                    for (float s0 = 0f; s0 < L; s0 += cst.laneDash + cst.laneGap)
                     {
-                        float s1 = Mathf.Min(L, s0 + 3f);
+                        float s1 = Mathf.Min(L, s0 + cst.laneDash);
                         float y0 = Mathf.Lerp(ypa, ypb, s0 / L), y1 = Mathf.Lerp(ypa, ypb, s1 / L);
                         var p0 = a + dd * s0; var p1 = a + dd * s1;
                         mk.Quad(P(p0 + o, y0), P(p0 - o, y0), P(p1 - o, y1), P(p1 + o, y1), Vector3.up, Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
@@ -256,7 +256,16 @@ namespace DriveCoach.Unity
                 }
                 Line(-wl + 0.4f, 0.15f, white, false);
                 Line(wr - 0.4f, 0.15f, white, false);
-                if (!rd.oneway) { Line(-0.15f, 0.15f, yellow, false); Line(0.15f, 0.15f, yellow, false); }
+                if (!rd.oneway)
+                {
+                    // 중앙선 자리 = 지역 자료 차로로 정한 방향 경계(차로 자료가 없으면 예전처럼 길 가운데 0), 색·겹선은 나라 표.
+                    //   한국: 황색 복선(앱에 든 동네는 모두 0 → 예전 그대로). 독일: 흰 실선 한 줄(베를린 아데나워 광장 진입로: 차로 +2.9 | 0.0 −2.8 → +1.45.
+                    //   예전에는 0 = 왼쪽 차로 한가운데에 그어졌다)
+                    var cs = CountryStyle.Current;
+                    float co = cs.CentreOffset(rd);
+                    if (cs.centreDouble) { Line(co - 0.15f, 0.15f, yellow, false); Line(co + 0.15f, 0.15f, yellow, false); }
+                    else Line(co, 0.15f, yellow, false);
+                }
                 foreach (var offs in new[] { rd.laneR, rd.laneL })
                 {
                     if (offs == null || offs.Length < 2) continue;

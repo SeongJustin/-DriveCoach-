@@ -15,7 +15,8 @@ build/
 .gradle/
 .kotlin/
 *.apk
-!apk/성민준과강명수_드라이브코치_release.apk
+!apk/성민준과강명수_드라이브코치_release_arm64.apk
+!apk/성민준과강명수_드라이브코치_release_x86_64.apk
 *.aab
 
 # IDE

@@ -1,4 +1,3 @@
-// 담당: S
 // 검증: NaviHelper-3.0.5 / navi-data-3.0.4 jar 의 시그니처에 맞췄다. 콜백이 실제로 오는지는 에뮬레이터에서 확인할 것.
 package kr.drivecoach.app.navi
 

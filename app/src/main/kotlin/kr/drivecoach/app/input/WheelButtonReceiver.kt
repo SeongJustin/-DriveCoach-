@@ -1,4 +1,4 @@
-// 담당: C+G (AAOS 스티어링 휠 버튼 → core.input.InputSource.WheelButton 어댑터)
+// AAOS 스티어링 휠 버튼 → core.input.InputSource.WheelButton 어댑터
 // 문서 기준으로 작성했으며 실기기/에뮬레이터 검증이 필요하다.
 package kr.drivecoach.app.input
 

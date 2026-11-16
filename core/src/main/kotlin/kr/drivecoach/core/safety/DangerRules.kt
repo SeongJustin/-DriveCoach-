@@ -1,4 +1,4 @@
-// 담당: F (위험 피드백)
+// 위험 피드백
 package kr.drivecoach.core.safety
 
 import kr.drivecoach.core.signal.Gear

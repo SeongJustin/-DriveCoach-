@@ -1,4 +1,4 @@
-// 담당: B (공통 타입, 모든 모듈이 사용)
+// 공통 타입, 모든 모듈이 사용
 package kr.drivecoach.core.signal
 
 /** 변속 기어 상태. */
@@ -16,7 +16,7 @@ enum class Wiper { OFF, INT, LOW, HIGH, UNKNOWN }
 /**
  * 한 시점의 차량 상태 스냅샷. 앱이 감지할 수 있는 신호만 담는다.
  * 감지 불가 항목(미러 각도, 옆 차 유무, 주차선)은 의도적으로 없다.
- * 액셀 페달은 차가 AAOS 표준 속성(ACCELERATOR_PEDAL_COMPRESSION_PERCENTAGE)을 줄 때만 값이 있다(11/8, 3D 게임의 "실제 액셀" 모드용).
+ * 액셀 페달은 차가 AAOS 표준 속성(ACCELERATOR_PEDAL_COMPRESSION_PERCENTAGE)을 줄 때만 값이 있다(3D 게임의 "실제 액셀" 모드용).
  * null 은 "이 차량/시점에서 값을 모름"을 뜻한다.
  */
 data class VehicleState(

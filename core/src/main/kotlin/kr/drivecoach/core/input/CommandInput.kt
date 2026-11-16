@@ -1,4 +1,4 @@
-// 담당: C+G (명령 입력: 음성/휠 버튼 → Command)
+// 명령 입력: 음성/휠 버튼 → Command
 package kr.drivecoach.core.input
 
 /**
@@ -132,7 +132,7 @@ class CommandRecognizer(var settings: InputSettings = InputSettings.DEFAULT) {
             "한번더" to Command.AGAIN,
             "다시한번" to Command.AGAIN,
             "뭐라고" to Command.AGAIN,
-            // (11/8) 실제로 할 법한 말투: "한 번만 더", "못 들었어요", "못 알아들었어", "뭐라 했어?", "반복해 줘"
+            // 실제로 할 법한 말투: "한 번만 더", "못 들었어요", "못 알아들었어", "뭐라 했어?", "반복해 줘"
             "한번만더" to Command.AGAIN,
             "못들었" to Command.AGAIN,
             "못알아들" to Command.AGAIN,
@@ -150,7 +150,7 @@ class CommandRecognizer(var settings: InputSettings = InputSettings.DEFAULT) {
             "보여" to Command.CONFIRM,
             "봤어요" to Command.CONFIRM,
             "봤어" to Command.CONFIRM,
-            // (11/8) 연습 단계에서 한 일을 말하는 대답: "안전벨트 맸어요", "켰어요", "껐어요", "맞췄어요", "다 됐어요", "완료"
+            // 연습 단계에서 한 일을 말하는 대답: "안전벨트 맸어요", "켰어요", "껐어요", "맞췄어요", "다 됐어요", "완료"
             "맸어" to Command.CONFIRM,
             "켰어" to Command.CONFIRM,
             "껐어" to Command.CONFIRM,

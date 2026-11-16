@@ -1,4 +1,3 @@
-// 담당: C+G
 package kr.drivecoach.core.input
 
 import kr.drivecoach.core.signal.Gear

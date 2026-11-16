@@ -1,4 +1,4 @@
-// 담당: J (코스 자동 생성)
+// 코스 자동 생성
 package kr.drivecoach.core.course
 
 /** 길찾기 요청 한 건. FakeRouteProvider 가 시나리오를 고를 때 그대로 받는다. */

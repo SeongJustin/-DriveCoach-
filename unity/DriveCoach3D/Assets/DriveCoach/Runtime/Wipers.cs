@@ -1,4 +1,4 @@
-// 담당: S (11/8 밤, 조사 P1 "앞유리 빗방울 + 와이퍼를 실차 스위치와"): 내 차 와이퍼가 실제로 움직이고, 비 오면 앞유리에 빗방울이 맺혔다가 닦인다.
+// 내 차 와이퍼가 실제로 움직이고, 비 오면 앞유리에 빗방울이 맺혔다가 닦인다.
 //   와이퍼 속도: 실제 차 스위치(간헐 4초에 한 번, 느리게 1.1초, 빠르게 0.7초)를 따르고, 차가 값을 안 주면 비·눈일 때 느리게.
 //   빗방울: 운전석 시점에서만 카메라 바로 앞 판(코드로 만든 물방울 그림)이 시간이 지나면 짙어지고, 와이퍼가 지나간 쪽(왼·오른 반)부터 지워진다.
 using DriveCoach.Core;
@@ -107,7 +107,7 @@ namespace DriveCoach.Unity
             if (drops.transform.parent != cam.transform) drops.transform.SetParent(cam.transform, false);
             drops.SetActive(true);
             // 카메라 바로 앞(가까운 면 + 3 cm), 화면을 꽉 채우게
-            // (11/15 대표: 비가 대시보드와 스티어링 휠에도 묻어 보인다) 판을 눈앞 3 cm 가 아니라 앞유리쯤(0.8 m)에 둔다.
+            // (비가 대시보드와 스티어링 휠에도 묻어 보인다) 판을 눈앞 3 cm 가 아니라 앞유리쯤(0.8 m)에 둔다.
             //   그보다 가까운 실내(스티어링 휠, 계기판, 기둥)가 판을 가려 유리에만 맺혀 보인다
             float z = Mathf.Max(cam.nearClipPlane + 0.03f, 0.8f);
             float hh = Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad) * z;

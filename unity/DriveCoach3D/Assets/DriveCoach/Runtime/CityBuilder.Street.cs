@@ -1,4 +1,4 @@
-// CityBuilder 의 거리 소품(가로수, 가로등, 신호등 등) 부분(11/15 코드 정리로 CityBuilder.cs 에서 나눈 파일). 전체 설명은 CityBuilder.cs 맨 위.
+// CityBuilder 의 거리 소품(가로수, 가로등, 신호등 등) 부분(CityBuilder.cs 에서 나눈 파일). 전체 설명은 CityBuilder.cs 맨 위.
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -106,7 +106,7 @@ namespace DriveCoach.Unity
                 {
                     case "tree":
                     case "park_tree":
-                        // 11/9: EZ-Tree 나무(외부 모델, LOD) — 없으면 예전 코드 나무
+                        // EZ-Tree 나무(외부 모델, LOD) — 없으면 예전 코드 나무
                         int tseed = Mathf.FloorToInt(p.x * 7.13f) * 73856093 ^ Mathf.FloorToInt(p.y * 5.31f) * 19349663;
                         if (trees == null || !trees.Add(p, y, TreeKit.BaseHeight * size, ang, tseed, kind == "tree"))
                             Tree(trunks, leaves, p, y, rnd, size);
@@ -123,7 +123,7 @@ namespace DriveCoach.Unity
                         lights.Add((p, y, yaw, size));
                         break;
                     case "water_manhole_cover":
-                        // (11/11 대표) 맨홀은 전부 뺀다
+                        // 맨홀은 전부 뺀다
                         if (Manholes && s.Asphalt(p)) kit?.Add(kind, Space3D.W(p, h + 0.034f), yaw, size, true);
                         break;
                     default:
@@ -137,7 +137,7 @@ namespace DriveCoach.Unity
             Dc.Lap("props-trees-emit");
             if (!trunks.IsEmpty) trunks.ToObject("tree-trunks", DcAssets.Lit(DcAssets.Hex("#6B4F3A"), 0.1f), node, true);
             if (!leaves.IsEmpty) leaves.ToObject("tree-leaves", DcAssets.Lit(DcAssets.Hex("#4E7A3A"), 0.05f), node, true);
-            // 밤 불빛(11/8 밤): 가로등 아래 노면에 번지는 따뜻한 빛 웅덩이(반지름 7 m) — 밤에만 켠다(NightLights)
+            // 밤 불빛: 가로등 아래 노면에 번지는 따뜻한 빛 웅덩이(반지름 7 m) — 밤에만 켠다(NightLights)
             if (lights.Count > 0)
             {
                 var pools = new MeshKit();
@@ -169,7 +169,7 @@ namespace DriveCoach.Unity
         }
 
         /// <summary>
-        /// 11/8 "유로트럭 느낌": 보도의 변압기함·통신함(건물 쪽), 쓰레기통·화분(큰길 연석 쪽), 차도의 맨홀(차로 가운데),
+        /// 보도의 변압기함·통신함(건물 쪽), 쓰레기통·화분(큰길 연석 쪽), 차도의 맨홀(차로 가운데),
         /// 공원 가장자리 벤치. Poly Haven(CC0) 모델을 칸마다 한 메시로.
         /// </summary>
         static void BuildProps(RoadDef r, float h, Transform node)

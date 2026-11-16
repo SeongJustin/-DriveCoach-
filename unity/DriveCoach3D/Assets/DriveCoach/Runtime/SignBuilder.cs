@@ -1,4 +1,3 @@
-// 담당: S (11/8 밤, 대표: "표지판 신호등 이런 것도 운전에 영향을 미치는 건 다 들어가야겠지")
 // 내 동네 지도: 서울 T-GIS 의 실제 자리 안전표지·신호등을 세운다.
 // 표지: 기둥(회색) + 표지판.
 //         원·삼각형·역삼각형·사각형·보조판 모양 그대로 면을 잘라 만들어 투명 처리 없이 그린다. 뒷면은 회색.
@@ -19,21 +18,48 @@ namespace DriveCoach.Unity
 
         static Dictionary<string, (int cell, string shape)> meta;
         static int cols = 8;
+        /// <summary>그림 모음 줄 수(signs.json 의 rows, 없으면 cols = 정사각 — 한국 그림 모음)</summary>
+        static int rows = 8;
+        /// <summary>번호 뒤 변형("-10" 등)을 모두 같은 그림으로 쓰는 번호(signs_de.json 의 셋째 값 1)</summary>
+        static HashSet<string> anyVariant;
+        /// <summary>그림 모음은 나라마다 하나(한국 DC/Signs/signs, 독일 DC/Signs/signs_de). 읽은 것을 나라별로 둔다</summary>
+        static readonly Dictionary<string, (Dictionary<string, (int, string)> meta, int cols, int rows, HashSet<string> any)> atlases = new Dictionary<string, (Dictionary<string, (int, string)>, int, int, HashSet<string>)>();
 
-        static bool LoadMeta()
+        static bool LoadMeta() => LoadMeta("DC/Signs/signs");
+
+        static bool LoadMeta(string atlas)
         {
-            if (meta != null) return meta.Count > 0;
+            if (atlases.TryGetValue(atlas, out var have)) { meta = have.meta; cols = have.cols; rows = have.rows; anyVariant = have.any; return meta.Count > 0; }
             meta = new Dictionary<string, (int, string)>();
-            var ta = Resources.Load<TextAsset>("DC/Signs/signs");
+            anyVariant = new HashSet<string>();
+            cols = rows = 8;
+            atlases[atlas] = (meta, cols, rows, anyVariant);
+            var ta = Resources.Load<TextAsset>(atlas);
             if (ta == null) return false;
             var o = MiniJson.ParseObject(ta.text);
             if (o == null) return false;
             cols = (int)MiniJson.Num(o, "cols", 8);
+            rows = (int)MiniJson.Num(o, "rows", cols);
             if (o.TryGetValue("signs", out var so) && so is Dictionary<string, object> sd)
                 foreach (var kv in sd)
                     if (kv.Value is List<object> a && a.Count >= 2)
+                    {
                         meta[kv.Key] = (System.Convert.ToInt32(a[0]), System.Convert.ToString(a[1]));
+                        if (a.Count >= 3 && System.Convert.ToInt32(a[2]) == 1) anyVariant.Add(kv.Key);
+                    }
+            atlases[atlas] = (meta, cols, rows, anyVariant);
             return meta.Count > 0;
+        }
+
+        /// <summary>번호 → 그림 모음의 번호: 그대로 있으면 그것, 없으면 마지막 '-' 앞(변형을 모두 받는 번호일 때만). 앞머리(나라)가 다르면 null</summary>
+        static string Resolve(string code, string prefix)
+        {
+            if (string.IsNullOrEmpty(code)) return null;
+            if (prefix != "" && !code.StartsWith(prefix, System.StringComparison.Ordinal)) return null;   // 문화권 비교 대신 서수 비교
+            if (meta.ContainsKey(code)) return code;
+            int k = code.LastIndexOf('-');
+            if (k > 0) { var b = code.Substring(0, k); if (anyVariant.Contains(b) && meta.ContainsKey(b)) return b; }
+            return null;
         }
 
         /// <summary>모양 윤곽(칸 안 0..1 좌표, 위가 0)</summary>
@@ -67,6 +93,9 @@ namespace DriveCoach.Unity
                 case "rv":   // 세로 직사각(일방통행 직진)
                     o.Add(new Vector2(0.27f, 0.03f)); o.Add(new Vector2(0.73f, 0.03f)); o.Add(new Vector2(0.73f, 0.97f)); o.Add(new Vector2(0.27f, 0.97f));
                     break;
+                case "dia":  // 마름모(독일 우선 도로 306)
+                    o.Add(new Vector2(0.5f, 0.03f)); o.Add(new Vector2(0.97f, 0.5f)); o.Add(new Vector2(0.5f, 0.97f)); o.Add(new Vector2(0.03f, 0.5f));
+                    break;
                 default:   // circle
                     for (int i = 0; i < 28; i++)
                     {
@@ -89,6 +118,7 @@ namespace DriveCoach.Unity
                 case "rh": return (0.27f, 0.73f);
                 case "oct": return (0.066f, 0.934f);
                 case "rv": return (0.03f, 0.97f);
+                case "dia": return (0.03f, 0.97f);
                 default: return (0.03f, 0.97f);
             }
         }
@@ -96,19 +126,36 @@ namespace DriveCoach.Unity
         public static void Build(RoadDef r, float h, Transform node)
         {
             var d = r.region;
-            if (d == null || d.signs.Count == 0 || !LoadMeta()) return;
-            var tex = Resources.Load<Texture2D>("DC/Signs/signs");
+            // 나라 표의 그림 모음·번호 앞머리(한국: DC/Signs/signs + 앞머리 없는 번호 = 예전 그대로, 독일: DC/Signs/signs_de + "de…")
+            var cs = CountryStyle.Current;
+            if (d == null || d.signs.Count == 0 || !LoadMeta(cs.signAtlas)) return;
+            var tex = Resources.Load<Texture2D>(cs.signAtlas);
             if (tex == null) return;
             var face = new MeshKit();
             var back = new MeshKit();
             var poles = new MeshKit();
             var surf = CityBuilder.Current;
             int n = 0;
-            float cellUV = 1f / cols;
+            float cellUV = 1f / cols, cellV = 1f / rows;      // 가로·세로 칸 크기 따로(독일 그림 모음 8 × 4). 한국은 정사각이라 같은 값
             foreach (var s in d.signs)
             {
                 var known = new List<string>();
-                foreach (var c in s.codes) if (meta.ContainsKey(c)) known.Add(c);
+                if (cs.IsKorea) { foreach (var c in s.codes) if (meta.ContainsKey(c)) known.Add(c); }
+                else
+                {
+                    // 보조판(모양 aux)은 바로 위 본표지 밑에: 자료에서 본표지보다 앞에 적힌 보조판은 첫 본표지 밑으로. 같은 그림은 한 번만
+                    var plates = new List<string>();
+                    foreach (var c in s.codes)
+                    {
+                        var k = Resolve(c, cs.signPrefix);
+                        if (k == null || known.Contains(k)) continue;
+                        bool plate = meta[k].shape == "aux";
+                        if (plate && known.Count == 0) { if (!plates.Contains(k)) plates.Add(k); continue; }
+                        known.Add(k);
+                        if (!plate && plates.Count > 0) { known.AddRange(plates); plates.Clear(); }
+                    }
+                    if (known.Count == 0) continue;           // 보조판만 있는 기둥은 세우지 않는다
+                }
                 if (known.Count == 0) continue;
                 var pos = s.p;
                 float y0 = h;
@@ -120,10 +167,18 @@ namespace DriveCoach.Unity
                 float a = s.faceDeg * Mathf.Deg2Rad;
                 var f2 = new V2(Mathf.Cos(a), Mathf.Sin(a));               // 2D 바라보는 쪽
                 var fw = new Vector3(f2.x, 0f, -f2.y);                     // 월드
-                // 표지를 마주 본 사람의 오른쪽. (11/11) 예전에는 Cross(up, fw) = 마주 본 사람의 왼쪽이라 표지 그림·글자가 좌우로 뒤집혀 보였다(사진에서 "50"이 거울상)
+                // 표지를 마주 본 사람의 오른쪽. 예전에는 Cross(up, fw) = 마주 본 사람의 왼쪽이라 표지 그림·글자가 좌우로 뒤집혀 보였다(사진에서 "50"이 거울상)
                 var right = Vector3.Cross(fw, Vector3.up).normalized;
                 var basePos = Space3D.W(pos, y0) + fw * 0.06f;
                 float yTop = y0 + Top;
+                if (!cs.IsKorea)
+                {
+                    // 표지가 많은 기둥: 맨 아래 표지 밑이 보도 위 2.0 m 밑으로 내려가지 않게 위를 올린다(독일 기둥은 표지 4~5장이 흔하다)
+                    float tot = 0f;
+                    foreach (var code in known) { var (te, be) = Extent(meta[code].shape); tot += (be - te) * Size + 0.05f; }
+                    yTop = Mathf.Max(yTop, y0 + 2.0f + tot);
+                }
+                float poleTop = yTop + 0.05f;
                 foreach (var code in known)
                 {
                     var (cell, shape) = meta[code];
@@ -138,7 +193,7 @@ namespace DriveCoach.Unity
                     foreach (var q in outline)
                     {
                         pts.Add(basePos + right * ((q.x - 0.5f) * Size) + Vector3.up * (cellTop - q.y * Size));
-                        uvs.Add(new Vector2((cx + q.x) * cellUV, 1f - (cy + q.y) * cellUV));
+                        uvs.Add(new Vector2((cx + q.x) * cellUV, 1f - (cy + q.y) * cellV));
                     }
                     var cen = Vector3.zero; var cuv = Vector2.zero;
                     foreach (var p in pts) cen += p;
@@ -153,12 +208,12 @@ namespace DriveCoach.Unity
                     }
                     yTop -= hgt + 0.05f;
                 }
-                float poleH = (y0 + Top + 0.05f) - y0;
+                float poleH = poleTop - y0;
                 poles.Box(Space3D.W(pos, y0 + poleH / 2f), new Vector3(0.07f, poleH, 0.07f), 0f);
                 n++;
             }
             if (n == 0) return;
-            face.ToObject("signs", DcAssets.LitTex("signs-atlas", tex, 0.35f), node, false, true);
+            face.ToObject("signs", DcAssets.LitTex(cs.IsKorea ? "signs-atlas" : "signs-atlas-" + cs.code, tex, 0.35f), node, false, true);
             back.ToObject("signs-back", DcAssets.Lit(DcAssets.Hex("#8C9096"), 0.3f, 0.4f), node, false, true);
             poles.ToObject("sign-poles", DcAssets.Lit(DcAssets.Hex("#9EA3A8"), 0.4f, 0.6f), node, true, true);
             Debug.Log($"SignBuilder: 표지 기둥 {n}개");
@@ -197,11 +252,11 @@ namespace DriveCoach.Unity
                 }
                 float a = hd.faceDeg * Mathf.Deg2Rad;
                 var fw = new Vector3(Mathf.Cos(a), 0f, -Mathf.Sin(a));
-                // 신호등을 마주 본 사람의 오른쪽. (11/11) 예전에는 반대라 가로 신호등이 왼쪽부터 초록·화살표·노랑·빨강으로 뒤집혀 있었다(실제: 왼쪽부터 빨강·노랑·화살표·초록)
+                // 신호등을 마주 본 사람의 오른쪽. 예전에는 반대라 가로 신호등이 왼쪽부터 초록·화살표·노랑·빨강으로 뒤집혀 있었다(실제: 왼쪽부터 빨강·노랑·화살표·초록)
                 var right = Vector3.Cross(fw, Vector3.up).normalized;
                 bool arm = hd.kind != 2 && !ped && hd.pole.DistanceTo(hd.head) > 1.0f;
                 float poleH = arm ? 5.6f : (ped ? 2.9f : 4.2f);
-                // 11/9 대표 "최상급으로": 둥근 기둥(지름 0.22 m, 16각) + 밑판(0.5 m 네모·두께 5 cm)
+                // 둥근 기둥(지름 0.22 m, 16각) + 밑판(0.5 m 네모·두께 5 cm)
                 poles.Prism(Ring(pole, 0.11f, 16), y0, y0 + poleH);
                 poles.Box(Space3D.W(pole, y0 + 0.025f), new Vector3(0.5f, 0.05f, 0.5f), hd.faceDeg);
                 Vector3 hc;
@@ -245,7 +300,7 @@ namespace DriveCoach.Unity
             poles.ToObject("signal-poles", DcAssets.Lit(DcAssets.Hex("#A2A7AC"), 0.4f, 0.6f), node, true, true);
             if (onM == null)
             {
-                // (11/11 대표: "불도 안 켜진 것 같다") 켜진 등은 1 을 넘는 밝기로 → 빛 번짐(블룸)이 걸려 멀리서도 켜진 것이 보인다. 꺼진 등·모양은 그대로
+                // 켜진 등은 1 을 넘는 밝기로 → 빛 번짐(블룸)이 걸려 멀리서도 켜진 것이 보인다. 꺼진 등·모양은 그대로
                 const float G = 2.4f;
                 onM = new[] { DcAssets.Unlit(new Color(1f * G, 0.12f * G, 0.08f * G)), DcAssets.Unlit(new Color(1f * G, 0.75f * G, 0.1f * G)), DcAssets.Unlit(new Color(0.1f * G, 1f * G, 0.55f * G)), DcAssets.Unlit(new Color(0.1f * G, 1f * G, 0.55f * G)) };
                 offM = new[] { DcAssets.Unlit(new Color(0.22f, 0.04f, 0.04f)), DcAssets.Unlit(new Color(0.22f, 0.17f, 0.04f)), DcAssets.Unlit(new Color(0.04f, 0.2f, 0.12f)), DcAssets.Unlit(new Color(0.04f, 0.2f, 0.12f)) };
@@ -317,7 +372,7 @@ namespace DriveCoach.Unity
         {
             var up = Vector3.Cross(n, right).normalized;
             if (Vector3.Dot(up, Vector3.up) < 0f) up = -up;
-            var l = right;    // right = 마주 본 사람의 오른쪽(11/11 부터)
+            var l = right;    // right = 마주 본 사람의 오른쪽(부터)
             mk.Quad(c - l * h - up * h, c + l * h - up * h, c + l * h + up * h, c - l * h + up * h, n,
                 new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f));
         }
@@ -341,14 +396,17 @@ namespace DriveCoach.Unity
             foreach (var (sig, ped, lamps) in groups)
             {
                 SignalColor c = SignalColor.Red, lc = SignalColor.Red;
-                bool blinkOff = false;
+                bool blinkOff = false, redAmber = false;
+                var cs = CountryStyle.Current;
                 if (sigs != null && sig >= 0 && sig < sigs.Count)
                 {
                     var sgl = sigs[sig];
                     c = sgl.At(w.t);
                     lc = sgl.LeftAt(w.t);
-                    // 보행등: 초록 끝 무렵(남은 초록이 초록의 40 % 밑)이면 1초에 한 번 깜빡(우리나라 보행 녹색 점멸)
-                    if (ped && c == SignalColor.Green && sgl.GreenLeft(w.t) < sgl.green * 0.4f) blinkOff = (w.t % 1f) > 0.5f;
+                    // 보행등: 초록 끝 무렵(남은 초록이 초록의 40 % 밑)이면 1초에 한 번 깜빡(우리나라 보행 녹색 점멸). 독일은 깜빡이지 않는다(나라 표)
+                    if (ped && cs.pedGreenBlink && c == SignalColor.Green && sgl.GreenLeft(w.t) < sgl.green * 0.4f) blinkOff = (w.t % 1f) > 0.5f;
+                    // 독일: 초록 직전 redAmberSec 초는 빨강+노랑(차는 그대로 빨강으로 다룬다)
+                    if (!ped && cs.redAmberSec > 0f && c == SignalColor.Red && sgl.RedLeft(w.t) <= cs.redAmberSec) redAmber = true;
                 }
                 for (int k = 0; k < 4; k++)
                 {
@@ -357,7 +415,7 @@ namespace DriveCoach.Unity
                     if (ped) on = (k == 2 && c == SignalColor.Green && !blinkOff) || (k == 0 && c != SignalColor.Green);
                     else if (sig < 0) on = false;
                     // 4색(빨강·노랑·좌회전 화살표·초록): 화살표 단계에는 빨강과 화살표가 함께 켜진다
-                    else on = (k == 0 && c == SignalColor.Red) || (k == 1 && (c == SignalColor.Yellow || (c == SignalColor.Red && lc == SignalColor.Yellow)))
+                    else on = (k == 0 && c == SignalColor.Red) || (k == 1 && (c == SignalColor.Yellow || (c == SignalColor.Red && lc == SignalColor.Yellow) || redAmber))
                               || (k == 2 && c == SignalColor.Green) || (k == 3 && lc == SignalColor.Green);
                     var m = ped && pedOn[k] != null ? (on ? pedOn[k] : pedOff[k]) : (on ? onM[k] : offM[k]);
                     if (lamps[k].sharedMaterial != m) lamps[k].sharedMaterial = m;

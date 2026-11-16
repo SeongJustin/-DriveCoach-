@@ -1,4 +1,3 @@
-// 담당: S (11/9 아침, 대표: "다른 자동차와 버스 통행량… 잘 넣으려면 자동차들의/버스들의 모델링더 진행해야할거야")
 // 다른 차 모델을 읽어
 // 종류마다 본(꺼 둔 GameObject) 하나를 만들고, 차마다 복사해 차체색만 바꾼다. 상표·글자 없음.
 //   본: 재질별 차체 조각("fleet-<재질>"), 브레이크등 조각은 이름 "brake", 방향지시등은 "amber"(TrafficView 가 켜고 끈다),
@@ -24,9 +23,11 @@ namespace DriveCoach.Unity
             if (missing.Contains(name)) return null;
             var ta = Resources.Load<TextAsset>("DC/Car/fleet_" + name);
             if (ta == null) { missing.Add(name); Debug.LogWarning("FleetModels: fleet_" + name + " 없음"); return null; }
+            var raw = ta.bytes;
+            Resources.UnloadAsset(ta);   // 본은 protos 에 남으니 파일(TextAsset)은 바로 내린다
             try
             {
-                p = Build(name, ta.bytes);
+                p = Build(name, raw);
             }
             catch (System.Exception e)
             {

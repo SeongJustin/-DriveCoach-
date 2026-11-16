@@ -1,4 +1,4 @@
-// 담당: S (3D 내 동네 도로 연수(베타), 11/8 대표 요청: "한국 지도 데이터를 받아와서 자기 동네에서 정도는 운전해볼 수 있게")
+// 3D 내 동네 도로 연수
 // 오픈스트리트맵(OSM, © OpenStreetMap contributors, ODbL)에서 행정동 하나를 뽑은 JSON을
 // 도로 주행 판(Stage, StageMode.Road)으로 바꾼다:
 //  - 길(OSM way) → 차로 가운데선(우측통행: 진행 방향 오른쪽이 정방향 차로), 다음 차로 잇기(곧장 이어지는 길), 노면(띠)·교차로(원)
@@ -14,6 +14,8 @@ namespace DriveCoach.Core
     public class RegionData
     {
         public string name = "", attribution = "© OpenStreetMap contributors";
+        /// <summary>나라: 지역 파일의 "country"(예: "DE"). 비어 있으면 목록(index.json)의 country 를 RegionCatalog 가 채운다. 칠 색·표지 그림 등 나라별 모양은 Unity 쪽 CountryStyle 이 이 값으로 고른다</summary>
+        public string country = "";
         public double originLat, originLon;
         public float margin = 300f;
         /// <summary>실제 노면 파일(Resources/DC/Regions/&lt;이름&gt;.bytes: 아스팔트·보도·칠·연석·소품). 없으면 빈 문자열</summary>
@@ -28,7 +30,7 @@ namespace DriveCoach.Core
         public List<RegionArea> areas = new List<RegionArea>();
 
         /// <summary>
-        /// (11/11 대표: "맵 선택에서 시작 위치 선택이 있어야") 시작할 수 있는 자리: 동 안에서 가장 긴 큰길 3곳·동네길 2곳의 실제 길 이름.
+        /// 시작할 수 있는 자리: 동 안에서 가장 긴 큰길 3곳·동네길 2곳의 실제 길 이름.
         /// 자리는 그 길의 가장 긴 곧은 조각 위(동 경계 안). 0 번은 따로 "동네 한가운데"(PickStart)라 여기에는 없다.
         /// </summary>
         public List<(string name, V2 p)> StartSpots()
@@ -68,7 +70,7 @@ namespace DriveCoach.Core
             }
             return res;
         }
-        /// <summary>(11/15 대표: "모든 출발은 주차장 칸에서") 출발할 수 있는 주차장 칸 하나: 칸 가운데, 통로 쪽을 보는 방향(도), 가까운 길 이름, 주차장 번호</summary>
+        /// <summary>출발할 수 있는 주차장 칸 하나: 칸 가운데, 통로 쪽을 보는 방향(도), 가까운 길 이름, 주차장 번호</summary>
         public class ParkStart { public V2 c; public float headingDeg; public string name = ""; public int lot; }
         List<ParkStart> parkStarts;
 
@@ -194,10 +196,10 @@ namespace DriveCoach.Core
         public List<RegionSign> signs = new List<RegionSign>();
         public List<RegionFacility> facilities = new List<RegionFacility>();
         public List<RegionSignalHead> signalHeads = new List<RegionSignalHead>();
-        /// <summary>어린이보호구역(11/9 새벽, OSM 초등학교·유치원 둘레 근사): 이름·다각형, 입구 빨간 노면 삼각형(x,y × 3 씩)</summary>
+        /// <summary>어린이보호구역(OSM 초등학교·유치원 둘레 근사): 이름·다각형, 입구 빨간 노면 삼각형(x,y × 3 씩)</summary>
         public List<(string name, V2[] poly, V2 lo, V2 hi)> schoolZones = new List<(string, V2[], V2, V2)>();
         public float[] schoolRed = new float[0];
-        /// <summary>횡단보도 잔여시간 표시기(11/9, 서울 T-GIS): 자리, 바라보는 방향(라디안)</summary>
+        /// <summary>횡단보도 잔여시간 표시기(서울 T-GIS): 자리, 바라보는 방향(라디안)</summary>
         public List<(V2 p, float ang)> countdowns = new List<(V2, float)>();
         /// <summary>이면도로 가장자리에 세워 둔 차: 가운데, 방향(라디안), 길이, 폭</summary>
         public List<(V2 c, float ang, float L, float W)> parked = new List<(V2, float, float, float)>();
@@ -222,13 +224,13 @@ namespace DriveCoach.Core
             public string name, number;
         }
 
-        /// <summary>횡단보도(11/9, 서울 T-GIS 넓이): 가운데, 건너는 방향(단위), 건너는 길이, 폭</summary>
+        /// <summary>횡단보도(서울 T-GIS 넓이): 가운데, 건너는 방향(단위), 건너는 길이, 폭</summary>
         public List<(V2 c, V2 n, float L, float W)> crosswalks = new List<(V2, V2, float, float)>();
-        /// <summary>(11/13) 노면에 칠해진 정지선(차로마다 그 차로를 가로막는 자리의 가운데). JSON "stl". 신호 정지선을 이 자리에 맞춘다</summary>
+        /// <summary>노면에 칠해진 정지선(차로마다 그 차로를 가로막는 자리의 가운데). JSON "stl". 신호 정지선을 이 자리에 맞춘다</summary>
         public List<V2> stopPaint = new List<V2>();
-        /// <summary>중앙선 무단횡단 방지 울타리(11/9 낮, 지역 JSON "medf"): 황색 실선 겹선 위 선(점 목록)</summary>
+        /// <summary>중앙선 무단횡단 방지 울타리(지역 JSON "medf"): 황색 실선 겹선 위 선(점 목록)</summary>
         public List<V2[]> medianFences = new List<V2[]>();
-        /// <summary>하천 깊이(11/9 낮, 지역 JSON "water_cut"): 0 이면 물은 땅 높이 평면(예전)</summary>
+        /// <summary>하천 깊이(지역 JSON "water_cut"): 0 이면 물은 땅 높이 평면(예전)</summary>
         public float waterCut;
 
         /// <summary>p 가 들어 있는 어린이보호구역 번호(없으면 -1)</summary>
@@ -243,7 +245,7 @@ namespace DriveCoach.Core
             return -1;
         }
 
-        /// <summary>과속방지턱(11/9 새벽, 서울 T-GIS 험프): 가운데, 진행 방향(라디안), 길이(진행 방향), 폭</summary>
+        /// <summary>과속방지턱(서울 T-GIS 험프): 가운데, 진행 방향(라디안), 길이(진행 방향), 폭</summary>
         public List<Hump> humps = new List<Hump>();
         readonly Dictionary<long, List<int>> humpGrid = new Dictionary<long, List<int>>();
         const float HumpCell = 16f;
@@ -353,6 +355,7 @@ namespace DriveCoach.Core
             {
                 name = MiniJson.Str(o, "name", ""),
                 attribution = MiniJson.Str(o, "attribution", "© OpenStreetMap contributors"),
+                country = MiniJson.Str(o, "country", ""),
                 margin = MiniJson.Num(o, "margin", 300f),
                 surfaceFile = MiniJson.Str(o, "surface_file", ""),
                 boundary = Pts(o.TryGetValue("boundary", out var bd) ? bd : null),

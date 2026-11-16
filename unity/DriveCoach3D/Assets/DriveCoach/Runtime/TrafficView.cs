@@ -1,5 +1,5 @@
-// 담당: S (3D 도로 주행 — 다른 차 모습: Kenney 차 모델을 차 크기·실제 차 높이에 맞춰 놓고 매 프레임 자리·방향을 맞춘다.
-// 서면 브레이크등, 바퀴는 달린 거리만큼 굴리고 앞바퀴는 도는 정도만큼 꺾는다(11/8 밤 대표: "바퀴 굴러가는 것도"))
+// (3D 도로 주행 — 다른 차 모습: Kenney 차 모델을 차 크기·실제 차 높이에 맞춰 놓고 매 프레임 자리·방향을 맞춘다.
+// 서면 브레이크등, 바퀴는 달린 거리만큼 굴리고 앞바퀴는 도는 정도만큼 꺾는다)
 using System.Collections.Generic;
 using DriveCoach.Core;
 using UnityEngine;
@@ -20,19 +20,19 @@ namespace DriveCoach.Unity
             public bool started;
         }
         readonly Dictionary<TrafficCar, Wheels> wheels = new Dictionary<TrafficCar, Wheels>();
-        // (11/11 저녁 대표: "차가 이동할 때 … 디테일도 같이") 차체 움직임: 경사로에서는 길 기울기만큼 앞뒤로 기울고,
+        // 차체 움직임: 경사로에서는 길 기울기만큼 앞뒤로 기울고,
         //   가속·감속 때 살짝 들리고 숙이며(±2°), 돌 때 바깥으로 살짝 기운다(±2.5°). 예전에는 고가 경사로에서도 차가 수평으로 떠 있었다
         class Motion { public float speed, z, heading, slope, dive, lean; public bool started; }
         readonly Dictionary<TrafficCar, Motion> motion = new Dictionary<TrafficCar, Motion>();
         readonly Transform root;
         readonly Elevation el;
         readonly Dictionary<TrafficCar, (GameObject go, Renderer[] lamps)> views = new Dictionary<TrafficCar, (GameObject, Renderer[])>();
-        // 방향지시등(11/9 아침: 버스가 정류장에 설 때 오른쪽, 떠날 때 왼쪽) — 차마다 왼쪽·오른쪽 등
+        // 방향지시등(버스가 정류장에 설 때 오른쪽, 떠날 때 왼쪽) — 차마다 왼쪽·오른쪽 등
         readonly Dictionary<TrafficCar, (Renderer[] left, Renderer[] right)> ambers = new Dictionary<TrafficCar, (Renderer[], Renderer[])>();
         Material amberOff, amberOn;
         // 차 종류별 모델: 0 세단, 1 SUV, 2 해치백, 3 택시, 4 승합, 5 1톤 화물, 6 시내버스, 7 마을버스(없으면 Kenney)
         static readonly string[] FleetName = { "sedan", "suv", "hatch", "taxi", "van", "truck", "bus", "townbus" };
-        // 차체색(11/9 대표: "차들 색이 다 같은데… 도색 여러가지 색으로 해줘야해"): 종류별로 우리나라 길에 흔한 비율을 대충 따라 —
+        // 차체색: 종류별로 우리나라 길에 흔한 비율을 대충 따라 —
         //   승용은 흰·검정·회색·은색이 대부분, 남색·파랑·빨강·갈색·베이지·초록·하늘·주황·노랑이 가끔. 상표·로고 색은 쓰지 않는다.
         //   (색, 비율) — 차마다 TrafficCar.paint(0~9999)로 고른다
         static readonly (Color c, float w)[] CarPaint =
@@ -76,7 +76,7 @@ namespace DriveCoach.Unity
         // 마을버스: 초록이 대부분, 가끔 노랑
         static readonly (Color c, float w)[] TownBusPaint = { (DcAssets.Hex("#3E9E3A"), 0.80f), (DcAssets.Hex("#E2B12A"), 0.20f) };
         readonly Material lampOff, lampOn, tailNight, headLamp, beam;
-        // 밤 불빛(11/8 밤): 전조등(앞 두 개)·노면을 비추는 빛 판, 미등은 밤이면 은은하게 켠다
+        // 밤 불빛: 전조등(앞 두 개)·노면을 비추는 빛 판, 미등은 밤이면 은은하게 켠다
         readonly Dictionary<TrafficCar, GameObject> nightFx = new Dictionary<TrafficCar, GameObject>();
         bool night;
 
@@ -106,8 +106,15 @@ namespace DriveCoach.Unity
             return pal.Length - 1;
         }
 
-        public static (Color c, float w)[] PaletteOf(int kind) =>
-            kind == 6 ? BusPaint : kind == 7 ? TownBusPaint : kind == 5 ? TruckPaint : kind == 4 ? VanPaint : kind == 3 ? TaxiPaint : kind == 2 ? HatchPaint : CarPaint;
+        public static (Color c, float w)[] PaletteOf(int kind)
+        {
+            // 버스·택시 색은 나라 표에 있으면 그것(베를린: 노란 BVG 버스, 상아색 택시). 한국은 아래 서울 색 그대로
+            var cs = CountryStyle.Current;
+            if (kind == 6 && cs.busPaint != null) return cs.busPaint;
+            if (kind == 7 && cs.townBusPaint != null) return cs.townBusPaint;
+            if (kind == 3 && cs.taxiPaint != null) return cs.taxiPaint;
+            return kind == 6 ? BusPaint : kind == 7 ? TownBusPaint : kind == 5 ? TruckPaint : kind == 4 ? VanPaint : kind == 3 ? TaxiPaint : kind == 2 ? HatchPaint : CarPaint;
+        }
 
         (GameObject, Renderer[]) Make(TrafficCar c)
         {

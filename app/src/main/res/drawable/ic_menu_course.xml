@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 코스 주행: 출발점에서 목적지까지 경로 (메뉴 카드 아이콘, 앱에서 직접 그린 선 그림) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:pathData="M8.4,40 a3.6,3.6 0 1,0 7.2,0 a3.6,3.6 0 1,0 -7.2,0 z"
+        android:fillColor="#FF0B0B0C" />
+    <path
+        android:pathData="M12,40 V32 a6,6 0 0 1 6,-6 H30 a6,6 0 0 0 6,-6"
+        android:strokeColor="#FF0B0B0C"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M36,3.5 c-3.9,0 -7,3.1 -7,7 c0,5 7,10.5 7,10.5 s7,-5.5 7,-10.5 c0,-3.9 -3.1,-7 -7,-7 z"
+        android:strokeColor="#FF0B0B0C"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M33.8,10.5 a2.2,2.2 0 1,0 4.4,0 a2.2,2.2 0 1,0 -4.4,0 z"
+        android:fillColor="#FF0B0B0C" />
+</vector>
