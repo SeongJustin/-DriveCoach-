@@ -1,4 +1,4 @@
-// 검증: Vehicle-2.3.2 / FusedLocation-1.1.3 jar 의 시그니처에 맞췄다. 값의 의미(단위·부호·0=닫힘)는 에뮬레이터에서 확인할 것.
+// Pleos Vehicle 2.3.2·FusedLocation 1.1.3 신호 소스
 package kr.drivecoach.app.vehicle
 
 import ai.pleos.playground.location.fused.FusedLocation
@@ -67,7 +67,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  *    Odometer(누적 주행거리), Fuel(연료 %)
  *  - AAOS CarPropertyManager: PERF_VEHICLE_SPEED, PARKING_BRAKE_ON, IGNITION_STATE
  *    + 대체(fallback): GEAR_SELECTION(Pleos Gear 값이 아직 없을 때)
- *    (ENGINE_RPM·PERF_STEERING_ANGLE 은 signature|privileged 권한이라 공모전 규정상 쓰지 않는다 — 공모전 사무국 답변. rpm 은 항상 null)
+ *    (ENGINE_RPM·PERF_STEERING_ANGLE 은 signature|privileged 권한이라 공모전 규정상 쓰지 않는다(사무국 답변). rpm 은 항상 null)
  *  - Pleos FusedLocation SDK: lat/lon
  *
  * Vehicle SDK 2.3.2 에는 시동(IgnitionState enum 만 있고 API 없음)·주차브레이크·속도·RPM API 가 없어 이 넷은 AAOS 만 쓴다.
@@ -155,11 +155,11 @@ class PleosSignalSource(context: Context) : SignalSource {
     }
 
     // ------------------------------------------------------------------
-    // 1) Pleos Vehicle SDK — 리스너 인터페이스/콜백 이름은 전부 javap 로 확인
+    // 1) Pleos Vehicle SDK, 리스너 인터페이스/콜백 이름은 전부 javap 로 확인
     // ------------------------------------------------------------------
     private fun registerVehicleSdkListeners() {
         // 기어 (Gear, CAR_DRIVE): getCurrentGearSelectionState((VehicleGear?)->Unit, (Exception)->Unit), registerGearSelection(GearSelectionListener)
-        //   주의: 2.3.2 에서 세 메서드 모두 @Deprecated("use the Google GEAR_SELECTION property") — 아직 동작하므로 1순위로 쓰되,
+        //   주의: 2.3.2 에서 세 메서드 모두 @Deprecated("use the Google GEAR_SELECTION property"), 아직 동작하므로 1순위로 쓰되,
         //   AAOS GEAR_SELECTION 을 항상 함께 구독해 Pleos 값이 안 오면 그쪽을 쓴다 (Pleos 가 AAOS 속성 사용을 권장 = 서드파티에 열려 있을 가능성 높음).
         @Suppress("DEPRECATION")
         safely("Gear") {
@@ -279,7 +279,7 @@ class PleosSignalSource(context: Context) : SignalSource {
             unregisterActions += { wiper.unregisterWiperState(area, l) }
         }
 
-        // 창문 (Window, CAR_WINDOWS): registerWindowPosition(WindowArea, WindowPositionListener{ onWindowPositionUpdated(Int?) }) — 창마다 등록
+        // 창문 (Window, CAR_WINDOWS): registerWindowPosition(WindowArea, WindowPositionListener{ onWindowPositionUpdated(Int?) }), 창마다 등록
         safely("Window") {
             val window = vehicle.getWindow()
             for (v in WINDOWS) {
@@ -295,7 +295,7 @@ class PleosSignalSource(context: Context) : SignalSource {
             }
         }
 
-        // 도어 잠금 (Door, CAR_DOORS): registerDoorLockState(DoorArea, DoorLockStateListener{ onDoorLockStateUpdated(Boolean?) }) — 운전석 기준
+        // 도어 잠금 (Door, CAR_DOORS): registerDoorLockState(DoorArea, DoorLockStateListener{ onDoorLockStateUpdated(Boolean?) }), 운전석 기준
         safely("Door") {
             val door = vehicle.getDoor()
             val area = DoorArea(DoorValue.ROW_1_LEFT)
@@ -308,7 +308,7 @@ class PleosSignalSource(context: Context) : SignalSource {
             unregisterActions += { door.unregisterDoorLockState(area, l) }
         }
 
-        // 공조 전원 (HVAC, CAR_CLIMATE): registerHvacPowerState(SeatArea, HvacPowerStateListener{ onHvacPowerStateUpdated(Boolean?) }) — 운전석 영역
+        // 공조 전원 (HVAC, CAR_CLIMATE): registerHvacPowerState(SeatArea, HvacPowerStateListener{ onHvacPowerStateUpdated(Boolean?) }), 운전석 영역
         safely("HVAC") {
             val hvac = vehicle.getHVAC()
             val area = SeatArea(SeatValue.ROW_1_LEFT)
@@ -396,7 +396,7 @@ class PleosSignalSource(context: Context) : SignalSource {
             unregisterActions += { odo.unregisterDistanceDriven(l) }
         }
 
-        // 연료 (Fuel, CAR_ENERGY): registerFuelPercent(FuelPercentListener{ onFuelPercentUpdated(Int?) }) — Int 퍼센트
+        // 연료 (Fuel, CAR_ENERGY): registerFuelPercent(FuelPercentListener{ onFuelPercentUpdated(Int?) }), Int 퍼센트
         safely("Fuel") {
             val fuel = vehicle.getFuel()
             val l = object : FuelPercentListener {
@@ -434,7 +434,7 @@ class PleosSignalSource(context: Context) : SignalSource {
     }
 
     // ------------------------------------------------------------------
-    // 2) AAOS CarPropertyManager — 속도·주차브레이크·시동 (+ 기어 대체)
+    // 2) AAOS CarPropertyManager: 속도·주차브레이크·시동 (+ 기어 대체)
     //    Pleos Vehicle SDK 2.3.2 에는 속도/RPM/주차브레이크/시동 API 가 없다 (IgnitionState enum 만 존재, 사용하는 공개 메서드 없음).
     // ------------------------------------------------------------------
     /** 시동 상태 원래 값(VehicleIgnitionState: LOCK·OFF·ACC·ON·START). CoachService 가 Suspend 진입·복귀를 판단한다(Pleos Suspend 모드 오디오 가이드). */
@@ -474,7 +474,7 @@ class PleosSignalSource(context: Context) : SignalSource {
                 VehiclePropertyIds.IGNITION_STATE to CarPropertyManager.SENSOR_RATE_ONCHANGE,
             )
             // 액셀 페달 밟은 정도: 3D 게임 "실제 액셀" 모드용. 차·에뮬레이터가 이 속성을 줄 때만(없으면 조용히 넘어감).
-            //  권한 READ_CAR_PEDALS 는 dangerous(런타임 요청) — 사무국이 금지한 signature|privileged 가 아니다.
+            //  권한 READ_CAR_PEDALS 는 dangerous(런타임 요청): 사무국이 금지한 signature|privileged 가 아니다.
             safely("AccelPedal") {
                 if (pm.getCarPropertyConfig(ACCEL_PEDAL) == null) throw IllegalStateException("속성 없음")
                 if (!pm.registerCallback(propCallback, ACCEL_PEDAL, CarPropertyManager.SENSOR_RATE_NORMAL)) throw IllegalStateException("등록 실패")
@@ -491,7 +491,7 @@ class PleosSignalSource(context: Context) : SignalSource {
     }
 
     // ------------------------------------------------------------------
-    // 3) Pleos FusedLocation — 위치 (javap: isSupported()/initialize()/registerFusedLocationCallback(FusedLocationListener)/release())
+    // 3) Pleos FusedLocation: 위치 (javap: isSupported()/initialize()/registerFusedLocationCallback(FusedLocationListener)/release())
     // ------------------------------------------------------------------
     private val locationListener = object : FusedLocationListener {
         override fun onChanged(location: LocationData?) {

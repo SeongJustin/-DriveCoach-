@@ -146,7 +146,7 @@ namespace DriveCoach.Core
                     var rel = cr.c - car.FrontBumperCenter;
                     float ahead = rel.Dot(car.Dir);
                     if (ahead > -2f && ahead < 12f && car.speed > 4f && Math.Abs(rel.x * car.Dir.y - rel.y * car.Dir.x) < cr.half + 2f) continue;
-                    // 차가 이미 코앞(8 m 안)까지 와서 움직이고 있으면 느리더라도 발을 내딛지 않는다 — 꺾으려고 천천히 오던 차가 정지선을 넘은 자리에서 급히 서게 됐다
+                    // 차가 이미 코앞(8 m 안)까지 와서 움직이고 있으면 느리더라도 발을 내딛지 않는다. 꺾으려고 천천히 오던 차가 정지선을 넘은 자리에서 급히 서게 됐다
                     if (ahead > -2f && ahead < 8f && car.speed > 0.6f && Math.Abs(rel.x * car.Dir.y - rel.y * car.Dir.x) < cr.half + 2f) continue;
                 }
                 // 신호 막판(빨간불이 4초 안에 끝남 = 보행 신호 깜빡임)이면 뛴다

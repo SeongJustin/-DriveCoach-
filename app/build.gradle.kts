@@ -19,8 +19,8 @@ android {
         applicationId = "kr.drivecoach.app"
         minSdk = 28      // minSdk 28 (Pleos getting-started 도 API 28 이상 요구)
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 7
+        versionName = "1.1.1"
         // 3D 게임(Unity) 네이티브 라이브러리는 ABI 마다 수십 MB 라 실제 차량(arm64)·에뮬레이터(x86_64) 것만 넣는다.
         // -Pabi=x86_64 처럼 주면 그 ABI 하나만 넣는다(에뮬레이터 전용 APK 를 100 MB 아래로 만들 때). 기본은 둘 다.
         val onlyAbi = (project.findProperty("abi") as String?)?.takeIf { it.isNotBlank() }
@@ -41,6 +41,8 @@ android {
             buildConfigField("String", "NCP_KEY_ID", "\"\"")
             buildConfigField("String", "NCP_KEY", "\"\"")
             buildConfigField("int", "DEMO_SPEED_LIMIT_KMH", "0")
+            // 저장소 커밋 정보(META-INF/version-control-info.textproto)를 APK 에 넣지 않는다
+            vcsInfo { include = false }
         }
     }
     // APK 크기: minSdk 28 이상이면 .so 와 dex 를 압축 없이 넣는 게 기본이다. 압축해서 넣으면 APK 가 크게 줄고,
@@ -66,7 +68,7 @@ android {
     sourceSets["main"].kotlin.srcDirs(if (hasUnity) "src/unity/kotlin" else "src/nounity/kotlin")
     // APK assets: src/main/assets(schema.json, Gleo 음성 연동).
     sourceSets["main"].assets.srcDirs("src/main/assets")
-    // assets 무시 규칙: 기본 규칙의 `.*`(점으로 시작하는 항목 제외)를 없애고 `.gitignore` 만 따로 뺐다(숨김 파일·폴더도 넣는다).
+    // assets 무시 규칙: 기본 규칙의 `.*`(점으로 시작하는 항목 제외)를 없애고 `.gitignore` 만 따로 뺀다(숨김 파일·폴더도 넣는다).
     androidResources {
         ignoreAssetsPattern = "!.svn:!.git:!.gitignore:!.ds_store:!*.scc:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
         // 3D 게임(Unity): 엔진이 APK 안 데이터 파일을 압축 없이 바로 읽는다(Unity 가 내보낸 launcher/build.gradle 과 같은 목록)

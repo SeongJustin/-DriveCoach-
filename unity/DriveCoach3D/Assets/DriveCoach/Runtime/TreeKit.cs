@@ -1,6 +1,6 @@
 // 가로수·공원 나무: EZ-Tree(MIT, eztree.dev)로 만든 나무.
 //   - 80 m 칸마다 가까이(LOD1, 약 6~8천 삼각형) / 멀리(LOD2, 약 4천) 두 메시로 합치고 LODGroup 으로 바꾼다(멀면 안 그림)
-//   - 껍질: 사진 질감(tree_bark), 잎: 투명 자르기(DC_LitCutout, 양면) — 가로수는 아래 잎을 친 모양(street)
+//   - 껍질: 사진 질감(tree_bark), 잎: 투명 자르기(DC_LitCutout, 양면). 가로수는 아래 잎을 친 모양(street)
 //   - 높이는 나무마다(9 m × 크기), 방향·종류는 자리마다 고정된 난수
 // 질감·모양이 없으면 false(예전 코드 나무로).
 using System.Collections.Generic;
@@ -15,13 +15,13 @@ namespace DriveCoach.Unity
     {
         const float Tile = 80f;
         public const float BaseHeight = 9f;
-        // 서울 가로수 흉내: 물푸레(ash) — 느티나무 자리, 참나무(oak) — 플라타너스 자리, 사시나무(aspen, 좁고 곧은 모양) — 은행나무 자리
-        // 공원은 여기에 바늘잎나무(pine — 잣나무·스트로브잣나무 자리)를 더한다. 파일이 없는 종류는 건너뛴다.
+        // 서울 가로수 흉내: 느티나무 자리에 물푸레(ash), 플라타너스 자리에 참나무(oak), 은행나무 자리에 사시나무(aspen, 좁고 곧은 모양)
+        // 공원은 여기에 바늘잎나무(pine: 잣나무·스트로브잣나무 자리)를 더한다. 파일이 없는 종류는 건너뛴다.
         static readonly string[] Kinds = { "ash_medium", "oak_medium" };
         static readonly string[] StreetKinds = { "ash_medium", "oak_medium", "aspen_medium" };
         static readonly string[] ParkKinds = { "ash_medium", "oak_medium", "aspen_medium", "pine_medium" };
 
-        /// <summary>both = 껍질(서브메시 0) + 잎(서브메시 1) 한 메시. 나무 하나가 LOD 마다 물체 하나(예전: 껍질·잎 둘)라 동네의 나무 물체가 절반</summary>
+        /// <summary>both = 껍질(서브메시 0) + 잎(서브메시 1) 한 메시. 나무 하나가 LOD 마다 물체 하나라 껍질·잎을 따로 둘 때보다 나무 물체가 절반</summary>
         class Shape { public Mesh bark, leaves, both; }
         static readonly Dictionary<string, Shape> shapes = new Dictionary<string, Shape>();
         static readonly HashSet<string> missing = new HashSet<string>();
@@ -185,8 +185,8 @@ namespace DriveCoach.Unity
                 var lodR = new List<Renderer>[] { new List<Renderer>(), new List<Renderer>() };
                 foreach (var pk in kv.Value)
                 {
-                    // 나무마다 점을 복사해 한 메시로 합치던 것을 그만둔다(동네 하나에 메시 수 GB → 에뮬레이터 메모리 부족).
-                    //   나무 모양 메시는 하나만 두고, 나무마다 그 메시를 가리키는 물체를 만든다.
+                    // 나무 모양 메시는 하나만 두고, 나무마다 그 메시를 가리키는 물체를 만든다.
+                    //   나무마다 점을 복사해 한 메시로 합치면 동네 하나에 수 GB 가 되어 에뮬레이터 메모리가 모자란다.
                     var mats = pk.Key.Item3 != null ? new[] { pk.Key.Item2, pk.Key.Item3 } : new[] { pk.Key.Item2 };
                     foreach (var mt in mats) if (mt != null && !mt.enableInstancing) mt.enableInstancing = true;
                     foreach (var ci in pk.Value)

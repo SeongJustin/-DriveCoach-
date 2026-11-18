@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 코드로 만드는 도형: 바닥 다각형, 선(띠), 벽(기둥형), 리본(곡선 띠)
+// 코드로 만드는 도형: 바닥 다각형, 선(띠), 벽(기둥형), 리본(곡선 띠)
 // 같은 재질은 한 메시에 모아(드로우 콜을 줄여) 에뮬레이터에서도 가볍게 그린다.
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -415,8 +415,8 @@ namespace DriveCoach.Unity
 
         /// <summary>
         /// Built 가 켜져 있으면(동네 짓는 중) ToObject 가 메시를 만들자마자 그래픽 장치로 넘기고 일반 메모리의 사본을 내린다.
-        /// 예전에는 동네 메시 사본을 끝까지 모두 들고 있다가 한꺼번에 내려서(사용 최고 235 MB) Unity 가 잡아 둔 메모리가 그만큼 남았다.
-        /// 곧 다시 읽을 메시(밤 창 불빛 사본을 뜨는 외벽)는 KeepReadable 을 켜 두면 예전처럼 끝에 내린다.
+        /// 사본을 끝까지 모두 들고 있다가 한꺼번에 내리면 사용 최고치(235 MB)만큼 Unity 가 잡아 둔 메모리가 남는다.
+        /// 곧 다시 읽을 메시(밤 창 불빛 사본을 뜨는 외벽)는 KeepReadable 을 켜 두면 사본을 두었다가 끝에 내린다.
         /// </summary>
         public static bool KeepReadable;
 

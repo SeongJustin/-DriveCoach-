@@ -1,5 +1,5 @@
 // 내 동네 지도의 시설:
-//   주차장: 바닥(아스팔트 질감, 길보다 1 cm 아래라 길이 덮는다), 흰 주차칸 선, 세워 둔 차(낮은 다각형 차 — 색마다 한 메시로 합쳐 가볍게)
+//   주차장: 바닥(아스팔트 질감, 길보다 1 cm 아래라 길이 덮는다), 흰 주차칸 선, 세워 둔 차(낮은 다각형 차: 색마다 한 메시로 합쳐 가볍게)
 //   주유소·충전소: 콘크리트 바닥, 기둥 4개 캐노피(흰 판 + 회색 띠, 상표 없음), 주유기 섬, 길가 가격판(주유소 그림 칸)
 // 모두 메시를 종류별로 합쳐 그리기 횟수를 줄인다.
 using System.Collections.Generic;
@@ -13,8 +13,12 @@ namespace DriveCoach.Unity
         // 세운 차 색: 다니는 차와 같은 비율(TrafficView 승용 색)
         static (Color c, float w)[] CarColors => TrafficView.PaletteOf(0);
 
+        /// <summary>마지막으로 지은 동네에서 아스팔트에 닿아 그리지 않은 주차장 세운 차의 자리. SceneRig 이 이 차들을 부딪힘 물체에서 뺀다</summary>
+        public static readonly HashSet<V2> Hidden = new HashSet<V2>();
+
         public static void Build(RoadDef r, float h, Transform node)
         {
+            Hidden.Clear();
             var d = r.region;
             if (d == null || (d.facilities.Count == 0 && d.parked.Count == 0)) return;
             var lot = new MeshKit { uvScale = 4f };
@@ -42,7 +46,7 @@ namespace DriveCoach.Unity
                         lines.Line(f.stalls[i], f.stalls[i + 1], 0.12f, h + 0.027f);
                     foreach (var (p, ang) in f.cars)
                     {
-                        if (surf != null && surf.TouchesAsphalt(p, 1.2f)) continue;     // 길 위로 나온 칸에는 세우지 않는다
+                        if (surf != null && surf.TouchesAsphalt(p, 1.2f)) { Hidden.Add(p); continue; }     // 길 위로 나온 칸에는 세우지 않는다
                         if (!fleet.Add(rnd, p, ang, h + 0.022f))
                             ParkedCar(bodies[TrafficView.PickIndex(CarColors, rnd.Next(10000))], glass, p, ang, h + 0.022f, rnd);
                         nCars++;
@@ -118,7 +122,7 @@ namespace DriveCoach.Unity
                 var tex = cs.stationBoard != null ? Resources.Load<Texture2D>(cs.stationBoard) : null;
                 if (tex != null && !signFace.IsEmpty) signFace.ToObject("station-sign", DcAssets.LitTex(cs.IsKorea ? "station-sign" : "station-sign-" + cs.code, tex, 0.3f), node, false, true);
             }
-            Debug.Log($"FacilityBuilder: 주차장 {nLots}(세운 차 {nCars}), 주유소·충전소 {nFuel}, 길가 세운 차 {nStreet}, 차 모델로 그린 것 {nFleet}");
+            Debug.Log($"FacilityBuilder: 주차장 {nLots}(세운 차 {nCars}, 아스팔트라 안 그린 차 {Hidden.Count}), 주유소·충전소 {nFuel}, 길가 세운 차 {nStreet}, 차 모델로 그린 것 {nFleet}");
         }
 
         /// <summary>
@@ -131,9 +135,9 @@ namespace DriveCoach.Unity
             // 세워 둔 차 비율: 세단 46 · SUV 26 · 해치백 12 · 승합 7 · 1톤 트럭 7 · 택시 2 (이면도로·주차장)
             static readonly (int kind, float w)[] Mix = { (0, 46f), (1, 26f), (2, 12f), (4, 7f), (5, 7f), (3, 2f) };
             static readonly string[] Name = { "sedan", "suv", "hatch", "taxi", "van", "truck" };
-            // 예전에는 칸·재질마다 차의 점을 전부 복사해 한 메시로 합쳤다(동네 하나에 244 MB). 이제 차종마다 메시 두 개(차체 / 나머지)만 만들어 두고
-            //   세워 둔 차마다 그 메시를 가리키는 물체 두 개를 둔다. 모양·색은 그대로.
-            /// <summary>all = 차체(서브메시 0) + 나머지(재질별 서브메시) 한 메시 → 세운 차 하나가 물체 하나(예전: 차체·나머지 둘, 동네 하나에 1,600대)</summary>
+            // 차종마다 메시(차체 / 나머지, 그림자 설정이 같으면 둘을 합친 하나)만 만들어 두고 세워 둔 차마다 그 메시를 가리키는 물체를 둔다
+            //   (칸·재질마다 차의 점을 복사해 한 메시로 합치면 동네 하나에 244 MB 가 된다).
+            /// <summary>all = 차체(서브메시 0) + 나머지(재질별 서브메시) 한 메시 → 세운 차 하나가 물체 하나(차체·나머지 둘로 두면 동네 하나 1,600대의 물체가 두 배)</summary>
             class Kind { public Mesh body, rest, all; public Material[] restMats; public bool bodyShadow, restShadow; }
             static readonly Dictionary<string, Kind> kinds = new Dictionary<string, Kind>();
             readonly Dictionary<(int tx, int ty), List<(Kind k, Material paint, Vector3 pos, Quaternion rot)>> cars = new Dictionary<(int, int), List<(Kind, Material, Vector3, Quaternion)>>();

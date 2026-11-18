@@ -1,4 +1,4 @@
-// debug 전용 자가 검사 — adb 로 띄워 사람 없이 Pleos 연결·음성·음성 명령을 확인한다.
+// debug 전용 자가 검사: adb 로 띄워 사람 없이 Pleos 연결·음성·음성 명령을 확인한다.
 // 결과는 화면과 logcat(태그 DCTEST)에 "PASS/FAIL/INFO 이름 | 내용" 으로 남고, 마지막 줄은 "DONE pass=N fail=M".
 package kr.drivecoach.app.debug
 
@@ -78,7 +78,7 @@ class SelfTestActivity : Activity() {
         Log.i(TAG, "$kind $name | $detail")
         out.append("${mark(kind)} $name — $detail\n")
     }
-    private fun mark(kind: String) = when (kind) { "PASS" -> "✅"; "FAIL" -> "❌"; else -> "ℹ️" }
+    private fun mark(kind: String) = when (kind) { "PASS" -> "OK"; "FAIL" -> "NG"; else -> "--" }
     private fun check(name: String, ok: Boolean, detail: String) = line(if (ok) "PASS" else "FAIL", name, detail)
 
     private suspend fun runAll(svc: CoachService) {
@@ -107,7 +107,7 @@ class SelfTestActivity : Activity() {
         val started = waitUntil(8_000) { svc.speaker.isSpeaking }
         check("코치 음성 시작", started, if (started) "말하기 시작" else "8초 안에 시작 안 함")
         if (started) {
-            // 말하기 시작을 본 즉시(0.2초 안) 듣기가 멈춰 있어야 한다 — 코치 첫 소리를 명령으로 알아듣지 않게(onCoachWillSpeak).
+            // 말하기 시작을 본 즉시(0.2초 안) 듣기가 멈춰 있어야 한다. 코치 첫 소리를 명령으로 알아듣지 않게(onCoachWillSpeak).
             val listeningAtStart = svc.voice.state.value == VoiceCommandListener.State.LISTENING
             check("말 시작과 함께 듣기 멈춤", !listeningAtStart, "코치 말 시작 직후 STT 상태 ${svc.voice.state.value}")
             delay(1_000)
@@ -173,7 +173,7 @@ class SelfTestActivity : Activity() {
         //    끝 알림이 소리보다 먼저 오면(음수) 코치가 "다 말했다" 고 보고 마이크를 다시 여는 시점이 이르다는 뜻이다.
         measureTts(svc)
 
-        // 6) 주행 중 화면(DO) — 판정만 기록
+        // 6) 주행 중 화면(DO): 판정만 기록
         line("INFO", "주행 중 화면(DO)", "adb 설치 앱은 에뮬레이터(user 빌드)에서 인정되지 않는 것이 정상")
         svc.coach.lawUi.value?.let { svc.coach.endLaw() }
 

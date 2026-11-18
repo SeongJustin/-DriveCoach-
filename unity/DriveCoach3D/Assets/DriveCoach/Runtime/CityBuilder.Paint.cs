@@ -1,4 +1,4 @@
-// CityBuilder 의 노면 표시(칠) 부분(CityBuilder.cs 에서 나눈 파일). 전체 설명은 CityBuilder.cs 맨 위.
+// CityBuilder: 노면 표시(칠)
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -25,7 +25,7 @@ namespace DriveCoach.Unity
                 {
                     if (!cs.centreDouble)
                     {
-                        // 독일: 흰 한 줄 — 큰길은 실선(Z 295), 동네길은 점선(Leitlinie Z 340)
+                        // 독일은 흰 한 줄: 큰길은 실선(Z 295), 동네길은 점선(Leitlinie Z 340)
                         bool solid = Major(s.hw) || cs.minorCentreDash <= 0f;
                         Paint(yellow, s.pts, 0.12f, y, solid ? 0f : cs.minorCentreDash, solid ? 0f : cs.laneGap, InJunction);
                     }

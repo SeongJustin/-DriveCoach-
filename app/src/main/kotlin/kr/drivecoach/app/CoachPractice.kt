@@ -1,5 +1,4 @@
 // 차 기능 익히기(2장) + 도로 법규 동작
-// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
 package kr.drivecoach.app
 
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +41,7 @@ fun CoachController.startPractice(fromItemId: String? = null) {
     endActivity() // 하위 활동은 한 번에 하나
     practiceItems = practiceItemList()
     val engine = PracticeEngine(practiceItems, { step -> onPracticeStep(step) }, initialResults = practiceResults)
-    engine.autoDetect = false   // 자동 통과와 '해 보기' 단계를 뺐다. 설명을 보고 '다음'으로 넘어간다
+    engine.autoDetect = false   // 설명을 보고 '다음'으로 넘어간다
     engine.onState(currentState())
     practice = engine
     lastStepWasNotDetected = false
@@ -82,7 +81,7 @@ fun CoachController.lawNext() {
     val cur = _lawUi.value ?: return
     val next = lawSet.topics.getOrNull(cur.index + 1)
     if (next == null) {
-        // 마지막 주제: 다 봤다는 한마디 후 닫기(말없이 첫 화면으로 돌아가던 것)
+        // 마지막 주제: 다 봤다는 한마디 후 닫기
         val allSeen = lawSet.topics.all { lawSet.seenKey(it.id) in lessonsDone.value }
         endLaw()
         request(if (allSeen) Phrases.lawAllDone.id else Phrases.lawEndSome.id, force = true)
@@ -112,7 +111,7 @@ internal fun CoachController.showLaw(topic: RuleTopic) {
 }
 
 internal fun CoachController.onPracticeInput(engine: PracticeEngine, command: Command) {
-    // 자동으로 다음 항목에 막 들어간 순간의 '다음/확인' 은 무시한다(넘어가는 순간 누르면 새 항목 설명을 통째로 건너뛰던 문제).
+    // 자동으로 다음 항목에 막 들어간 순간의 '다음/확인' 은 무시한다. 넘어가는 순간 누른 것이 새 항목에 먹히면 설명을 통째로 건너뛴다.
     if ((command == Command.NEXT || command == Command.CONFIRM) && clock() - practiceAutoAdvancedAt < AUTO_ADVANCE_GUARD_MS) return
     // 통과/건너뜀 멘트가 아직 나가는 중에 누른 '다음/확인' = "빨리 다음으로". 멘트를 끊으면 onDone 이 자동 진행을 하므로 여기서 끝.
     if ((engine.phase == Phase.PASSED || engine.phase == Phase.SKIPPED) && command != Command.AGAIN && speaking != null) {
@@ -132,7 +131,7 @@ internal fun CoachController.onPracticeInput(engine: PracticeEngine, command: Co
     val input = when (command) {
         // 화면 버튼은 건너뛰기/다음/이전. "다음" 은 확인과 같다: 설명→해보기, 해보기(수동)→통과, 확인→통과, 통과→다음 항목.
         // 자동 항목의 해보기 단계에서 "다음" 을 두 번 연속 누르면(앞서 '아직 감지 안 됨' 안내를 들었으면) 건너뛰기로 본다.
-        Command.CONFIRM, Command.NEXT -> UserInput.CONFIRM   // '다음' 두 번 = 건너뛰기 숨은 규칙은 뺐다. 건너뛰기 버튼이 따로 있다.
+        Command.CONFIRM, Command.NEXT -> UserInput.CONFIRM   // 건너뛰기는 따로 있는 버튼으로
         Command.AGAIN -> UserInput.AGAIN
         Command.SKIP -> UserInput.SKIP
         Command.PREV -> UserInput.PREV
@@ -159,7 +158,7 @@ internal fun CoachController.onPracticeStep(step: PracticeStep) {
         _practiceUi.value = PracticeUi(
             itemId = item.id, chapter = item.chapter, title = item.title, phase = stepPhase,
             text = if (notDetected) _practiceUi.value?.text.orEmpty().ifEmpty { text } else text.ifEmpty { _practiceUi.value?.text.orEmpty() },
-            // (설명 단계에 "브레이크 끝까지" 한 줄이 맥락 없이 붙는다, 미감지 안내가 무엇을 기다리는지 말하지 않는다)
+            // 설명 단계에 진행 줄이 맥락 없이 붙지 않고, 미감지 안내가 무엇을 기다리는지 말하게:
             //   센서 진행 줄은 해보기 단계에서만 "지금 할 것: …" 으로, 미감지 안내에는 그 줄을 덧붙인다
             progress = run {
                 val now = step.progress?.takeIf { it.isNotBlank() }?.let { "지금 할 것: $it" }
@@ -192,7 +191,7 @@ internal fun CoachController.onPracticeStep(step: PracticeStep) {
         Phase.PASSED, Phase.SKIPPED -> {
             awaiting.cancel()
             // 변속 연습은 D 나 N 에서 통과한다. P 가 아니면 다음 항목이 열리지 않아
-            //   "P로 변속한 상태에서 진행합니다"가 몇 초마다 되풀이됐다 → 한 번만 말하고, P 가 되면 넘어간다.
+            //   "P로 변속한 상태에서 진행합니다"는 몇 초마다 되풀이하지 않고 한 번만 말하며, P 가 되면 넘어간다.
             if (phrase == PracticeEngine.PHRASE_NEED_P) {
                 request(phrase, force = true)
                 scope.launch(Dispatchers.Main) {
@@ -206,7 +205,7 @@ internal fun CoachController.onPracticeStep(step: PracticeStep) {
                 val remain = PASS_HOLD_MS - (clock() - startedAt)
                 val go = {
                     if (practice === engine && engine.phase == step.phase) {
-                        // 목록 끝까지 간 뒤 앞쪽의 안 한 항목으로 돌아가면 한마디 하고 넘어간다(진행 막대가 줄어 당황하던 문제).
+                        // 목록 끝까지 간 뒤 앞쪽의 안 한 항목으로 돌아가면 한마디 하고 넘어간다(진행 막대가 줄어드는 까닭).
                         val cur = engine.current
                         val nxt = engine.nextPending(cur)
                         val wrapped = cur != null && nxt != null && practiceItems.indexOf(nxt) <= practiceItems.indexOf(cur)

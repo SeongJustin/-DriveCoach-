@@ -1,4 +1,4 @@
-// 내 동네 도로 연수 — 실제 노면 — 미리 만들어 둔 <지역>_surface.bytes 읽기.
+// 내 동네 도로 연수: 실제 노면: 미리 만들어 둔 <지역>_surface.bytes 읽기.
 // 아스팔트(큰길·동네길)·보도·실제 칠(흰·노랑·파랑) 삼각형, 연석 선, 소품 자리. 좌표는 지역 좌표(dm, int16).
 // 칠이 아스팔트 밖으로 나가면 안 되고, 아스팔트 위에 나무 같은 물체가 들어가면 안 된다.
 //  → 노면은 미리 한 몸으로 만들어 두고, 실행 중에 무언가 놓을 때는 Asphalt(p) 로 아스팔트 위인지 확인한다.
@@ -13,7 +13,7 @@ namespace DriveCoach.Unity
     {
         public readonly Dictionary<string, Vector2[]> tris = new Dictionary<string, Vector2[]>();
         public readonly List<V2[]> curbs = new List<V2[]>();
-        /// <summary>보도 바깥 가장자리(보도가 선의 (−dy, dx) 쪽)</summary>
+        /// <summary>보도 바깥 가장자리(보도가 선의 (-dy, dx) 쪽)</summary>
         public readonly List<V2[]> walkEdges = new List<V2[]>();
         /// <summary>소품: 종류, 자리(지역 좌표 m), 방향(지역 시계 방향 도), 크기</summary>
         public readonly List<(string kind, V2 p, float ang, float size)> props = new List<(string, V2, float, float)>();
@@ -177,6 +177,15 @@ namespace DriveCoach.Unity
 
         /// <summary>점이 보도(연석 높이로 올린 곳) 위인가</summary>
         public bool Sidewalk(V2 p) => Hit(wgrid, walk, p);
+
+        /// <summary>파란 칠(PNTB, 버스전용차로 선) 삼각형 꼭짓점(셋씩)을 지역 좌표로. 없으면 빈 배열</summary>
+        public V2[] BusPaint()
+        {
+            if (!tris.TryGetValue("PNTB", out var v)) return new V2[0];
+            var r = new V2[v.Length];
+            for (int i = 0; i < v.Length; i++) r[i] = new V2(v[i].x, v[i].y);
+            return r;
+        }
 
         /// <summary>반지름 r 원이 아스팔트에 닿나(가운데 + 둘레 8점)</summary>
         public bool TouchesAsphalt(V2 p, float r)

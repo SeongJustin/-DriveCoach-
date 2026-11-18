@@ -1,4 +1,4 @@
-// Stages 의 도로 주행 미리보기 판(Road.cs 에서 나눈 파일).
+// Stages: 도로 주행 미리보기 판
 using System;
 using System.Collections.Generic;
 
@@ -40,7 +40,7 @@ namespace DriveCoach.Core
             road.lanes.Add(new Lane { name = "서쪽 남행", center = new[] { P(x0 - L / 2, y0), P(x0 - L / 2, y1) } });
             road.lanes.Add(new Lane { name = "가운데 남행", center = new[] { P(-L / 2, y0), P(-L / 2, y1) } });
             road.lanes.Add(new Lane { name = "가운데 북행", center = new[] { P(L / 2, y1), P(L / 2, y0) } });
-            // 사거리 두 곳(위·아래 변과 가운데 도로가 만나는 곳) — 신호와 정지선
+            // 사거리 두 곳(위·아래 변과 가운데 도로가 만나는 곳): 신호와 정지선
             AddSignalT(road, P(0, y0), L, 0f);
             AddSignalT(road, P(0, y1), L, 14f);
             var f = MakeFloor("동네", new Rect(x0 - 25, y0 - 25, (x1 - x0) + 50, (y1 - y0) + 50));

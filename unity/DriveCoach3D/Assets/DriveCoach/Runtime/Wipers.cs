@@ -39,7 +39,7 @@ namespace DriveCoach.Unity
             var mf = blade.GetComponent<MeshFilter>();
             if (mf == null || mf.sharedMesh == null) return null;
             var b = mf.sharedMesh.bounds;
-            // 축: 날의 오른쪽 끝(x 최대) — 날은 축에서 왼쪽으로 누워 있다(왼쪽 운전석 차의 나란한 와이퍼)
+            // 축: 날의 오른쪽 끝(x 최대). 날은 축에서 왼쪽으로 누워 있다(왼쪽 운전석 차의 나란한 와이퍼)
             var pivotLocal = new Vector3(b.max.x - 0.03f, b.center.y, b.center.z);
             var piv = new GameObject(blade.name + "-pivot").transform;
             piv.SetParent(blade.parent, false);
@@ -53,7 +53,7 @@ namespace DriveCoach.Unity
         /// <summary>mode: -1 모름, 0 끔, 1 간헐, 2 느리게, 3 빠르게. rain: 비·눈. driverCam: 운전석 시점의 카메라(아니면 null)</summary>
         public void Tick(float dt, int mode, bool rain, Camera driverCam)
         {
-            // 차가 와이퍼 값을 안 주면(모름): 비·눈일 때 간헐(가장 흔히 쓰는 단) — 빗방울이 맺혔다 닦이는 게 보인다
+            // 차가 와이퍼 값을 안 주면(모름): 비·눈일 때 간헐(가장 흔히 쓰는 단). 빗방울이 맺혔다 닦이는 게 보인다
             if (mode < 0) mode = rain ? 1 : 0;
             // 비 오는 중에 출발하면 앞유리는 이미 젖어 있다
             if (rain && !rainSeen) { rainSeen = true; wetL = wetR = 0.7f; wait = 2.5f; }
@@ -107,7 +107,7 @@ namespace DriveCoach.Unity
             if (drops.transform.parent != cam.transform) drops.transform.SetParent(cam.transform, false);
             drops.SetActive(true);
             // 카메라 바로 앞(가까운 면 + 3 cm), 화면을 꽉 채우게
-            // (비가 대시보드와 스티어링 휠에도 묻어 보인다) 판을 눈앞 3 cm 가 아니라 앞유리쯤(0.8 m)에 둔다.
+            // 판을 앞유리쯤(0.8 m)에 둔다(눈앞에 두면 비가 대시보드와 스티어링 휠에도 묻어 보인다).
             //   그보다 가까운 실내(스티어링 휠, 계기판, 기둥)가 판을 가려 유리에만 맺혀 보인다
             float z = Mathf.Max(cam.nearClipPlane + 0.03f, 0.8f);
             float hh = Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad) * z;

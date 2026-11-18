@@ -1,4 +1,4 @@
-// MenuScreen 의 도로 주행(동네 지도에서 출발 자리 고르기) 부분(MenuScreen.cs 에서 나눈 파일). 전체 설명은 MenuScreen.cs 맨 위.
+// MenuScreen: 도로 주행(동네 지도에서 출발 자리 고르기)
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -12,7 +12,7 @@ namespace DriveCoach.Unity
         // ───────────────────────── 도로 주행: 동네 지도에서 출발 자리 고르기 ─────────────────────────
 
         Texture2D mapTex; int mapFor = -1; float mapX0, mapY0, mapX1, mapY1;
-        V2? startAt; string startName = ""; bool startDemo; float startHeading = float.NaN;
+        V2? startAt; string startName = ""; float startHeading = float.NaN;
 
         void BuildStartMap(int ri)
         {
@@ -22,7 +22,7 @@ namespace DriveCoach.Unity
             {
                 if (mapTex != null) UnityEngine.Object.Destroy(mapTex);
                 mapTex = RegionMapTexture(rd, out mapX0, out mapY0, out mapX1, out mapY1);
-                mapFor = ri; startAt = null; startName = ""; startDemo = false; startHeading = float.NaN;
+                mapFor = ri; startAt = null; startName = ""; startHeading = float.NaN;
             }
             float W = root.rect.width, H = root.rect.height;
             if (W < 100f) { W = 1080f * Screen.width / Mathf.Max(1, Screen.height); H = 1080f; }
@@ -40,7 +40,7 @@ namespace DriveCoach.Unity
             // 지도 위 P 표시 = 출발할 수 있는 주차장(길로 바로 나갈 수 있는 빈 칸). 지도를 누르면 가장 가까운 P 를 고른다
             var lots = rd.ParkingStarts();
             {
-                // (가까운 두 주차장의 P 가 겹쳐 하나를 골라 누르기 어렵다) 지도에서 P 크기보다 가까운 것은 하나만 둔다
+                // 지도에서 P 크기보다 가까운 것은 하나만 둔다(겹친 P 는 골라 누르기 어렵다)
                 var shownLots = new List<RegionData.ParkStart>();
                 foreach (var lp in lots)
                 {
@@ -50,7 +50,7 @@ namespace DriveCoach.Unity
                 }
                 lots = shownLots;
             }
-            Action<RegionData.ParkStart> pick = ps => { startAt = ps.c; startHeading = ps.headingDeg; startName = ps.name; startDemo = false; Refresh(); };
+            Action<RegionData.ParkStart> pick = ps => { startAt = ps.c; startHeading = ps.headingDeg; startName = ps.name; Refresh(); };
             var click = img.gameObject.AddComponent<MapClick>();
             click.clicked = uv =>
             {
@@ -66,24 +66,13 @@ namespace DriveCoach.Unity
                 // 주차장이 없는 동네: 가장 가까운 길
                 var q = NearestRoad(rd, p);
                 if (!q.HasValue) return;
-                startAt = q; startHeading = float.NaN; startName = "지도에서 고른 곳"; startDemo = false;
+                startAt = q; startHeading = float.NaN; startName = "지도에서 고른 곳";
                 Refresh();
             };
             foreach (var lp in lots)
             {
                 var lv = lp;
                 ParkPin(mrt, toUi(lp.c), () => pick(lv));
-            }
-            // 이 동네에 짜 둔 자동 운전 경로(시연)가 있으면 그 출발 자리도 고를 수 있다
-            V2? demoAt = null; string demoName = "";
-            {
-                var rta = Resources.Load<TextAsset>("DC/Routes/" + RegionCatalog.Entries[ri].file + "_demo1");
-                var ro = rta != null ? MiniJson.ParseObject(rta.text) : null;
-                if (ro != null && ro.TryGetValue("start", out var sv) && sv is List<object> sl && sl.Count >= 3)
-                {
-                    demoAt = new V2(Convert.ToSingle(sl[0]), Convert.ToSingle(sl[1]));
-                    demoName = (ro.TryGetValue("name", out var nm) ? nm as string : null) ?? "시연 경로";
-                }
             }
             if (startAt.HasValue) Pin(mrt, toUi(startAt.Value), "", true, null);
             // 오른쪽: 안내·고른 곳·출발
@@ -96,24 +85,30 @@ namespace DriveCoach.Unity
             var go = UiKit.Btn(content, "출발", 34, startAt.HasValue ? UiKit.Kind.Primary : UiKit.Kind.Plain, () =>
             {
                 if (!startAt.HasValue) return;
-                if (startDemo) { onPick?.Invoke("region:" + ri + ":99"); return; }
                 var p = startAt.Value;
                 var ci = System.Globalization.CultureInfo.InvariantCulture;
                 onPick?.Invoke("region:" + ri + ":@" + p.x.ToString("0.00", ci) + "," + p.y.ToString("0.00", ci) + (float.IsNaN(startHeading) ? "" : "," + startHeading.ToString("0.0", ci)));
             }, out _);
             UiKit.Place((RectTransform)go.transform, new Vector2(0, 1), new Vector2(px, -190), new Vector2(Mathf.Min(pw, 360f), 96));
-            if (demoAt.HasValue)
-            {
-                var dv = demoAt.Value; var dn = demoName;
-                var db = UiKit.Btn(content, "자동 운전 경로", 28, startDemo ? UiKit.Kind.Primary : UiKit.Kind.Plain, () => { startAt = dv; startHeading = float.NaN; startName = dn + " (자동 운전)"; startDemo = true; Refresh(); }, out _);
-                UiKit.Place((RectTransform)db.transform, new Vector2(0, 1), new Vector2(px, -306), new Vector2(Mathf.Min(pw, 360f), 80));
-            }
             // 목록에 출처(license·attribution)가 있는 지역은 지역 파일의 출처 줄을 그대로(가운뎃점마다 줄 바꿈), 없으면 예전 글
             var ent = RegionCatalog.Entries[ri];
             string attr = string.IsNullOrEmpty(ent.attribution) ? "© OpenStreetMap contributors"
                 : (rd.attribution != "© OpenStreetMap contributors" && rd.attribution != "" ? rd.attribution : ent.attribution);
-            var at = UiKit.Label(content, "지도 " + attr.Replace(" · ", "\n"), 20, DcAssets.UiText, false, TextAnchor.LowerLeft);
+            var at = UiKit.Label(content, "지도 " + attr.Replace(" · ", "\n") + ExtraSources(rd), 20, DcAssets.UiText, false, TextAnchor.LowerLeft);
             UiKit.Place(at.rectTransform, new Vector2(0, 0), new Vector2(px, 0), new Vector2(pw, 40));
+        }
+
+        const string BoundarySource = "동 경계: 통계청 통계지리정보서비스(SGIS, https://sgis.kostat.go.kr)가 공공누리 제1유형으로 개방한 행정동 경계를 "
+            + "vuski/admdongkor(https://github.com/vuski/admdongkor)가 가공한 자료(CC BY 4.0, https://creativecommons.org/licenses/by/4.0/), 좌표를 바꾸고 점을 줄여 씀";
+        const string MedianStopSource = "중앙버스정류장: 서울시 중앙차로 버스정류소 리스트(서울 열린데이터광장 OA-21288, 공공누리 제1유형)";
+
+        /// <summary>지역 파일의 출처 줄 밖의 자료: 옆 동 경계가 있으면 행정동 경계, 중앙 정류장이 있으면 중앙차로 정류소 목록(줄마다 앞에 줄 바꿈)</summary>
+        static string ExtraSources(RegionData rd)
+        {
+            string s = "";
+            if (rd.neighbors.Count > 0) s += "\n" + BoundarySource;
+            if (rd.busStops.Exists(b => b.kind != 0)) s += "\n" + MedianStopSource;
+            return s;
         }
 
         /// <summary>지도 위 표시: 고른 자리(라임 점) 또는 이름 있는 자리(흰 바탕 이름표 + 라임 점, 누를 수 있다)</summary>
@@ -323,7 +318,7 @@ namespace DriveCoach.Unity
             float W = root.rect.width;
             if (W < 100f) W = 1080f * Screen.width / Mathf.Max(1, Screen.height);   // 캔버스 크기가 아직 안 잡혔을 때
             W -= 96f;
-            // 왼쪽 '따라 하기' 카드는 뺐다(배우기는 앱의 주차 연습 화면에서 영상으로)
+            // 배우기는 앱의 주차 연습 화면에서 영상으로
             float gx = 0f;
             var grid = UiKit.Node("grid", content);
             UiKit.Stretch(grid, gx, 0, 0, 0);

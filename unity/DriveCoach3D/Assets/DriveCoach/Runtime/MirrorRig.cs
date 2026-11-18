@@ -1,4 +1,4 @@
-// 거울(Cockpit.cs 에서 나눈 파일).
+// Cockpit: 거울
 using System.Collections.Generic;
 using DriveCoach.Core;
 using UnityEngine;
@@ -23,7 +23,7 @@ namespace DriveCoach.Unity
             root.transform.SetParent(carRoot, false);
             var eye = Cockpit.Eye(v);
             int k = light ? 1 : 2;
-            texL = new RenderTexture(192 * k, 112 * k, 24);   // 24비트 깊이(16 비트면 차 옆 이음선 데칼이 거울 속에서 깜빡임 — 차 모델 검토)
+            texL = new RenderTexture(192 * k, 112 * k, 24);   // 24비트 깊이(16 비트면 차 옆 이음선 데칼이 거울 속에서 깜빡임)
             texR = new RenderTexture(192 * k, 112 * k, 24);
             texC = new RenderTexture(240 * k, 76 * k, 24);
             float sideX = v.width / 2f + 0.12f, mz = eye.z + 0.75f;

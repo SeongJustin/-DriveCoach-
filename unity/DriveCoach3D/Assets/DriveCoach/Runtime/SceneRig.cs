@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 한 판의 3D 장면 전체: 지형·내 차·안내·카메라·조명·후방 카메라
+// 한 판의 3D 장면 전체: 지형·내 차·안내·카메라·조명·후방 카메라
 using DriveCoach.Core;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,7 +19,7 @@ namespace DriveCoach.Unity
         public Vector3 eyeLocal = new Vector3(-0.48f, 1.17f, 0.2f);
         public float lookYaw, lookPitch;
         float turnLook;
-        // 몸으로 느끼는 차 — 제동하면 앞으로 숙고, 돌면 바깥으로 기울고, 빠를수록 노면 떨림
+        // 몸으로 느끼는 차: 제동하면 앞으로 숙고, 돌면 바깥으로 기울고, 빠를수록 노면 떨림
         float bodyPitch, bodyRoll, lastSpeed, lastHeading, shakeT;
         bool bodyInit;
 
@@ -96,7 +96,7 @@ namespace DriveCoach.Unity
         {
             var car = w.car;
             float gy = el != null ? el.At(car.Center, w.floorI) : 0f;
-            gy += car.z;      // 지하차도·고가에서는 차 높이를 따라간다 — 전에는 땅 높이에 남아 터널 안에서는 차가 안 보이고(덮개 위), 고가에서는 다리 밑을 비췄다
+            gy += car.z;      // 지하차도·고가에서는 차 높이를 따라간다(땅 높이에 두면 터널 안에서는 덮개 위, 고가에서는 다리 밑을 비춘다)
             var c = Space3D.W(car.Center, gy);
             var fwd = Space3D.W(car.Dir) - Space3D.W(V2.Zero);
             bool reverse = car.gear == Gear.R;
@@ -131,10 +131,10 @@ namespace DriveCoach.Unity
                     {
                         // 뒤 위에서 따라가기. 후진이면 차 앞쪽 위로 옮겨 차 뒤 공간이 보이게.
                         float back = 7.5f, height = 6.2f;
-                        // (동네 주차장 칸에서 출발하면 낮은 도로용 카메라를 뒤에 선 차들이 가려 화면 아래 1/3 이 차 지붕) 차로에 들어서기 전에는 주차 연습처럼 높이
+                        // 차로에 들어서기 전(동네 주차장 칸)에는 주차 연습처럼 높이(낮은 도로용 카메라는 뒤에 선 차들에 가린다)
                         bool inLot = w.roadRun != null && w.roadRun.NotJoined;
                         if (w.st.mode != StageMode.Parking && !inLot) { back = 9f; height = 4.2f; }
-                        // (후진하면 차를 앞에서 보는 화면으로 뒤집혀 좌우가 헷갈린다) 후진도 차 뒤 위에서 — 화면 위쪽이 늘 차 앞.
+                        // 후진도 차 뒤 위에서: 화면 위쪽이 늘 차 앞(앞에서 보는 화면으로 뒤집히면 좌우가 헷갈린다).
                         //   뒤 공간이 보이게 더 높이 올라가 차 뒤쪽을 내려다본다(뒤는 후방 카메라 창도 같이 뜬다).
                         p = reverse ? c - fwd * 3.5f + Vector3.up * (height + 4.5f) : c - fwd * back + Vector3.up * height;
                         l = reverse ? c - fwd * 3.0f : c + fwd * 2.0f;
@@ -161,7 +161,7 @@ namespace DriveCoach.Unity
         public readonly TrafficView trafficView;
         public readonly PedView pedView;
         public readonly CountdownView countdownView;
-        /// <summary>화면 거울(Hud)이 지금 보이는지 — GameMain 이 설정·시점을 보고 정한다</summary>
+        /// <summary>화면 거울(Hud)이 지금 보이는지: GameMain 이 설정·시점을 보고 정한다</summary>
         public bool hudMirrors;
         int frame;
         readonly Light sun;
@@ -178,10 +178,15 @@ namespace DriveCoach.Unity
             Dc.Lap(null);
             el = new Elevation(w.st); Dc.Lap("elevation");
             StageBuilder.Build(w.st, el, root.transform); Dc.Lap("stage-rest");
-            // 동네: 가로수·가로등·보도 시설물도 부딪히는 물체로(예전에는 차가 나무를 뚫고 지나갔다)
+            // 동네: 가로수·가로등·보도 시설물도 부딪히는 물체로(차가 나무를 뚫고 지나가지 않게)
             if (w.st.road?.region != null)
+            {
                 foreach (var (sp, half, kind) in CityBuilder.Solids)
                     w.obstacles.Add(new Obstacle { poly = Geom.RectPoly(sp, half * 2f, half * 2f, 0f), c = sp, r = half * 1.5f, kind = kind });
+                // 주차장에 세워 둔 차 중 FacilityBuilder 가 그리지 않은 차는 부딪힘 물체에서도 뺀다(보이는 차만 부딪힌다)
+                int dropped = w.DropLotCars(FacilityBuilder.Hidden.Contains);
+                if (dropped > 0) Debug.Log("SceneRig: 그리지 않은 주차장 세운 차 " + dropped + "대를 부딪힘 물체에서 뺌");
+            }
             Dc.Lap("solids");
             carView = new CarView(w.car, root.transform);
             overlays = new Overlays(w, el, root.transform);
@@ -322,7 +327,7 @@ namespace DriveCoach.Unity
             weatherFx?.Dispose();
             weatherFx = dark ? null : WeatherFx.Make(root.transform, wx);
             DcAssets.SetWet(!dark && (wx == 2 || wx == 4) ? (wx == 2 ? 1f : 0.5f) : 0f);
-            // 가로등 빛·다른 차 전조등: 밤, 해질녘(궂은 날), 안개 — 내 차 전조등 노면 빛이 이것을 보므로 먼저
+            // 가로등 빛·다른 차 전조등: 밤, 해질녘(궂은 날), 안개. 내 차 전조등 노면 빛이 이것을 보므로 먼저
             NightLights.Set(!dark && (tm == 3 || (tm == 2 && wx != 0) || wx == 3));
             carView.SetHeadlights(!dark && (tm == 3 || wx == 2 || wx == 3 || wx == 4 || (tm == 2 && wx != 0)));
             rearCam.clearFlags = cam.clearFlags;
@@ -363,7 +368,7 @@ namespace DriveCoach.Unity
             weatherFx?.Dispose();
             Dc.Kill(root);
             // 코드로 만든 메시·재질·텍스처는 물체를 지워도 메모리에 남는다(맵 하나에 수 GB) → 안 쓰는 것을 내린다.
-            // (PC 사진 단계가 맵을 22번 지으며 92 GB 까지 불어나 꺼진 원인. 차에서도 스테이지를 바꿀 때마다 쌓였다.)
+            // (내리지 않으면 스테이지를 바꿀 때마다 쌓인다.)
             Resources.UnloadUnusedAssets();
         }
     }

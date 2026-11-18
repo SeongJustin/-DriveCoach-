@@ -1,8 +1,8 @@
 // 차 한 대의 움직임(위에서 본 2D). 기준점 = 뒷축 가운데. 좌표 m, x 오른쪽 / y 아래, heading 0 = +x, 시계 방향 +.
 // 조향: 자전거 모델. 바퀴 각 δ = 핸들 각 / 조향비(제원에서 역산). θ' = v·tan(δ)/축거.
 // 속도: 1차 지연 시스템.
-//   브레이크를 밟고 있으면  dv/dt = −v/τ_brake  (가장 약하게 밟았다고 가정)
-//   떼면(D/R) 크리프 속도로  dv/dt = (v_creep − v)/τ_creep
+//   브레이크를 밟고 있으면  dv/dt = -v/τ_brake  (가장 약하게 밟았다고 가정)
+//   떼면(D/R) 크리프 속도로  dv/dt = (v_creep - v)/τ_creep
 //   N 은 굴러가며 서서히 줄고, 경사에서는 아래로 흐른다.
 //   엔진 회전수를 아는 차(엔진차)는 회전수가 공회전보다 오른 만큼 목표 속도를 조금 올린다(액셀 간접 인식).
 using System;
@@ -74,7 +74,7 @@ namespace DriveCoach.Core
 
         /// <summary>
         /// 서킷·도로 주행: 액셀 끝까지 약 50 km/h. 액셀을 떼면 천천히(엔진 브레이크 정도) 줄고,
-        /// 브레이크는 속도에 비례하되 5 m/s²(단단히 밟은 정도)를 넘지 않는다 — 빠를 때 갑자기 서지 않게.
+        /// 브레이크는 속도에 비례하되 5 m/s²(단단히 밟은 정도)를 넘지 않는다. 빠를 때 갑자기 서지 않게.
         /// </summary>
         public static DriveModel Road() => new DriveModel { accelExtra = 12.5f, accelExtraR = 1.4f, tauCreep = 2.6f, tauDown = 5f, tauBrake = 0.9f, maxBrake = 5f };
     }
@@ -113,7 +113,7 @@ namespace DriveCoach.Core
         public int headlight = -1;  // -1 모름, 0 끔, 1 하향(켜짐), 2 상향, 3 자동
         public int wiper = -1;      // -1 모름, 0 끔, 1 간헐, 2 느리게, 3 빠르게
         public int belt = -1;       // -1 모름, 0 안 맴, 1 맴
-        /// <summary>땅에서 높이(m): 고가 위 +, 지하차도 −(입체 교차). 물리·충돌은 2D 그대로, 층이 다르면 서로 닿지 않는다</summary>
+        /// <summary>땅에서 높이(m): 고가 위 +, 지하차도 -(입체 교차). 물리·충돌은 2D 그대로, 층이 다르면 서로 닿지 않는다</summary>
         public float z;
 
         public Vehicle(CarSpec s) { SetSpec(s); }
@@ -195,13 +195,13 @@ namespace DriveCoach.Core
         public V2 FrontBumperCenter => pos + Dir * (wheelbase + frontOh);
         public V2 RearBumperCenter => pos - Dir * rearOh;
 
-        /// <summary>운전석(왼쪽) 어깨 — 주차 공식 기준점. 앞축에서 약 1.25 m 뒤, 차 왼쪽 안으로 0.45 m.</summary>
+        /// <summary>운전석(왼쪽) 어깨: 주차 공식 기준점. 앞축에서 약 1.25 m 뒤, 차 왼쪽 안으로 0.45 m.</summary>
         public V2 Shoulder => pos + Dir * (wheelbase - 1.25f) + Left * (width / 2f - 0.45f);
 
         /// <summary>사이드미러 위치(side: -1 왼쪽, +1 오른쪽)</summary>
         public V2 Mirror(float side) => pos + Dir * (wheelbase - 0.55f) - Left * side * (width / 2f + 0.12f);
 
-        /// <summary>한 번 진행. gradeAlong: 차 앞 방향 기준 오르막 +, 내리막 − (0.12 = 12%)</summary>
+        /// <summary>한 번 진행. gradeAlong: 차 앞 방향 기준 오르막 +, 내리막 - (0.12 = 12%)</summary>
         /// <param name="brakeAmount">브레이크 세기 0..1(사람 발 = 1, 자동 속도가 살짝 줄일 때는 작게). 최대 감속(model.maxBrake)에 곱한다.</param>
         public void Step(float dt, bool brake, float accel, float gradeAlong, float brakeAmount = 1f)
         {

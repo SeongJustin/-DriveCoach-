@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 편집기 화면 없이 명령줄(-batchmode)로 프로젝트 준비 2단계: URP·재질·가져오기 설정·장면·안드로이드 설정
+// 3D 주차 연습: 편집기 화면 없이 명령줄(-batchmode)로 프로젝트 준비 2단계: URP·재질·가져오기 설정·장면·안드로이드 설정
 // 실행: Unity.exe -batchmode -quit -buildTarget Android -projectPath <프로젝트> -executeMethod DriveCoach.EditorTools.DcConfigure.Run
 using System;
 using System.IO;
@@ -58,7 +58,7 @@ namespace DriveCoach.EditorTools
                 rd = ScriptableObject.CreateInstance<UniversalRendererData>();
                 AssetDatabase.CreateAsset(rd, Settings + "/DC_Renderer.asset");
             }
-            // 1번: 가벼운 렌더러(거울·후방·지도, 그래픽 보통 이하) — 그늘(SSAO) 없음
+            // 1번: 가벼운 렌더러(거울·후방·지도, 그래픽 보통 이하), 그늘(SSAO) 없음
             var rdLite = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(Settings + "/DC_RendererLite.asset");
             if (rdLite == null)
             {
@@ -121,7 +121,7 @@ namespace DriveCoach.EditorTools
                     aso.ApplyModifiedPropertiesWithoutUndo();
                 }
             }
-            // 그림자: 2단(가까운 곳 선명하게), 100 m 까지(예전 45 m·1단)
+            // 그림자: 2단(가까운 곳 선명하게), 100 m 까지
             asset.shadowDistance = 100f;
             asset.shadowCascadeCount = 2;
             asset.cascade2Split = 0.22f;
@@ -276,7 +276,7 @@ namespace DriveCoach.EditorTools
             var litT = new Material(lit);
             MakeTransparent(litT);
             SaveMat("DC_LitTransparent", litT);
-            // 잎(EZ-Tree)·울타리 그물 — 알파 자르기 + 양면. 그림자 패스도 자르기(_ALPHATEST_ON 변형이 빌드에 남게)
+            // 잎(EZ-Tree)·울타리 그물: 알파 자르기 + 양면. 그림자 패스도 자르기(_ALPHATEST_ON 변형이 빌드에 남게)
             var litC = new Material(lit);
             litC.SetFloat("_AlphaClip", 1f);
             litC.SetFloat("_Cutoff", 0.5f);
@@ -287,7 +287,7 @@ namespace DriveCoach.EditorTools
             var leafTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/DC/Trees/ash_medium_leaves.png");
             if (leafTex != null) litC.SetTexture("_BaseMap", leafTex);
             SaveMat("DC_LitCutout", litC);
-            // 쓰는 하늘 한 장만. 예전 하늘 두 장(rooftop_day, homecoming_rooftop)은 쓰이지 않는데도 앱에 들어가 용량만 차지했다(release APK 106 MB → 100 MB 아래로)
+            // 하늘 재질은 쓰는 한 장만 만든다(쓰지 않는 하늘도 재질이 있으면 앱에 들어가 용량만 늘린다)
             foreach (var hdri in new[] { "sky_kloofendal_48d_2k" })
             {
                 var cube = AssetDatabase.LoadAssetAtPath<Cubemap>("Assets/Resources/DC/PolyHaven/HDRI/" + hdri + ".exr");

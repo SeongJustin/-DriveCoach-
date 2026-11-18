@@ -33,44 +33,44 @@ data class WarningLamp(
     /** 음성용 짧은 이름: 괄호·슬래시 설명을 뗀 것("과속 경고(120km/h)" → "과속 경고", "방향지시등/비상등 표시등" → "방향지시등 표시등"). `warning_lamp_on` 의 {lamp} 에 넣는다. */
     val spokenName: String get() = nameKo.replace(Regex("\\([^)]*\\)"), "").replace(Regex("/[^ ]*"), "").trim()
 
-    /** 이 경고등의 행동 멘트 ID(`warning_action_<id 소문자>`). 문장은 [action] 과 같고 K 의 Phrases 카탈로그에 등록 요청. */
+    /** 이 경고등의 행동 멘트 ID(`warning_action_<id 소문자>`). 문장은 [action] 과 같고 Phrases 카탈로그에 같은 ID 로 들어 있다. */
     val actionPhraseId: PhraseId get() = WarningPhraseIds.lampAction(id)
 }
 
 /**
  * 경고등 모듈이 쓰는 멘트 ID 모음. 실제 문장은 core/tts/Phrases.kt에 있다.
  * 하드코딩 멘트 금지 규약에 따라 사용자에게 들리는 문장은 이 ID 로만 참조한다.
- * "카탈로그에 이미 있음"으로 표시한 것은 K 가 이미 등록한 ID 를 재사용한 것.
+ * "카탈로그에 이미 있음"으로 표시한 것은 Phrases 에 이미 있던 ID 를 다시 쓴 것.
  */
 object WarningPhraseIds {
-    /** 경고등 행동 멘트 ID. 예: warning_action_oil_pressure (신규 요청, 경고등마다 1개). */
+    /** 경고등 행동 멘트 ID. 예: warning_action_oil_pressure (경고등마다 1개). */
     fun lampAction(lampId: String): PhraseId = PhraseId("warning_action_" + lampId.lowercase())
 
-    /** 3색 뜻 설명(2-8). 카탈로그에 이미 있음: "초록 등이에요. 계속 가도 돼요." 등. */
+    /** 3색 뜻 설명(2-8). 카탈로그에 이미 있음: "녹색 표시등입니다. 계속 주행해도 됩니다." 등. */
     val SEVERITY_GREEN_MEANING = PhraseId("warning_lamp_green")
     val SEVERITY_YELLOW_MEANING = PhraseId("warning_lamp_yellow")
     val SEVERITY_RED_MEANING = PhraseId("warning_lamp_red")
 
-    /** 퀴즈 보기 문장(행동 3가지, 색 이름 없이). 신규 요청. */
+    /** 퀴즈 보기 문장(행동 3가지, 색 이름 없이). */
     val CHOICE_GREEN = PhraseId("warning_quiz_choice_green")
     val CHOICE_YELLOW = PhraseId("warning_quiz_choice_yellow")
     val CHOICE_RED = PhraseId("warning_quiz_choice_red")
 
-    /** 퀴즈 시작: "경고등 퀴즈 세 문제예요." (신규 요청) */
+    /** 퀴즈 시작: "경고등 퀴즈 세 문제입니다." */
     val QUIZ_INTRO = PhraseId("warning_quiz_intro")
-    /** 질문: "이 등이 켜지면 어떻게 할까요?" (카탈로그에 이미 있음, 화면에 등 아이콘·이름 표시) */
+    /** 질문: "이 경고등이 켜지면 어떻게 해야 합니까?" (카탈로그에 이미 있음, 화면에 등 아이콘·이름 표시) */
     val QUIZ_QUESTION = PhraseId("practice_dash_quiz_ask")
-    /** 정답: "맞아요." (카탈로그에 이미 있음) */
+    /** 정답: "정답입니다." (카탈로그에 이미 있음) */
     val QUIZ_CORRECT = PhraseId("practice_dash_quiz_correct")
-    /** 오답: "괜찮아요. 이건 {color} 등이라 {action}." (카탈로그에 이미 있음; {action} 에는 [lampAction] 문장을 넣는다) */
+    /** 오답: "오답입니다. 이것은 {color} 등이므로 {action}." (카탈로그에 이미 있음; {action} 에는 [lampAction] 문장을 넣는다) */
     val QUIZ_WRONG = PhraseId("practice_dash_quiz_wrong")
-    /** 결과: "{total}문제 중 {correct}문제 맞혔어요." (신규 요청) */
+    /** 결과: "{total}문제 중 {correct}문제를 맞혔습니다." */
     val QUIZ_RESULT = PhraseId("warning_quiz_result")
-    /** 재출제: "틀린 것만 다시 볼게요." (신규 요청) */
+    /** 재출제: "틀린 문제만 다시 풉니다." */
     val QUIZ_RETRY_INTRO = PhraseId("warning_quiz_retry_intro")
-    /** P 아님: "퀴즈는 P에 놓고 세운 뒤에 해요." (신규 요청) */
+    /** P 아님: "퀴즈는 정차 후 P로 변속한 뒤에 진행합니다." */
     val QUIZ_NOT_PARKED = PhraseId("warning_quiz_not_parked")
-    /** 주행 중 실제 점등 시: "{lamp}이 켜졌어요." 뒤에 [lampAction] 을 잇는다. (신규 요청) */
+    /** 주행 중 실제 점등 시: "{lamp}이 켜졌습니다." 뒤에 [lampAction] 을 잇는다. */
     val LAMP_ON = PhraseId("warning_lamp_on")
 
     /** Severity → 퀴즈 보기 멘트 ID. */
@@ -97,7 +97,7 @@ object WarningPhraseIds {
 
 /**
  * 현대 아반떼 CN8(내연기관, 2026, 모던 트림 기준) 계기판 경고등·표시등 목록.
- * 출처: 현대차 공식 취급설명서(ownersmanual.hyundai.com) — 참고.
+ * 출처: 현대차 공식 취급설명서(ownersmanual.hyundai.com), 참고.
  * 대상 차량에 없는 사양(GPF, LPG, 리어 포그 등)은 넣지 않았다.
  */
 object WarningLamps {

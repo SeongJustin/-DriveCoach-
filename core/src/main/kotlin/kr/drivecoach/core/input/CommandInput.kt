@@ -44,7 +44,7 @@ enum class InputMode {
 
 /**
  * 설정 화면에서 바꾸는 입력 설정. 기본은 음성, 설정하면 휠 버튼.
- * 어느 모드든 "세울래요"(음성 동의어·휠 버튼 길게)는 항상 받는다 — 공황 상황에서 설정을 따질 수 없기 때문.
+ * 어느 모드든 "세울래요"(음성 동의어·휠 버튼 길게)는 항상 받는다. 공황 상황에서 설정을 따질 수 없기 때문.
  */
 data class InputSettings(
     val mode: InputMode = InputMode.VOICE,
@@ -64,13 +64,13 @@ data class InputSettings(
 enum class ShortPressContext { AWAITING_CONFIRM, IDLE_OR_AWAITING_NEXT }
 
 /**
- * [InputSource] 를 [Command] 로 바꾼다. 못 알아들으면 null (앱은 아무 반응도 하지 않는다 — 재촉 금지).
+ * [InputSource] 를 [Command] 로 바꾼다. 못 알아들으면 null(앱은 아무 반응도 하지 않는다, 재촉 금지).
  *
  * 음성 매핑 규칙:
- *  - 전사 텍스트를 정규화(공백·문장부호 제거)한 뒤 동의어 사전과 **포함** 비교. 가장 긴 키워드 우선
+ *  - 전사 텍스트를 정규화(공백·문장부호 제거)한 뒤 동의어 사전과 포함 비교. 가장 긴 키워드 우선
  *    (더 긴 키워드와 글자가 겹치는 짧은 키워드는 따로 세지 않는다).
  *  - 서로 다른 명령의 키워드가 함께 잡히면 애매하므로 null. 단 PULL_OVER 키워드가 있으면 PULL_OVER 우선(안전).
- *  - "네/예/응" 처럼 짧은 긍정어는 다른 말에 섞이기 쉬우므로 **전체 일치**일 때만 CONFIRM.
+ *  - "네/예/응" 처럼 짧은 긍정어는 다른 말에 섞이기 쉬우므로 전체 일치일 때만 CONFIRM.
  *  - 신뢰도가 [InputSettings.minVoiceConfidence] 미만이면 null.
  */
 class CommandRecognizer(var settings: InputSettings = InputSettings.DEFAULT) {
@@ -161,7 +161,7 @@ class CommandRecognizer(var settings: InputSettings = InputSettings.DEFAULT) {
             "넘어가" to Command.NEXT,
             "넘겨" to Command.NEXT,
             "건너뛰" to Command.SKIP,
-            // "패스" 는 넣지 않는다 — 차 안에서 "하이패스" 를 자주 말한다.
+            // "패스" 는 넣지 않는다. 차 안에서 "하이패스" 를 자주 말한다.
             "스킵" to Command.SKIP,
             "이전" to Command.PREV,
             "전으로" to Command.PREV,

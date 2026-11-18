@@ -1,5 +1,4 @@
-// 앱 연결 — Pleos TextToSpeech SDK 어댑터
-// 검증: TextToSpeech-3.3.1.jar 를 javap 로 읽어 시그니처를 맞췄다. 소리가 실제로 나는지는 에뮬레이터에서 확인할 것.
+// Pleos TextToSpeech 3.3.1 어댑터
 package kr.drivecoach.app.speech
 
 import ai.pleos.playground.tts.TextToSpeech
@@ -20,17 +19,17 @@ import java.util.Locale
  * Pleos TextToSpeech SDK 로 말하는 [Speaker].
  *
  * javap 로 확인한 실제 API (TextToSpeech-3.3.1):
- *  - `TextToSpeech(context, mode: Mode)` — `Mode { SERVER, ON_DEVICE, HYBRID }`, 기본값 HYBRID(우리는 ON_DEVICE)
+ *  - `TextToSpeech(context, mode: Mode)`: `Mode { SERVER, ON_DEVICE, HYBRID }`, 기본값 HYBRID(우리는 ON_DEVICE)
  *  - `initialize(OnInitializeListener { onSuccess(); onFailure(ErrorType) })`
  *  - `addEventListener(EventListener { onStart(); onReady(); onDone(); onError(ErrorType); onStop(); onUpdatedRms(Double) })`
  *  - `speak(text: String, isFinal: Boolean = true)`, `stop()`, `setLocale(Locale)`, `release()`
- *  - **ON_DEVICE 모드만** 쓴다(앱 등록·네트워크 불필요). SERVER/HYBRID 는 registerApp 이 필요하고 에뮬레이터에서 우리 프로젝트 자격 증명으로 UNAUTHENTICATED 라 뺐다.
+ *  - ON_DEVICE 모드만 쓴다(앱 등록·네트워크 불필요). SERVER/HYBRID 는 registerApp 이 필요하고, 에뮬레이터에서 우리 프로젝트 자격 증명으로는 UNAUTHENTICATED 가 난다.
  *  - 서비스 바인딩 대상(ServiceConstants): 패키지 `ai.pleos.playground.caas`, 컴포넌트 `…caas.service.speech.SpeechService`,
  *    ON_DEVICE 액션 `ai.pleos.playground.caas.intent.action.TTS_STREAM_ON_DEVICE_START`. 이 컴포넌트가 없으면 bindService 가 조용히 실패하므로
  *    [start] 에서 먼저 resolveService 로 존재 여부를 보고 없으면 바로 [onUnavailable] 을 불러 대체 엔진으로 넘어간다.
  *
  * 콜백에는 문장 식별자가 없다(onDone/onStop 만 옴). 한 번에 한 문장만 보낸다는 전제로 "현재 문장" 하나만 추적한다.
- * 모든 SDK 호출은 try/catch(Throwable) — 권한 거부·서비스 없음·초기화 전 호출(lateinit 예외)에서 앱이 죽지 않게 한다.
+ * 모든 SDK 호출은 try/catch(Throwable): 권한 거부·서비스 없음·초기화 전 호출(lateinit 예외)에서 앱이 죽지 않게 한다.
  */
 class PleosTtsSpeaker(
     context: Context,

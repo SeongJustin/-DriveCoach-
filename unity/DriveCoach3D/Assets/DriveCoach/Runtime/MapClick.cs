@@ -1,4 +1,4 @@
-// 동네 지도 누르기(MenuScreen.cs 에서 나눈 파일).
+// MenuScreen: 동네 지도 누르기
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;

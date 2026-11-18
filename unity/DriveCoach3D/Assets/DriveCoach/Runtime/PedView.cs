@@ -60,7 +60,7 @@ namespace DriveCoach.Unity
             var skin = DcAssets.Lit(DcAssets.Hex("#C9A184"), 0.3f);
             var hair = DcAssets.Lit(DcAssets.Hex("#1E1A17"), 0.2f);
             float s = 0.92f + (p.look % 3) * 0.05f;      // 키 조금씩 다르게
-            // (그림·영상에 나오는 사람이 네모 상자라 어색) 상자 대신 둥근 몸: 몸통·머리·팔다리를 회전체(단면 고리를 이어 붙임)로
+            // 둥근 몸: 몸통·머리·팔다리를 회전체(단면 고리를 이어 붙임)로
             var shoe = DcAssets.Lit(DcAssets.Hex("#1B1B1D"), 0.25f);
             Round(go.transform, "torso", new Vector3(0f, 0.90f * s, 0f), shirt,
                 new[] { 0f, 0.06f * s, 0.30f * s, 0.50f * s, 0.56f * s, 0.60f * s }, new[] { 0.150f, 0.172f, 0.180f, 0.205f, 0.170f, 0.060f }, new[] { 0.095f, 0.112f, 0.118f, 0.122f, 0.100f, 0.050f });

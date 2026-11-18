@@ -22,7 +22,7 @@ fun testCatalogIdsUniqueAndSnakeCase() {
 
 /** 다른 모듈이 코드에 적어 둔 PhraseId 리터럴과 practice 항목이 만드는 ID 가 전부 카탈로그에 있어야 한다. */
 fun testOtherModulesPhraseIdsExist() {
-    // practice 모듈(D)의 항목별 explain/try/pass/confirm
+    // practice 모듈의 항목별 explain/try/pass/confirm
     kr.drivecoach.core.practice.Chapter2Items.all.forEach { item ->
         listOf(item.explainPhrase, item.tryPhrase, item.passPhrase).forEach { assertNotNull(Phrases.find(it), "practice 멘트 없음: ${it.id}") }
         val manual = when (val c = item.check) {
@@ -32,7 +32,7 @@ fun testOtherModulesPhraseIdsExist() {
         }
         manual?.let { assertNotNull(Phrases.find(it.confirmPhrase), "practice confirm 멘트 없음: ${it.confirmPhrase.id}") }
     }
-    // warning 모듈(J)의 경고등별 행동 멘트: ID 가 있고 문장이 WarningLamp.action 과 같아야 한다
+    // warning 모듈의 경고등별 행동 멘트: ID 가 있고 문장이 WarningLamp.action 과 같아야 한다
     kr.drivecoach.core.warning.WarningLamps.all.forEach { lamp ->
         val ph = Phrases.find(lamp.actionPhraseId)
         assertNotNull(ph, "경고등 행동 멘트 없음: ${lamp.actionPhraseId.id}")
@@ -89,7 +89,7 @@ fun testRequiredIdsExist() {
     // 2장 항목 묶음은 practice 모듈의 ID 규칙과 1:1
     assertEquals("practice_2_1_seat_fore_aft_confirm", Phrases.item21SeatForeAft.confirm?.id?.id)
     assertEquals(null, Phrases.item25HeadlightLow.confirm, "자동 감지 항목에는 confirm 없음")
-    assertNotNull(Phrases.item25Hazard.confirm, "비상등은 신호가 없어 수동 확인 허용(베타 A-06)")
+    assertNotNull(Phrases.item25Hazard.confirm, "비상등은 신호가 없어 수동 확인 허용")
     assertFailsWith<NoSuchElementException> { Phrases.get(PhraseId("no_such_phrase")) }
 }
 

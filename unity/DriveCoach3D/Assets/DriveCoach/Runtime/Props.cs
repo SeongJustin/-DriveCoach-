@@ -19,8 +19,8 @@ namespace DriveCoach.Unity
         }
 
         static readonly Dictionary<string, Proto> protos = new Dictionary<string, Proto>();
-        // 예전에는 칸마다 소품을 한 메시로 합쳤다(CombineMeshes). 소품 하나하나의 점이 전부 복사돼 동네 하나에 메시만 6 GB(점 1.3억 개)가 됐고
-        //   에뮬레이터(3 GB)에서 메모리 부족으로 시스템이 죽었다. 이제 모델 메시는 하나만 두고, 놓는 자리마다 그 메시를 가리키는 물체를 만든다.
+        // 모델 메시는 하나만 두고, 놓는 자리마다 그 메시를 가리키는 물체를 만든다. 칸마다 소품을 한 메시로 합치면(CombineMeshes)
+        //   점이 전부 복사돼 동네 하나에 메시만 6 GB(점 1.3억 개)가 되어 에뮬레이터(3 GB)에서 메모리가 모자란다.
         readonly Dictionary<(int tx, int ty), List<(string id, Mesh mesh, Matrix4x4 m, Material[] mats)>> items = new Dictionary<(int, int), List<(string, Mesh, Matrix4x4, Material[])>>();
 
         /// <summary>id 에 '/' 가 있으면 Resources/DC 아래 경로 그대로(예: Quaternius 가로등), 없으면 Poly Haven 소품</summary>
@@ -33,7 +33,7 @@ namespace DriveCoach.Unity
             var go = DcAssets.Model(IsPoly(id) ? "PolyHaven/Models/" + id : id);
             if (go == null) { protos[id] = null; return null; }
             p = new Proto();
-            // 본(프리팹) 뿌리의 회전·크기까지 넣는다(위치만 뺀다). 뿌리에 축 변환(−90° X)이 있는 FBX(Quaternius 가로등)를
+            // 본(프리팹) 뿌리의 회전·크기까지 넣는다(위치만 뺀다). 뿌리에 축 변환(-90° X)이 있는 FBX(Quaternius 가로등)를
             //   뿌리 기준으로만 합치면 기둥이 눕고, 높이 맞춤(크기 = 원하는 높이 / 누운 두께)이 15 배쯤 커져 길 위에 거대한 초록 막대가 떴다
             var root = Matrix4x4.Translate(-go.transform.position);
             bool first = true;

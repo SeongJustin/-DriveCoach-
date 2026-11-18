@@ -1,4 +1,4 @@
-# 비밀 키 — 절대 커밋 금지 (네이버 Directions, Pleos Client ID/Secret 은 local.properties 에만)
+# 비밀 키: 절대 커밋 금지 (네이버 Directions, Pleos Client ID/Secret 은 local.properties 에만)
 local.properties
 *.secret
 ID,SECRET.txt
@@ -31,9 +31,7 @@ captures/
 .externalNativeBuild/
 .cxx/
 
-검수결과/
-
-# Unity 3D 주차 연습(unity/DriveCoach3D) — 편집기가 만드는 것·빌드 결과
+# Unity 3D 주차 연습(unity/DriveCoach3D): 편집기가 만드는 것·빌드 결과
 unity/DriveCoach3D/[Ll]ibrary/
 unity/DriveCoach3D/[Tt]emp/
 unity/DriveCoach3D/[Ll]ogs/
@@ -47,15 +45,3 @@ unity/DriveCoach3D/.idea/
 unity/export/
 unity/shots/
 unity/build_logs/
-unity/CoreTests/bin/
-unity/CoreTests/obj/
-unity/RuntimeCheck/bin/
-unity/RuntimeCheck/obj/
-unity/RuntimeCheck/EditorCheck/bin/
-unity/RuntimeCheck/EditorCheck/obj/
-
-# 파이썬 캐시
-__pycache__/
-unity/AutoSim/bin/
-unity/AutoSim/obj/
-unity/video/

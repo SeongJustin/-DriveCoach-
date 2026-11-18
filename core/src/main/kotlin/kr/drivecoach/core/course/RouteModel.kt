@@ -145,7 +145,7 @@ object NaverDirectionsMapper {
 
     /** route.{option}[i] 객체 하나를 Route 로 만든다. */
     fun fromRouteObject(r: Map<*, *>): Route {
-        // path 원소는 [경도, 위도] — 뒤집는 곳은 NaverDirectionsApi.fromPathPair 한 곳뿐이다.
+        // path 원소는 [경도, 위도]. 뒤집는 곳은 NaverDirectionsApi.fromPathPair 한 곳뿐이다.
         val points = (r["path"] as? List<*>).orEmpty().mapNotNull { p -> NaverDirectionsApi.fromPathPair(p as? List<*>) }
         val guides = (r["guide"] as? List<*>).orEmpty().mapNotNull { g ->
             val gm = g as? Map<*, *> ?: return@mapNotNull null

@@ -1,4 +1,4 @@
-// GameMain 의 앱에서 오는 신호 받기 부분(GameMain.cs 에서 나눈 파일). 전체 설명은 GameMain.cs 맨 위.
+// GameMain: 앱 신호 받기
 using System;
 using System.Globalization;
 using DriveCoach.Core;
@@ -11,7 +11,7 @@ namespace DriveCoach.Unity
     {
         // ───────────────────────── 앱에서 오는 것 ─────────────────────────
 
-        /// <summary>"steer;gear;brake;speed;rpm" — 핸들 각(도, + 오른쪽), P/R/N/D, 1/0, km/h, 회전수(모르면 -1)</summary>
+        /// <summary>"steer;gear;brake;speed;rpm": 핸들 각(도, + 오른쪽), P/R/N/D, 1/0, km/h, 회전수(모르면 -1)</summary>
         public void OnVehicleState(string csv)
         {
             if (string.IsNullOrEmpty(csv)) return;

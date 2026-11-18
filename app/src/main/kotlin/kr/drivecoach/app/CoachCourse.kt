@@ -1,5 +1,4 @@
 // 코스 주행(5장) 동작. 내비 리스너(naviListener)는 CoachController 클래스 안에 있다.
-// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
 package kr.drivecoach.app
 
 import android.util.Log
@@ -60,7 +59,7 @@ fun CoachController.endCourse() {
 
 /**
  * 5-1 선택지를 고르면 현재 위치(차량 신호 lat/lon → 없으면 내비 현재 위치)에서 코스를 만든다.
- * 위치를 모르면 ERROR. 코스 소스(실제 길찾기면 네트워크)는 **Dispatchers.IO 에서** 돌고, 그동안 GENERATING("코스 계산 중…").
+ * 위치를 모르면 ERROR. 코스 소스(실제 길찾기면 네트워크)는 Dispatchers.IO 에서 돌고, 그동안 GENERATING("코스 계산 중…").
  * 코스가 나오면 READY 로 가고 5-2 브리핑 문장·숫자를 화면에 미리 보여 준다(발화는 경로가 시작될 때).
  * 실패하면 ERROR(이유 = HTTP 코드 / 일일 호출 상한 / 네트워크 / 응답 code) + "다시 시도" / "임시 코스로 진행"(오프셋 코스).
  */
@@ -77,7 +76,7 @@ fun CoachController.chooseCourseOption(id: CourseOptionId, difficulty: Int = cou
 
 /**
  * ERROR → "임시 코스로 진행": 길찾기 없이 오프셋 코스(OffsetCourseProvider)로 같은 선택지의 코스를 만든다(마지막 수단).
- * 경유지가 도로 밖일 수 있어 내비가 거부할 수도 있다 — 그래서 기본이 아니라 버튼이다.
+ * 경유지가 도로 밖일 수 있어 내비가 거부할 수도 있다. 그래서 기본이 아니라 버튼이다.
  */
 fun CoachController.useFallbackCourse() {
     if (coursePhase != CoursePhase.ERROR && coursePhase != CoursePhase.CHOOSE) return
@@ -115,7 +114,7 @@ internal fun CoachController.generateCourse(source: CourseSource, isGenerated: B
     val heading = naviLoc?.headingDeg
     // 이전 생성이 돌고 있으면 버린다(늦게 끝나도 seq 가 달라 무시).
     courseGenJob?.cancel()
-    // (같은 목적을 다시 고르면 길찾기 응답에 따라 다른 코스가 나와 "가장 가까운 코스"가 무엇인지 알 수 없었다)
+    // 다시 고를 때마다 길찾기 응답에 따라 코스가 달라지지 않게:
     //   같은 자리(300 m 안)에서 같은 방식으로 고른 목적은 지난 결과를 그대로 쓴다
     courseCache[id]?.let { (at, cached, gen) ->
         if (gen == isGenerated && kr.drivecoach.core.course.Geo.distanceM(at, start) < 300.0) {
@@ -135,7 +134,7 @@ internal fun CoachController.generateCourse(source: CourseSource, isGenerated: B
             // runInterruptible: 닫기·재선택으로 취소하면 길찾기 스레드도 멈춘다(생성기가 interrupt 를 확인)
             Result.success(runInterruptible(Dispatchers.IO) { source.generate(start, heading, spec) })
         } catch (e: java.util.concurrent.CancellationException) {
-            throw e   // 닫기·재선택으로 취소된 것 — 코루틴 규약대로 전파
+            throw e   // 닫기·재선택으로 취소된 것: 코루틴 규약대로 전파
         } catch (t: Throwable) {
             Result.failure(t)
         }
@@ -153,9 +152,9 @@ internal fun CoachController.generateCourse(source: CourseSource, isGenerated: B
     }
 }
 
-/** (고른 목적과 나온 코스가 다르다) 조건과 다른 점을 사람 말로. 다 맞으면 null. */
+/** 나온 코스가 고른 목적의 조건과 다른 점을 사람 말로. 다 맞으면 null. */
 internal fun mismatchText(spec: CourseSpec, s: CourseSummary): String? {
-    // (숫자를 고른 적이 없는데 '고른 조건', 연습 목적이면 많아도 괜찮은데 안 맞음으로 표시)
+    // 고르지 않은 숫자를 '고른 조건'으로, 연습 목적에서 많은 것을 안 맞음으로 적지 않게:
     //   괄호는 "이 목적은 …", 좌회전·차로 변경 연습은 모자랄 때만 적는다
     fun range(r: IntRange) = if (r.first == r.last) "${r.first}번" else "${r.first}~${r.last}번"
     val out = ArrayList<String>()

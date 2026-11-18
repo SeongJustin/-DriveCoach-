@@ -1,5 +1,4 @@
 // 앱 뼈대 화면: 인트로, 연결 중, P/주행 화면 분기, P 상태 메뉴
-// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -123,7 +122,7 @@ internal fun MainActivity.IntroVisual(onFinished: () -> Unit) {
         }
         else -> {
             LaunchedEffect(Unit) { delay(INTRO_FALLBACK_MS); onFinished() }
-            // (앱 이름 여섯 글자만 있어 허전하다) 라임 띠 + 앱 이름 + 한 줄 소개, 아래쪽에 라임 띠
+            // 라임 띠 + 앱 이름 + 한 줄 소개, 아래쪽에 라임 띠
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(modifier = Modifier.width(120.dp).height(12.dp).background(CoachColors.Primary, androidx.compose.foundation.shape.RoundedCornerShape(6.dp)))
@@ -146,7 +145,7 @@ internal fun MainActivity.ConnectingScreen() {
     }
 }
 
-/** 바인딩된 서비스의 StateFlow 로 화면 모드를 정한다: core 판정(P 에서만 화면 학습) OR 플랫폼 규제(requiresDO) — 더 엄격한 쪽. */
+/** 바인딩된 서비스의 StateFlow 로 화면 모드를 정한다: core 판정(P 에서만 화면 학습) OR 플랫폼 규제(requiresDO) 중 더 엄격한 쪽. */
 @Composable
 internal fun MainActivity.CoachRoot(svc: CoachService) {
     val state by svc.signals.stateFlow.collectAsState()
@@ -158,7 +157,7 @@ internal fun MainActivity.CoachRoot(svc: CoachService) {
     LaunchedEffect(svc) { svc.coach.onIntroFinished() }
     // 앱을 켠 직후에는 판정기가 UNKNOWN 에서 PARKED 로 넘어가는 데 2초(히스테리시스)가 걸려 "P · 0 km/h" 한 줄 화면이 먼저 보였다.
     // 기어가 P 면 차는 서 있으므로 UNKNOWN 이어도 바로 메뉴를 보여 준다. 움직임·규제는 그대로 주행 화면.
-    // P 에 두고 서 있으면 판정기의 2초 유지와 무관하게 바로 메뉴(P 복귀 뒤 2초간 주행 화면이 보이던 문제).
+    // P 에 두고 서 있으면 판정기의 2초 유지와 무관하게 바로 메뉴.
     val parkedNow = mode == DriveMode.PARKED_LEARN || (state.gear == Gear.P && (state.speedKmh ?: 0.0) <= STOPPED_SPEED_KMH)
     val driving = isRestricted || !parkedNow
     if (driving) DrivingScreen(svc, state, lastSpoken) else ParkedScreen(svc, state, spec, lastSpoken)
@@ -210,7 +209,7 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
     val law by coach.lawUi.collectAsState()
     val parkLearn by coach.parkLearnUi.collectAsState()
     // 미니멀 레이아웃: 차량명 + 설정 아이콘 한 줄, 그 아래 메뉴 4개가 화면을 꽉 채운다.
-    // 신호 한 줄·조용히 칩·메뉴 설명·최근 안내는 뺐다. 조용히·진단·앱 종료는 설정 화면에.
+    // 조용히·진단·앱 종료는 설정 화면에.
     // 화면 폭을 재서 좁은(세로형) 화면이면 메뉴·그림·버튼 배치를 바꾼다(ui/Adaptive.kt)
     AdaptiveScreen(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().padding(32.dp)) {
@@ -222,18 +221,18 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
                     style = CoachType.Header, maxLines = 1,   // 화면 제목보다 한 단계 작게
                 )
                 Spacer(Modifier.weight(1f))
-                // 마이크: 누르면 "항상 듣기"를 켜고 끈다 — 켜져 있으면 코치가 말하지 않는 동안 "다음·다시·확인·조용히·세울래요"를 언제든 받는다.
+                // 마이크: 누르면 "항상 듣기"를 켜고 끈다. 켜져 있으면 코치가 말하지 않는 동안 "다음·다시·확인·조용히·세울래요"를 언제든 받는다.
                 // Pleos STT 를 못 쓰면 흐리게 보이고 눌러도 반응 없음.
                 val voiceState by svc.voice.state.collectAsState()
                 val alwaysOn by svc.voice.alwaysOn.collectAsState()
                 val listening = voiceState == VoiceCommandListener.State.LISTENING
                 val usable = voiceState == VoiceCommandListener.State.READY || listening
-                // "듣는 중… 다음, 다시, 확인" 글은 뺐다. 듣는 중이면 마이크 뒤를 라임으로 채운다.
+                // 듣는 중이면 마이크 뒤를 라임으로 채운다.
                 //   알아들은 말도 화면에 쓰지 않는다
                 IconButton(
                     onClick = { svc.toggleVoice() },
                     enabled = usable,
-                    // (누르지 않아도 연두·검정을 오간다 — 듣는 중/잠깐 쉼) 항상 듣기를 켜 두면 늘 연두 원
+                    // 항상 듣기를 켜 두면 늘 연두 원(듣는 중과 잠깐 쉼 사이에 색이 오가지 않게)
                     modifier = Modifier.size(64.dp).background(if (alwaysOn && usable || listening) CoachColors.Primary else Color.Transparent, CircleShape),
                 ) {
                     Icon(
@@ -247,7 +246,7 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
                         modifier = Modifier.size(44.dp),
                     )
                 }
-                // 톱니바퀴: 설정 화면 — 코칭 음성, 음성 속도, 진단, 버전, 앱 종료. 다시 누르면 닫힘.
+                // 톱니바퀴: 설정 화면(코칭 음성, 음성 속도, 진단, 버전, 앱 종료). 다시 누르면 닫힘.
                 IconButton(onClick = { settingsOpen.value = !settingsOpen.value }, modifier = Modifier.size(64.dp)) {
                     Icon(
                         imageVector = Icons.Filled.Settings, contentDescription = getString(R.string.settings_title),
@@ -315,7 +314,7 @@ internal fun MainActivity.ParkedScreen(svc: CoachService, state: VehicleState, s
 /** 헤더 오른쪽의 작은 칩. selected 면 라임 채움, 아니면 흰 바탕 테두리. */
 @Composable
 internal fun MainActivity.HeaderChip(text: String, selected: Boolean, done: Boolean = false, fontSize: TextUnit = CoachSize.Chip, onClick: () -> Unit) {
-    // 고른 칩은 굵은 글씨, 본 칩은 더 옅은 라임 — 법규 주제 줄에서 '지금 보는 것'과 '본 것'이 비슷해 보이던 것
+    // 고른 칩은 굵은 글씨, 본 칩은 더 옅은 라임. 법규 주제 줄에서 '지금 보는 것'과 '본 것'을 가른다
     if (selected) {
         PrimaryButton(onClick = onClick, minHeight = CoachChipMinHeight) { Text(text = text, fontSize = fontSize, fontWeight = FontWeight.Bold) }
     } else {
@@ -385,7 +384,7 @@ internal fun MainActivity.ParkingChooser(coach: CoachController, modifier: Modif
 
 /**
  * 메뉴 카드 하나: 흰 바탕·옅은 테두리·둥근 모서리, 왼쪽 라임 세로 띠, 제목 44sp 검정 가운데 정렬. 높이는 부모가 준다.
- * 제목 위에 회색 원(184dp) 안 선 그림 아이콘([icon], 0 이면 없음) — 글을 읽지 않고도 한눈에 고르게(Pleos: 글 최소화). 제목 칸은 두 줄 높이로 맞춰 카드끼리 아이콘 높이가 같다.
+ * 제목 위에 회색 원(184dp) 안 선 그림 아이콘([icon], 0 이면 없음). 글을 읽지 않고도 한눈에 고르게(Pleos: 글 최소화). 제목 칸은 두 줄 높이로 맞춰 카드끼리 아이콘 높이가 같다.
  */
 @Composable
 internal fun MainActivity.MenuCard(title: String, onClick: () -> Unit, modifier: Modifier = Modifier, icon: Int = 0) {
@@ -409,7 +408,7 @@ internal fun MainActivity.MenuCard(title: String, onClick: () -> Unit, modifier:
             }
             // 좁은 칸에서 낱말 중간("연/습")이 끊기지 않게, 긴 이름은 마지막 띄어쓰기에서 줄을 나눈다
             val shown = if (title.length > 6 && title.contains(' ')) title.substringBeforeLast(' ') + "\n" + title.substringAfterLast(' ') else title
-            // "주차 및 스티어링 휠 연습"은 세 줄 — 두 줄이면 "연습"이 잘렸다
+            // "주차 및 스티어링 휠 연습"은 세 줄(두 줄이면 "연습"이 잘린다)
             Text(text = shown, style = CoachType.Title, maxLines = 3, minLines = if (icon != 0) 2 else 1, textAlign = TextAlign.Center)
         }
     }

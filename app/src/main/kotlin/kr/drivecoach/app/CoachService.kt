@@ -1,4 +1,4 @@
-// 앱 연결 — 코칭 두뇌·신호 소스·TTS 를 Activity 밖 포그라운드 서비스로. 기어 D 에서 Pleos 런처가 앱 화면을 덮어도 음성 코칭은 계속돼야 함
+// 앱 연결: 코칭·신호 소스·TTS 를 Activity 밖 포그라운드 서비스로. 기어 D 에서 Pleos 런처가 앱 화면을 덮어도 음성 코칭은 계속돼야 함
 package kr.drivecoach.app
 
 import android.app.Notification
@@ -43,13 +43,9 @@ import kr.drivecoach.core.mode.DriveMode
 import kr.drivecoach.core.signal.CarSpec
 
 /**
- * 코칭의 "몸통" — 차량 신호 소스, TTS, [CoachController], 주행 규제 감시, 차종 인식을 **Activity 와 무관하게** 소유하는 포그라운드 서비스.
- *
- * 왜 서비스인가:
- *  기어를 D 로 두면 Pleos 런처가 앱 창 전체를 "주행 중에는 사용할 수 없습니다" 로 덮고 MainActivity 는 onPause 된다
- *  (AAOS CarPackageManager 는 우리 액티비티를 허용했고 차단 로그도 비어 있다 — 런처 자체 가림이라 매니페스트로 풀 수 없다).
- *  주행 중에는 화면 학습 없이 **음성만** 안내하므로, 신호 구독·판정·발화는 화면이 가려지거나 닫혀도 돌아야 한다.
- *  그래서 이 셋을 서비스로 옮기고, Activity 는 바인딩해서 같은 StateFlow 를 보여 주기만 한다.
+ * 차량 신호 소스, TTS, [CoachController], 주행 규제 감시, 차종 인식을 Activity 와 상관없이 들고 있다.
+ * D 에서 런처가 화면을 덮어도 음성 코칭이 이어지도록 포그라운드 서비스에 둔다.
+ * Activity 는 바인딩해서 같은 StateFlow 를 보여 주기만 한다.
  *
  * 생명주기:
  *  - MainActivity.onCreate 가 `ContextCompat.startForegroundService` + `bindService(BIND_AUTO_CREATE)` 로 띄운다.
@@ -80,7 +76,7 @@ class CoachService : Service() {
     /** 차량 내비(NaviHelper) 어댑터. 코스 주행(5장)의 경로 전달·TBT·제한속도·도착 이벤트. 진단 화면이 diag 를 본다. */
     lateinit var navi: PleosNaviAdapter
         private set
-    /** 코칭 두뇌. */
+    /** 코칭 로직(CoachController). */
     lateinit var coach: CoachController
         private set
     /** 음성 명령(Pleos STT, 누르고 말하기). 화면 마이크 버튼·휠 음성 버튼이 [listenForCommand] 를 부른다. */
@@ -169,7 +165,7 @@ class CoachService : Service() {
 
         // Pleos "Suspend 모드 - 오디오 포커스" 가이드: 시동이 꺼져(OFF·LOCK) Suspend 로 들어가면 음성을 멈추고 포커스를 반납,
         // 그동안 새로 재생하지 않는다. 시동이 다시 켜지면(ACC·ON·START) 허용만 하고 멈췄던 문장은 다시 틀지 않는다.
-        // 앱이 뜰 때의 첫 값으로는 판단하지 않는다(바뀌는 순간만 본다 — 에뮬레이터 기본값 등으로 처음부터 말을 막지 않게).
+        // 앱이 뜰 때의 첫 값으로는 판단하지 않는다(바뀌는 순간만 본다. 에뮬레이터 기본값 등으로 처음부터 말을 막지 않게).
         signals.onIgnitionState = { s -> scope.launch { onIgnition(s) } }
         // 시스템 종료 직전 방송도 같은 처리(Suspend 대신 꺼지는 경우).
         runCatching {
@@ -336,7 +332,7 @@ class CoachService : Service() {
         const val NOTIFICATION_ID = 1001
         /**
          * 코스 1회 생성에 허용하는 길찾기 호출 수. 하루 상한이 NaverDirectionsProvider.DAILY_CALL_CAP(100)이므로
-         * core 기본 12 대신 8 — 하루 최소 12번은 코스를 만들 수 있게. 조건 충족 후보가 나오면 그 전에 멈춘다(보통 1~5회).
+         * core 기본 12 대신 8. 하루 최소 12번은 코스를 만들 수 있게. 조건 충족 후보가 나오면 그 전에 멈춘다(보통 1~5회).
          */
         const val COURSE_MAX_API_CALLS = 8
         /** 외부(알림 액션 등)에서 서비스를 끌 때 쓰는 액션. */

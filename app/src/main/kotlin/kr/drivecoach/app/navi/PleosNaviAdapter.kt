@@ -1,4 +1,4 @@
-// 검증: NaviHelper-3.0.5 / navi-data-3.0.4 jar 의 시그니처에 맞췄다. 콜백이 실제로 오는지는 에뮬레이터에서 확인할 것.
+// Pleos NaviHelper 3.0.5 어댑터
 package kr.drivecoach.app.navi
 
 import ai.pleos.playground.navi.constants.NaviErrorCode
@@ -47,7 +47,7 @@ data class NaviRouteStart(val distanceM: Int, val durationS: Int, val name: Stri
 data class NaviArrival(val distanceM: Int, val durationS: Int, val name: String, val address: String)
 
 /**
- * 어댑터 → CoachController 이벤트. 전부 **메인 스레드** 에서 불린다.
+ * 어댑터 → CoachController 이벤트. 전부 메인 스레드에서 불린다.
  * NaviHelper 가 어떤 이벤트를 주는지는 "내비 앱 구현에 따라 다름"(문서) 이라, 받은 것을 그대로 넘기고 해석은 컨트롤러가 한다.
  */
 interface NaviPortListener {
@@ -106,8 +106,8 @@ interface NaviPort {
  * - `NaviHelper(context)` → `initialize(onSuccess, onFailure)` → `addListener(listener)`; 끝나면 `removeListener` + `release()`.
  * - 요청은 전부 반환값 없이 리스너로 결과가 온다. 모든 SDK 호출은 try/catch(Throwable) 로 감싸 권한(NAVI_ROUTE / NAVI_ROUTE_SEARCH)·미설치 내비에서 죽지 않게 한다.
  * - 리스너 콜백은 어느 스레드에서 올지 보장이 없으므로 메인 Handler 로 넘긴 뒤 StateFlow 갱신 + [NaviPortListener] 호출.
- * - 좌표: RouteInfo / RequestWaypointInfo 는 **latitude, longitude 순**(javap 확인). 별도의 Coordinate 클래스는 없다.
- * - 경유지 상한 2 (WaypointIndex.FIRST / SECOND). 3개 이상이면 앞 2개만 쓴다 — 호출측(NaviHandoff)이 이미 2개로 솎아 보낸다.
+ * - 좌표: RouteInfo / RequestWaypointInfo 는 latitude, longitude 순(javap 확인). 별도의 Coordinate 클래스는 없다.
+ * - 경유지 상한 2 (WaypointIndex.FIRST / SECOND). 3개 이상이면 앞 2개만 쓴다. 호출측(NaviHandoff)이 이미 2개로 솎아 보낸다.
  */
 class PleosNaviAdapter(context: Context) : NaviPort {
     private val appContext: Context = context.applicationContext
@@ -188,7 +188,7 @@ class PleosNaviAdapter(context: Context) : NaviPort {
         _destinationArrived.value = null
         _lastError.value = null
         _lastTbt.value = null
-        // RouteInfo(latitude, longitude, …) — 위도 먼저(javap). poiId/address/poiSubId 는 필수 String 이라 빈 값으로 채운다.
+        // RouteInfo(latitude, longitude, …): 위도 먼저(javap). poiId/address/poiSubId 는 필수 String 이라 빈 값으로 채운다.
         val dest = RouteInfo(
             latitude = destination.lat, longitude = destination.lon,
             poiName = destinationLabel, poiId = "", address = "", poiSubId = "0",

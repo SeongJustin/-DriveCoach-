@@ -55,7 +55,7 @@ data class CarSpec(
     val steeringRatio: Double,       // 핸들 각 / 바퀴 각
     /** 차량에서 실제로 읽어 맞춘 값인지(true) 기본 차종인지(false). */
     val detected: Boolean = false,
-    /** 앞·뒤 오버행(m). 없으면 (전장 − 축거)/2 로 나눈다. */
+    /** 앞·뒤 오버행(m). 없으면 (전장 - 축거)/2 로 나눈다. */
     val frontOverhangM: Double? = null,
     val rearOverhangM: Double? = null,
     /** 윤거(m). 카탈로그 값. */

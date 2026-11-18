@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 설정: 화면 거울, 처음 시점, 센서음, 도로 주행 미리보기 보이기, 그래픽 품질, 운전석 시야. 기기 안 PlayerPrefs.
+// 3D 주차 연습 설정: 화면 거울, 처음 시점, 센서음, 도로 주행 미리보기 보이기, 그래픽 품질, 운전석 시야. 기기 안 PlayerPrefs.
 using UnityEngine;
 
 namespace DriveCoach.Unity
@@ -25,12 +25,11 @@ namespace DriveCoach.Unity
             set => Set("startCam2", (int)value);
         }
 
-        /// <summary>화면 조작: 가상 운전대·가상 액셀·가상 브레이크(각각 켜고 끔), 자동 운전</summary>
-        // 새 키 vWheel2, 기본 켬 — 실제 핸들이 없는 에뮬레이터·화면만으로도 끝까지 해 볼 수 있게
+        /// <summary>화면 조작: 가상 운전대·가상 액셀·가상 브레이크(각각 켜고 끔)</summary>
+        // 새 키 vWheel2: 기본 켬. 실제 핸들이 없는 에뮬레이터·화면만으로도 끝까지 해 볼 수 있게
         public static bool VWheel { get => Get("vWheel2", 1) == 1; set => Set("vWheel2", value ? 1 : 0); }
         public static bool VAccel { get => Get("vAccel2", 1) == 1; set => Set("vAccel2", value ? 1 : 0); }
         public static bool VBrake { get => Get("vBrake", 0) == 1; set => Set("vBrake", value ? 1 : 0); }
-        public static bool AutoDrive { get => Get("autoDrive", 0) == 1; set => Set("autoDrive", value ? 1 : 0); }
 
         public static bool SensorSound
         {
@@ -72,7 +71,7 @@ namespace DriveCoach.Unity
             set => Set("timeOfDay", value);
         }
 
-        /// <summary>교통량: 0 적게(0.5배) · 1 보통 · 2 많게(1.6배) — 시간·날씨 배율에 곱한다</summary>
+        /// <summary>교통량: 0 적게(0.5배) · 1 보통 · 2 많게(1.6배): 시간·날씨 배율에 곱한다</summary>
         public static int TrafficLevel
         {
             get => Mathf.Clamp(Get("trafficLevel", 1), 0, 2);

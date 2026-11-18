@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 한 판의 움직이지 않는 것을 3D 로: 바닥·칠·벽·기둥·주차된 차·경사로·서킷·도로
+// 한 판의 움직이지 않는 것을 3D 로: 바닥·칠·벽·기둥·주차된 차·경사로·서킷·도로
 // 모양과 크기는 전부 Core(Stage) 의 실제 규격(m) 그대로. 3D 모델은 Kenney·Quaternius(CC0), 바닥 질감은 Poly Haven(CC0).
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -41,8 +41,8 @@ namespace DriveCoach.Unity
             int iy0 = Mathf.FloorToInt(r.y / C), iy1 = Mathf.CeilToInt((r.y + r.h) / C) - 1;
             for (int iy = iy0; iy <= iy1; iy++)
             {
-                // "이어지는 칸 없음" 표시는 int.MinValue. 예전에는 -1 / "run < 0" 이었는데 칸 번호가 지역 원점 서쪽에서는 음수라
-                //   서쪽 절반(x < 0)에는 땅이 한 칸도 깔리지 않았다 — 길 옆이 하늘빛으로 비어 보이고 건물·신호등이 떠 보이던 원인.
+                // "이어지는 칸 없음" 표시는 int.MinValue. 칸 번호는 지역 원점 서쪽에서 음수라 -1 이나 "run < 0" 으로 표시하면
+                //   서쪽 절반(x < 0)에 땅이 깔리지 않는다.
                 const int None = int.MinValue;
                 int run = None;
                 for (int ix = ix0; ix <= ix1 + 1; ix++)
@@ -72,9 +72,8 @@ namespace DriveCoach.Unity
                 case Surface.Concrete: return DcAssets.Ground("garage_floor", DcAssets.Hex("#B9BDC4"), DcAssets.Hex("#E4E6EA"));
                 case Surface.Grass: return DcAssets.Lit(DcAssets.Hex("#6F8F4E"), 0.05f);
                 case Surface.Block:
-                    // 동네 땅(건물 사이): 무광 단색 회색. 하늘빛으로 비어 보이던 것은 재질 탓이 아니라 땅이 서쪽 절반에 안 깔린 탓이었다(GroundWithHoles 참고).
-                    // 단색 회색은 햇빛에서 하얗게 떠서 "빈 땅"처럼 보였다 → 닳은 콘크리트 질감(조금 어둡게)
-                    // 독립 평가: "땅색과 차도색이 거의 같아 도로 경계를 인도 띠로만 알 수 있다" → 땅을 밝고 따뜻한 모래빛으로(아스팔트와 뚜렷이 구분)
+                    // 동네 땅(건물 사이): 닳은 콘크리트 질감을 밝고 따뜻한 모래빛으로(아스팔트와 뚜렷이 구분되게).
+                    //   단색 회색은 햇빛에서 하얗게 떠 "빈 땅"처럼 보이고, 차도와 색이 비슷하면 도로 경계가 인도 띠로만 읽힌다.
                     return DcAssets.Pbr("concrete_floor_worn_001", DcAssets.Hex("#B9B19E"), new Color(1.0f, 0.95f, 0.84f), 0.5f);
                 default: return DcAssets.Ground("asphalt_03", DcAssets.Hex("#55595F"), Color.white);
             }
@@ -86,7 +85,7 @@ namespace DriveCoach.Unity
             node.SetParent(root, false);
 
             var ground = new MeshKit { uvScale = 4f };
-            // 지하차도 도랑이 있는 지역은 땅에 구멍 — 20 m 칸으로 깔되 도랑과 닿는 칸(GCEL)은 빼고 그 칸의 땅(GRND)으로
+            // 지하차도 도랑이 있는 지역은 땅에 구멍, 20 m 칸으로 깔되 도랑과 닿는 칸(GCEL)은 빼고 그 칸의 땅(GRND)으로
             var surf = st.road?.region != null ? RoadSurface.Load(st.road.region.surfaceFile) : null;
             if (surf != null && surf.tris.TryGetValue("GCEL", out var cells) && cells.Length > 0 && surf.tris.TryGetValue("GRND", out var gt))
                 GroundWithHoles(ground, f.ground, h, cells, gt);
@@ -348,14 +347,14 @@ namespace DriveCoach.Unity
         {
             var node = new GameObject("Road").transform;
             node.SetParent(root, false);
-            CountryStyle.Current = CountryStyle.For(r.region);      // 나라별 모양(칠·표지·신호…) — 지역이 아니면 한국
+            CountryStyle.Current = CountryStyle.For(r.region);      // 나라별 모양(칠·표지·신호…): 지역이 아니면 한국
             if (r.region != null)
             {
                 // 내 동네(지역 지도): 길·칠·건물·가로수·가로등은 CityBuilder, 신호등만 여기서
                 Dc.Lap(null);
                 CityBuilder.Build(r, h, node); Dc.Lap("city");
                 // 건물·길 말고 나머지(신호등·표지·볼라드·고가·지하차도…)의 메시도 지은 뒤 다시 읽지 않는다 →
-                //   그래픽 장치에만 두고 일반 메모리의 사본을 내린다(Android 가이드 "Read/Write 는 꺼 둔다 — 켜 두면 메모리가 두 배").
+                //   그래픽 장치에만 두고 일반 메모리의 사본을 내린다(Android 가이드 "Read/Write 는 꺼 둔다. 켜 두면 메모리가 두 배").
                 //   큰 동네를 짓는 동안 생긴 임시 배열은 단계 사이에 바로 치워, 관리 힙이 최고치까지 부풀지 않게 한다.
                 System.GC.Collect();
                 MeshKit.Built = new System.Collections.Generic.List<Mesh>();
@@ -377,7 +376,7 @@ namespace DriveCoach.Unity
                     var built = MeshKit.Built; MeshKit.Built = null;
                     long vtx = 0;
                     foreach (var m in built) if (m != null) { vtx += m.vertexCount; if (m.isReadable) m.UploadMeshData(true); }   // 대부분 ToObject 에서 이미 내림
-                    // MeshKit 를 거치지 않고 만든 메시(밤 창문 겹, 나무 등)도: 실행 중에 만든 것(InstanceID < 0)만 — 가져온 모델 메시는 다음 동네를 지을 때 다시 읽는다
+                    // MeshKit 를 거치지 않고 만든 메시(밤 창문 겹, 나무 등)도: 실행 중에 만든 것(InstanceID < 0)만, 가져온 모델 메시는 다음 동네를 지을 때 다시 읽는다
                     int extra = 0;
                     foreach (var mf in node.GetComponentsInChildren<MeshFilter>(true))
                     {
@@ -417,7 +416,7 @@ namespace DriveCoach.Unity
             }
             foreach (var sl in r.stopLines) white.Line(sl.a, sl.b, 0.45f, h + 0.031f);
             if (!white.IsEmpty) white.ToObject("lanelines", DcAssets.Lit(DcAssets.Paint, 0.4f), node);
-            // 블록(건물 덩어리): 도로가 아닌 곳에 낮은 상자 몇 개 — 동네 느낌
+            // 블록(건물 덩어리): 도로가 아닌 곳에 낮은 상자 몇 개, 동네 느낌
             var blocks = new MeshKit();
             var rnd = new System.Random(7);
             for (int i = 0; i < 18; i++)
@@ -431,7 +430,7 @@ namespace DriveCoach.Unity
             PlaceSignals(r, h, node);
         }
 
-        /// <summary>신호등(Kenney) — 불빛은 Overlays 가 매 프레임 바꾼다</summary>
+        /// <summary>신호등(Kenney): 불빛은 Overlays 가 매 프레임 바꾼다</summary>
         static void PlaceSignals(RoadDef r, float h, Transform node)
         {
             var proto = DcAssets.Model("Kenney/CityRoads/traffic-light");

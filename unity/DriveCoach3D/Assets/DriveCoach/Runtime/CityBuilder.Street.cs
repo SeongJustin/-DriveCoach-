@@ -1,4 +1,4 @@
-// CityBuilder 의 거리 소품(가로수, 가로등, 신호등 등) 부분(CityBuilder.cs 에서 나눈 파일). 전체 설명은 CityBuilder.cs 맨 위.
+// CityBuilder: 거리 소품(가로수, 가로등, 신호등 등)
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -106,11 +106,11 @@ namespace DriveCoach.Unity
                 {
                     case "tree":
                     case "park_tree":
-                        // EZ-Tree 나무(외부 모델, LOD) — 없으면 예전 코드 나무
+                        // EZ-Tree 나무(외부 모델, LOD): 없으면 예전 코드 나무
                         int tseed = Mathf.FloorToInt(p.x * 7.13f) * 73856093 ^ Mathf.FloorToInt(p.y * 5.31f) * 19349663;
                         if (trees == null || !trees.Add(p, y, TreeKit.BaseHeight * size, ang, tseed, kind == "tree"))
                             Tree(trunks, leaves, p, y, rnd, size);
-                        // 공원 나무 셋 중 하나 옆에 관목(EZ-Tree bush, 높이 1.2~1.8 m) — 보도·아스팔트가 아닌 땅에만
+                        // 공원 나무 셋 중 하나 옆에 관목(EZ-Tree bush, 높이 1.2~1.8 m), 보도·아스팔트가 아닌 땅에만
                         else if (kind == "park_tree" && ((tseed >> 3) & 3) == 0)
                         {
                             float ba = ((tseed >> 6) & 255) / 255f * Mathf.PI * 2f;
@@ -137,7 +137,7 @@ namespace DriveCoach.Unity
             Dc.Lap("props-trees-emit");
             if (!trunks.IsEmpty) trunks.ToObject("tree-trunks", DcAssets.Lit(DcAssets.Hex("#6B4F3A"), 0.1f), node, true);
             if (!leaves.IsEmpty) leaves.ToObject("tree-leaves", DcAssets.Lit(DcAssets.Hex("#4E7A3A"), 0.05f), node, true);
-            // 밤 불빛: 가로등 아래 노면에 번지는 따뜻한 빛 웅덩이(반지름 7 m) — 밤에만 켠다(NightLights)
+            // 밤 불빛: 가로등 아래 노면에 번지는 따뜻한 빛 웅덩이(반지름 7 m). 밤에만 켠다(NightLights)
             if (lights.Count > 0)
             {
                 var pools = new MeshKit();

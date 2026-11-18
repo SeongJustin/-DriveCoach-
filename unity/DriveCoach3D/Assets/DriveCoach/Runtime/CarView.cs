@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 내 차: 제원으로 직접 만든 세단(CarBody, 없으면 Kenney 모델), 앞바퀴 꺾임·바퀴 굴림·브레이크등·후진등, 경사로 기울기
+// 내 차: 제원으로 직접 만든 세단(CarBody, 없으면 Kenney 모델), 앞바퀴 꺾임·바퀴 굴림·브레이크등·후진등, 경사로 기울기
 using System.Collections.Generic;
 using DriveCoach.Core;
 using UnityEngine;
@@ -45,7 +45,7 @@ namespace DriveCoach.Unity
             if (!own)
             {
                 Dc.Kill(holderGo);
-                // 길이·폭은 차 제원 그대로, 높이도 실제 승용차 높이(아반떼 CN8 1.42 m)로 — 예전엔 모델 비율대로 키워 좁고 높아 보였다
+                // 길이·폭은 차 제원 그대로, 높이도 실제 승용차 높이(아반떼 CN8 1.42 m)로(모델 비율대로 키우면 좁고 높아 보인다)
                 holder = StageBuilder.ModelCar("Kenney/CarKit/sedan", v.length, v.width, root.transform, DcAssets.Blue, 1.42f);
             }
             body = holder.transform;
@@ -67,7 +67,7 @@ namespace DriveCoach.Unity
             }
             if (!own)
             {
-                // 브레이크등·후진등(뒤 범퍼 양쪽 작은 판) — 직접 만든 차는 뒷등 안에 있다
+                // 브레이크등·후진등(뒤 범퍼 양쪽 작은 판): 직접 만든 차는 뒷등 안에 있다
                 float hz = -v.length / 2f - 0.01f;
                 foreach (var sx in new[] { -1f, 1f })
                 {
@@ -112,7 +112,7 @@ namespace DriveCoach.Unity
         }
 
         /// <summary>
-        /// 방향지시등·비상등 깜빡임(1분 85번 — 법정 60~120회), 전조등은 실제 스위치(켜짐·상향·끔)를 따르고 자동·모름이면 날씨·시간대로.
+        /// 방향지시등·비상등 깜빡임(1분 85번: 법정 60~120회), 전조등은 실제 스위치(켜짐·상향·끔)를 따르고 자동·모름이면 날씨·시간대로.
         /// </summary>
         public void Signals(Vehicle v, float dt)
         {
@@ -162,23 +162,23 @@ namespace DriveCoach.Unity
                     headlights.Add(l);
                 }
             }
-            // URP 조명은 거리 제곱으로 약해진다(10 m 앞 = 1/100): 예전 세기 6 은 차 바로 앞만 겨우 비췄다
+            // URP 조명은 거리 제곱으로 약해진다(10 m 앞 = 1/100). 세기가 한 자리 수면 차 바로 앞만 비춘다
             foreach (var l in headlights)
             {
                 l.enabled = on;
                 l.range = high ? 110f : 70f;
                 l.spotAngle = high ? 50f : 64f;
-                l.intensity = high ? 200f : 120f;     // 40 도 어두운 아스팔트(반사 0.2)에서 10 m 앞이 거의 안 보였다
+                l.intensity = high ? 200f : 120f;     // 40 이면 어두운 아스팔트(반사 0.2)에서 10 m 앞이 거의 안 보인다
             }
             // 노면에 번지는 전조등 빛(조명 개수가 적은 기기·그래픽 낮음에서도 앞길이 밝게 보이게): 차 앞 2~16 m 부채꼴 빛 판
             if (on && beam == null && root != null)
             {
                 var mk = new MeshKit();
-                // 둥근 빛(가운데 차 앞 9 m, 앞뒤 11 m): 뒤쪽 끝은 차 밑에서 사라져 경계가 보이지 않는다(예전: 반쪽 판은 뒤 끝이 칼처럼 잘려 보였다)
+                // 둥근 빛(가운데 차 앞 9 m, 앞뒤 11 m): 뒤쪽 끝은 차 밑에서 사라져 경계가 보이지 않는다
                 NightLights.Pool(mk, new Vector3(0f, 0.05f, halfLen + 11f), 4.6f, 14f, 0f);
                 NightLights.Pool(mk, new Vector3(0f, 0.055f, halfLen + 6f), 2.8f, 6.5f, 0f);       // 가까운 곳은 더 밝게(두 판이 겹침)
                 beam = mk.ToObject("headlight-beam", NightLights.Glow(new Color(1f, 0.95f, 0.84f, 0.42f)), root.transform);
-                // 먼 빛(15~45 m, 은은하게): 운전석에서는 보닛에 가려 가까운 빛이 안 보인다 — 앞길이 보이게
+                // 먼 빛(15~45 m, 은은하게): 운전석에서는 보닛에 가려 가까운 빛이 안 보인다. 앞길이 보이게
                 var far = new MeshKit();
                 NightLights.Pool(far, new Vector3(0f, 0.06f, halfLen + 28f), 5.5f, 18f, 0f);
                 far.ToObject("headlight-far", NightLights.Glow(new Color(1f, 0.95f, 0.86f, 0.24f)), beam.transform);

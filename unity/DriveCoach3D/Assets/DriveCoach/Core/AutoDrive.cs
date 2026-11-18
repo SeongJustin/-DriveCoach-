@@ -1,6 +1,6 @@
 // 자동 운전(핸들).
 // 차로 가운데선을 따라간다: 지금 차로에서 앞쪽 한 점(속도에 따라 5~12 m)을 겨냥해 핸들을 돌린다(순수 추종). 속도는 AutoSpeed 가 낸다.
-// 차로가 끝나면 다음 차로를 고른다 — 경로 글자(S 곧장·L 왼쪽·R 오른쪽, 차례로 한 글자씩)가 있으면 그대로, 없거나 다 쓰면 씨앗 난수로(대개 곧장).
+// 차로가 끝나면 다음 차로를 고른다: 경로 글자(S 곧장·L 왼쪽·R 오른쪽, 차례로 한 글자씩)가 있으면 그대로, 없거나 다 쓰면 씨앗 난수로(대개 곧장).
 using System;
 using System.Collections.Generic;
 
@@ -15,25 +15,25 @@ namespace DriveCoach.Core
         float s, nextS;
         float[] cum;
         float stuckT;
-        /// <summary>검수 기록: 지나온 차로 수·다시 잡은 횟수·막다른 곳 횟수</summary>
+        /// <summary>시험 기록: 지나온 차로 수·다시 잡은 횟수·막다른 곳 횟수</summary>
         public int lanesDone, reacquired, deadEnds, backedUp;
         /// <summary>지도 끝(데이터 없는 옆 동)에서 돌아 나온 횟수</summary>
         public int uTurns;
-        /// <summary>돌아 나오는 중: 돌아 들어갈 맞은편 차로(−1 이면 아님)</summary>
+        /// <summary>돌아 나오는 중: 돌아 들어갈 맞은편 차로(-1 이면 아님)</summary>
         int uLane = -1;
         float uT, uTry;
-        /// <summary>부딪혀 서면 잠깐 뒤로 물러난다 — 이 동안 부르는 쪽이 기어를 R 로 두고 살짝 밟는다. 끝나면 D 로</summary>
+        /// <summary>부딪혀 서면 잠깐 뒤로 물러난다. 이 동안 부르는 쪽이 기어를 R 로 두고 살짝 밟는다. 끝나면 D 로</summary>
         public bool Reverse => reverseT > 0f;
         float reverseT, biasM, biasLeft, lastBumpAge = 99f;
         /// <summary>다음 차로로 넘어갈 때 꺾는 각(도, + 오른쪽). 방향지시등·신호(좌회전 화살표)·굽은 길 속도에 쓴다</summary>
         float nextTurn;
         float blinkHold; int blink; float redStopT; bool redStopped;
-        /// <summary>방향지시등(−1 왼쪽, 0 끔, +1 오른쪽): 꺾기 30 m 앞에서 켜고, 다 꺾고 2초 뒤 끈다</summary>
+        /// <summary>방향지시등(-1 왼쪽, 0 끔, +1 오른쪽): 꺾기 30 m 앞에서 켜고, 다 꺾고 2초 뒤 끈다</summary>
         public int Blinker => blink;
-        /// <summary>검수 기록: 빨간불·노란불에 선 횟수</summary>
+        /// <summary>시험 기록: 빨간불·노란불에 선 횟수</summary>
         public int signalStops;
         public int Lane => li;
-        /// <summary>검수용: 갈림길에서 고른 것을 적는다(없으면 안 적음)</summary>
+        /// <summary>주행 점검용: 갈림길에서 고른 것을 적는다(없으면 안 적음)</summary>
         public Action<string> Log;
 
         public AutoDrive(int seed = 1, string plan = "") { rnd = new Random(seed); this.plan = (plan ?? "").ToUpperInvariant(); }
@@ -362,7 +362,7 @@ namespace DriveCoach.Core
                     if (must) { stopAt = Math.Min(stopAt, ahead - 2.6f); redNow = true; }      // 1.5 → 2.6 m: 사진에서 앞 범퍼가 정지선 칠 위에 걸쳐 섰다(멈추며 1 m 남짓 더 나감)
                 }
             // 경로 주행: 내가 지나갈 길(꺾는 곳 포함) 위의 횡단보도에 건너는 사람·막 들어서는 사람이 있으면 그 앞 3 m 에 서서 다 건널 때까지 기다린다
-            //   (AutoSpeed 는 곧은 앞만 본다 → 우회전 직후 횡단보도의 사람을 못 보고 10 km/h 로 지나갔다)
+            //   (AutoSpeed 는 곧은 앞만 보므로 꺾은 직후 횡단보도의 사람은 여기서 본다)
             //   경로 없이 차로를 따라 달릴 때도 같다: 지금 차로 + 고른 다음 차로를 따라 본다.
             if ((route != null || (li >= 0 && cum != null)) && w.crossPeds != null && w.crossPeds.peds.Count > 0)
             {
@@ -425,12 +425,11 @@ namespace DriveCoach.Core
                 }
             }
             else wasRed = false;
-            // 시연 경로 안전장치: 신호·보행자 때문이 아닌데 앞에 선 차에 막혀 15초 넘게 못 가면, 앞 14 m 안에 서 있는 다른 차를 치운다.
-            // 큰 교차로에서 다른 차들이 서로 기다리다 멈추면(역삼역, 드물게) 시연이 그 뒤에서 2분 넘게 서 버렸다. 근본 원인은 
+            // 시연 경로 안전장치: 신호·보행자 때문이 아닌데 앞에 선 차에 막혀 15초 넘게 못 가면 앞에 서 있는 다른 차를 치운다.
+            //   큰 교차로에서 다른 차들이 서로 기다리다 멈추면(역삼역, 드물게) 시연이 그 뒤에서 오래 선다.
             Why = $"red={(redNow ? 1 : 0)} stopAt={(float.IsInfinity(stopAt) ? 99f : stopAt):0} ped={(wasPed ? 1 : 0)} follow={(w.traffic != null ? Math.Min(99f, AutoSpeed.FollowLimit(w) * 3.6f) : -1f):0} cap={cap * 3.6f:0} blk={blockedT:0} cleared={clearedAhead}";
-            // 조건을 넓힘: PC 빌드에서 교차로 한가운데 115초 서 있었는데 이 장치가 걸리지 않았다(앞차 거리 조건·빨간불 조건 때문으로 봄).
-            //   이제 "앞 45 m 안의 빨간불·보행자 대기"가 아닌데 15초 넘게 서 있으면 건다. 치우는 범위도 앞 18 m·옆 8 m(가로로 선 버스).
-            // 경로 없는 자유 자동 운전에도 건다: 내 차를 기다리는 다른 차와 서로 마주 서서(내 차는 앞차를, 그 차는 내 차를 기다림) 영영 섰다(양재1동 바우뫼로43길)
+            // 걸리는 조건: 앞 45 m 안의 빨간불·보행자 대기가 아닌데 15초 넘게 서 있음. 치우는 범위: 앞 18 m·옆 8 m(가로로 선 버스).
+            // 경로 없는 자유 자동 운전에도 건다: 내 차를 기다리는 다른 차와 서로 마주 서서(내 차는 앞차를, 그 차는 내 차를 기다림) 영영 설 수 있다
             if (!NoClear && w.traffic != null && !(redNow && stopAt < 45f) && !wasPed && Math.Abs(car.speed) < 0.2f && !RouteDone && uLane < 0)
             {
                 blockedT += dt; blockedAll += dt;
@@ -466,15 +465,15 @@ namespace DriveCoach.Core
         public int pedStops;
         /// <summary>시연 경로에서 막힘을 풀려고 치운 다른 차 수</summary>
         public int clearedAhead;
-        /// <summary>검수용: 지금 속도를 정한 까닭(빨간불·보행자·앞차·막힘)</summary>
+        /// <summary>주행 점검용: 지금 속도를 정한 까닭(빨간불·보행자·앞차·막힘)</summary>
         public string Why = "";
-        /// <summary>검수용: 막힘 풀기를 끈다(다른 차끼리 막히는지 그대로 보려고)</summary>
+        /// <summary>주행 점검용: 막힘 풀기를 끈다(다른 차끼리 막히는지 그대로 보려고)</summary>
         public static bool NoClear;
         float blockedT, blockedAll;
 
         /// <summary>
         /// 경로 없는 자유 자동 운전에서 치워도 되는 차: 기다림 사슬(waitBy)이 내 차에서 끝나는 차(서로 마주 서 기다림)만.
-        /// 빨간불·보행자·버스 정류장 줄(사슬 끝이 신호·보행자·버스)은 치우지 않는다 — 정지선이 45 m 넘게 먼 신호 줄 뒤에서 15초마다 앞차가 사라졌다.
+        /// 빨간불·보행자·버스 정류장 줄(사슬 끝이 신호·보행자·버스)은 치우지 않는다. 정지선이 45 m 넘게 먼 신호 줄 뒤에서 15초마다 앞차가 사라졌다.
         /// 다른 차끼리 얽힌 고리(사슬이 16대를 넘거나 돈다)는 Traffic 의 고리 풀기가 45~90초 안에 푸므로 120초 넘게 막혔을 때만.
         /// </summary>
         static bool WaitsForMe(TrafficCar tc, float blocked)
@@ -500,7 +499,7 @@ namespace DriveCoach.Core
 
         /// <summary>
         /// 데이터가 없는 옆 동 쪽으로 경계 밖 14 m 넘게 나와 바깥으로 가고 있는가. 22 m(+4 m)를 넘으면 World 가 차를 세워
-        /// 자동 운전이 지도 끝에서 영영 서 있었다 → 그 전에 맞은편 차로로 돌아 나온다.
+        /// 자동 운전은 그 전에 맞은편 차로로 돌아 나온다(지도 끝에서 영영 서지 않게).
         /// </summary>
         static bool NearEdgeOut(RoadDef road, Vehicle car)
         {
@@ -511,7 +510,7 @@ namespace DriveCoach.Core
             float dist = Geom.DistPointPoly(c, rg.boundary, out var edge);
             if (dist < RegionData.BorderSlack - 8f) return false;
             var nb = rg.NeighborAt(c);
-            // 옆 동 데이터가 있으면 넘어가 그 지도로 바뀐다(GameMain) — 바뀌지 않고 지도 그림 끝(여유 폭 − 60 m)까지 오면 그때는 돌아 나온다
+            // 옆 동 데이터가 있으면 넘어가 그 지도로 바뀐다(GameMain). 바뀌지 않고 지도 그림 끝(여유 폭 - 60 m)까지 오면 그때는 돌아 나온다
             if (nb != null && nb.file != "" && dist < rg.margin - 60f) return false;
             return car.Dir.Dot((c - edge).Normalized) > 0.2f;
         }

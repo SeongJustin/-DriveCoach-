@@ -1,4 +1,4 @@
-// 가짜 경고등 퀴즈 — 경고등 3색 뜻, 출발 전 브리핑 "경고등 대응 다시 묻기"
+// 가짜 경고등 퀴즈: 경고등 3색 뜻, 출발 전 브리핑 "경고등 대응 다시 묻기"
 package kr.drivecoach.core.warning
 
 import kr.drivecoach.core.signal.Gear
@@ -15,7 +15,7 @@ import kotlin.random.Random
  * - [random] 에 시드를 주면 출제 순서·보기 순서가 결정적이라 테스트할 수 있다.
  *
  * 사용자에게 들리는 문장은 이 클래스에 없다. [Question.questionPhraseId], [AnswerResult.feedbackPhraseId] 등
- * Phrases ID 만 제공하고, 실제 문장은 K 작업자의 Phrases 카탈로그가 가진다.
+ * Phrases ID 만 제공하고, 실제 문장은 Phrases 카탈로그가 가진다.
  */
 class WarningQuiz(
     private val random: Random = Random.Default,

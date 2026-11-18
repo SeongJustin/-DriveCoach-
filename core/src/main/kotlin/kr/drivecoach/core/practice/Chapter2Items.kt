@@ -67,7 +67,7 @@ object Chapter2Items {
 
     private fun p(itemId: String, kind: String) = PhraseId("practice_${itemId.replace('-', '_')}_$kind")
 
-    /** 항목 생성 도우미. 멘트 ID 는 practice_<id(하이픈→밑줄)>_explain / _try / _pass / _confirm 규칙(K 의 snake_case 규약). */
+    /** 항목 생성 도우미. 멘트 ID 는 practice_<id(하이픈→밑줄)>_explain / _try / _pass / _confirm 규칙(Phrases 의 snake_case 규약). */
     private fun item(
         id: String, chapter: String, title: String, check: CheckKind, cap: String? = null,
     ) = PracticeItem(id, chapter, title, p(id, "explain"), p(id, "try"), p(id, "pass"), check, cap)

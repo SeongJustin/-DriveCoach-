@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 앱 연결(안드로이드), 주차 센서 소리, 진행 기록 저장
+// 3D 주차 연습: 앱 연결(안드로이드), 주차 센서 소리, 진행 기록 저장
 using System.Collections.Generic;
 using System.Text;
 using DriveCoach.Core;

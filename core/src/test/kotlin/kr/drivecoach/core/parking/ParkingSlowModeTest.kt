@@ -76,7 +76,7 @@ private fun testHappyPath() {
     assertTrue(r.rec.warns.isEmpty(), "크리핑 후진에는 경고가 없어야 한다")
     r.mode.confirm(14_500)
     assertEquals(7, r.mode.currentStep!!.index)
-    // 7: 핸들 풀기 — 조향각이 가운데(±20°)로 오면 센서로 통과. '확인' 으로는 못 넘긴다.
+    // 7: 핸들 풀기. 조향각이 가운데(±20°)로 오면 센서로 통과. '확인' 으로는 못 넘긴다.
     r.mode.confirm(14_800)
     assertEquals(7, r.mode.currentStep!!.index, "센서 단계는 확인으로 넘어가지 않는다")
     assertEquals(ParkingProcedure.NOT_DETECTED_PHRASE, r.rec.lastSay())

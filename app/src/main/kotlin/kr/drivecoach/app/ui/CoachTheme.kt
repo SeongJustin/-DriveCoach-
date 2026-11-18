@@ -1,5 +1,4 @@
-// 화면 스타일 — 흰 바탕, 검정 글씨, 라임 포인트. 색과 글자 크기는 전부 이 파일에서만 바꾼다
-// material3 1.2.x(compose-bom 2024.06.00) 의 공개 API 만 썼다.
+// 화면 스타일: 흰 바탕, 검정 글씨, 라임 포인트. 색과 글자 크기는 전부 이 파일에서만 바꾼다
 package kr.drivecoach.app.ui
 
 import androidx.compose.foundation.BorderStroke
@@ -25,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 앱 공통 색. 사용자 요청: "흰 바탕에 검정 글씨로 깔끔하게". 색을 바꾸려면 여기만 고친다.
+ * 앱 공통 색: 흰 바탕에 검정 글씨. 색을 바꾸려면 여기만 고친다.
  */
 object CoachColors {
     // 검정·흰색 바탕에 중요한 곳만 라임 그린. 다른 색은 쓰지 않는다(위험 알림의 빨강만 예외).
@@ -34,7 +33,7 @@ object CoachColors {
     val Background = Color(0xFFFFFFFF)
     /** 카드·눌린 면(바탕보다 한 단계 밝은 검정). */
     val Surface = Color(0xFFF4F4F5)
-    /** (흰 칸과 회색 칸이 거의 같아 보인다) 건너뛴 항목 칸 */
+    /** 건너뛴 항목 칸(흰 칸과 구분되는 회색) */
     val Skipped = Color(0xFFD9D9DE)
     /** 본문 글씨. Midnight Black. */
     val OnBackground = Color(0xFF0B0B0C)
@@ -61,14 +60,14 @@ object CoachColors {
  */
 object CoachType {
     /**
-     * ("골반 부분/은", "확인하십/시오" 처럼 낱말 가운데서 줄이 바뀐다) 한국어는 띄어쓰기(어절) 단위로 줄을 바꾼다.
+     * 한국어는 띄어쓰기(어절) 단위로 줄을 바꾼다("확인하십/시오"처럼 낱말 가운데서 줄이 바뀌지 않게).
      * Android 13(API 33) 이상에서만 듣고, 그 아래는 예전처럼 글자 단위다. 기본 글씨(LocalTextStyle = bodyLarge)도 이 값을 쓴다.
      */
     val KoLineBreak = LineBreak(LineBreak.Strategy.HighQuality, LineBreak.Strictness.Strict, LineBreak.WordBreak.Phrase)
     private val ko = LocaleList("ko-KR")
     /** 제목(화면 제목·카드 제목·메뉴 카드). 44sp 굵게. */
     val Title = TextStyle(fontSize = 44.sp, fontWeight = FontWeight.Bold, color = CoachColors.OnBackground, lineBreak = KoLineBreak, localeList = ko)
-    /** 맨 위 차종 줄. 화면 제목(44sp)보다 한 단계 작게 — 하위 화면에서 44sp 굵은 줄 두 개가 겹쳐 보이던 것. */
+    /** 맨 위 차종 줄. 화면 제목(44sp)보다 한 단계 작다. */
     val Header = TextStyle(fontSize = 36.sp, fontWeight = FontWeight.Bold, color = CoachColors.OnBackground, lineBreak = KoLineBreak, localeList = ko)
     /** 본문(연습 문장·메뉴 제목·버튼). 32sp. */
     val Body = TextStyle(fontSize = 32.sp, color = CoachColors.OnBackground, lineBreak = KoLineBreak, localeList = ko)

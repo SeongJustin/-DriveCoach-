@@ -11,7 +11,7 @@ import kotlin.math.abs
 /**
  * 위험 이벤트 종류(위험 상황 피드백은 바로 한다).
  *
- * **늦은 브레이크(LATE_BRAKE)는 규칙에 넣지 않는다.**
+ * 늦은 브레이크(LATE_BRAKE)는 규칙에 넣지 않는다.
  * 정지선·앞차 거리를 앱이 알 수 없어 정확히 잡을 수 없으므로, 정차 후 리포트에서
  * [HARD_BRAKE] 횟수로 간접 평가한다. (리포트 모듈은 [DangerRules.eventCount] 를 쓰면 된다.)
  */
@@ -47,18 +47,18 @@ fun interface DangerListener {
 }
 
 /**
- * 위험 피드백 멘트 ID. 문장은 K 작업자의 Phrases 카탈로그가 채운다.
+ * 위험 피드백 멘트 ID. 문장은 Phrases 카탈로그가 채운다.
  */
 object DangerPhrases {
     /** 제한속도 초과(MEDIUM). Phrases.dangerSpeeding 과 같은 ID. */
     val SPEEDING = PhraseId("danger_speeding")
-    /** 20km/h 이상 크게 초과(HIGH). K 에게 요청한 신규 ID. */
+    /** 20km/h 이상 크게 초과(HIGH). Phrases 에 새로 넣은 ID. */
     val SPEEDING_HIGH = PhraseId("danger_speeding_high")
     /** 급제동. Phrases.dangerHardBrake 와 같은 ID. */
     val HARD_BRAKE = PhraseId("danger_hard_brake")
     /** 급차로변경, 깜빡이는 켰음(MEDIUM). Phrases.dangerHardLaneChange 와 같은 ID. */
     val LANE_CHANGE = PhraseId("danger_hard_lane_change")
-    /** 깜빡이 없이 급차로변경(HIGH). K 에게 요청한 신규 ID. */
+    /** 깜빡이 없이 급차로변경(HIGH). Phrases 에 새로 넣은 ID. */
     val LANE_CHANGE_NO_SIGNAL = PhraseId("danger_hard_lane_change_no_signal")
     /** 후진 중 RPM 상승. Phrases.dangerReverseRpm 과 같은 ID. */
     val REVERSE_THROTTLE = PhraseId("danger_reverse_rpm")
@@ -108,7 +108,7 @@ data class DangerConfig(
     // ── 공통 ──
     /**
      * 변화율(Δv/Δt, Δθ/Δt) 계산 창(ms). 창 안의 모든 과거 샘플을 기준점으로 삼아 변화율을 각각 계산하고
-     * **가장 큰 값**을 쓴다. 에피소드 시작 직후 창에 섞인 '아직 안 밟던' 구간이 피크를 희석하는 것을 막기 위해서다.
+     * 가장 큰 값을 쓴다. 에피소드 시작 직후 창에 섞인 '아직 안 밟던' 구간이 피크를 희석하는 것을 막기 위해서다.
      * 100ms 샘플이면 5개 정도. 너무 짧으면 잡음, 길면 피크가 뭉개진다.
      */
     val rateWindowMs: Long = 500L,
@@ -133,8 +133,8 @@ data class DangerConfig(
  * 제한속도는 내비/지도에서 알게 될 때 [speedLimitKmh] 에 넣는다. 모르면 null 이고 SPEEDING 규칙은 꺼진다.
  *
  * "한 번만" 원칙 구현:
- * 1. **에피소드 1회**: 조건이 참인 동안(예: 계속 과속 중) 처음 한 번만 발화하고, 조건이 풀려야 다시 무장된다.
- * 2. **쿨다운**: 같은 타입은 마지막 발화 후 [DangerConfig.cooldownMs](기본 20초) 안에는 다시 발화하지 않는다.
+ * 1. 에피소드 1회: 조건이 참인 동안(예: 계속 과속 중) 처음 한 번만 발화하고, 조건이 풀려야 다시 무장된다.
+ * 2. 쿨다운: 같은 타입은 마지막 발화 후 [DangerConfig.cooldownMs](기본 20초) 안에는 다시 발화하지 않는다.
  *
  * evidence 키:
  * - SPEEDING: speedKmh, limitKmh, overKmh, heldMs

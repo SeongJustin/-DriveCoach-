@@ -1,4 +1,4 @@
-// 직각 주차 슬로우 모드 상태 머신 — 후진 경고, 실행/확인
+// 직각 주차 슬로우 모드 상태 머신: 후진 경고, 실행/확인
 package kr.drivecoach.core.parking
 
 import kr.drivecoach.core.signal.Gear
@@ -51,7 +51,7 @@ enum class SlowModePhase { IDLE, STEP, RECOVERY_CHOICE, RECOVERY_STEP, SELF_EVAL
  * - "처음부터" 로 1단계 복귀, "꼬였어요/도움" 으로 탈출법 3가지 선택,
  * - 완주 후 자기평가 3버튼 결과로 다음 시도 힌트를 돌려준다.
  *
- * 주차선 안에 들어갔는지·옆 차와의 거리는 **절대 판정하지 않는다**. 미러에 무엇이 보이는지는 운전자만 안다.
+ * 주차선 안에 들어갔는지·옆 차와의 거리는 절대 판정하지 않는다. 미러에 무엇이 보이는지는 운전자만 안다.
  *
  * @param idleRpm 공회전 RPM 공급자. app 에서는 safety.IdleRpmEstimator 의 값을 넘긴다.
  * @param rewarnIntervalMs 같은 경고를 다시 낼 수 있는 최소 간격. 기본값이면 한 시도 안에서 사실상 1회.
@@ -128,7 +128,7 @@ class ParkingSlowMode(
             output.onOutput(SlowModeOutput.Say(ParkingProcedure.STOP_FIRST_PHRASE))
             return
         }
-        // 센서 단계(핸들 끝까지·가운데·기어)는 '확인' 으로 통과시키지 않는다 — 신호가 아직 안 맞으면 미감지 안내만. 건너뛰려면 [skip].
+        // 센서 단계(핸들 끝까지·가운데·기어)는 '확인' 으로 통과시키지 않는다. 신호가 아직 안 맞으면 미감지 안내만. 건너뛰려면 [skip].
         val sensorStep = step.expected is StepExpectation.SteeringAtLeast || step.expected is StepExpectation.SteeringCentered ||
             step.expected is StepExpectation.GearIs || step.expected is StepExpectation.ParkingBrakeOn
         if (sensorStep && lastState?.let { sensorSatisfied(step.expected, it) } != true) {
@@ -233,7 +233,7 @@ class ParkingSlowMode(
         StepExpectation.StoppedThenConfirm, StepExpectation.ManualConfirm -> false
     }
 
-    /** 후진(R) 중 속도 초과를 1회 경고한다. 액셀(RPM 상승) 경고는 DangerRules 가 담당(같은 멘트가 두 곳에서 나가던 것 정리). */
+    /** 후진(R) 중 속도 초과를 1회 경고한다. 액셀(RPM 상승) 경고는 DangerRules 가 한다. */
     private fun checkReverseWarnings(s: VehicleState) {
         if (s.gear != Gear.R) return
         val v = s.speedKmh
@@ -247,7 +247,7 @@ class ParkingSlowMode(
 
     private fun resetWarnings() { lastAccelWarnMs = null; lastSpeedWarnMs = null }
 
-    /** 속도를 모르면(null) 멈춘 것으로 본다 — 운전자 확인을 막을 근거가 없기 때문. */
+    /** 속도를 모르면(null) 멈춘 것으로 본다. 운전자 확인을 막을 근거가 없기 때문. */
     private fun isStopped(): Boolean = (lastState?.speedKmh ?: 0.0) <= STOPPED_SPEED_KMH
 
     // ---------- 단계 이동 ----------
@@ -263,7 +263,7 @@ class ParkingSlowMode(
         stepStartedMs = nowMs
         val step = currentStep ?: return
         output.onOutput(SlowModeOutput.Say(step.instructionPhrase, step.illustration))
-        // (이미 맞는 단계(핸들 가운데·기어 P)는 들어가자마자 넘어가 "단계가 사라졌다") 들어간 직후에는 넘기지 않고,
+        // 이미 맞는 단계(핸들 가운데·기어 P)도 들어간 직후에는 넘기지 않고(안내를 보기 전에 단계가 지나가지 않게),
         //   들어갈 때 이미 맞아 있던 단계는 안내를 볼 시간(MIN_SENSOR_DWELL_MS)이 지난 뒤의 차량 신호로 넘긴다
         val s = lastState
         satisfiedAtEntry = s != null && sensorSatisfied(step.expected, s)

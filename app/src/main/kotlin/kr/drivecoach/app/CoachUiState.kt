@@ -1,5 +1,4 @@
-// 화면 상태(UI State) 데이터 클래스·열거형 — CoachController 가 StateFlow 로 내보내고 MainActivity/screens 가 그린다.
-// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
+// 화면 상태(UI State) 데이터 클래스·열거형: CoachController 가 StateFlow 로 내보내고 MainActivity/screens 가 그린다.
 package kr.drivecoach.app
 
 import kotlinx.coroutines.flow.StateFlow
@@ -69,7 +68,7 @@ data class CourseResultUi(
  * @param distanceKm/leftTurns/laneChanges/unprotectedLefts/rightTurns READY 에 보여 줄 코스 숫자(CourseSummary). 코스가 없으면 null.
  * @param apiCalls 이 코스를 만드는 데 쓴 길찾기 호출 수(오프셋 코스는 0).
  * @param generated true = 실제 길찾기 경로(Naver Directions), false = 오프셋 임시 코스.
- * @param fallbackAvailable ERROR 에서 "임시 코스로 진행"(오프셋 코스) 버튼을 보여 줄지 — 길찾기 생성이 실패했고 오프셋 소스가 따로 있을 때.
+ * @param fallbackAvailable ERROR 에서 "임시 코스로 진행"(오프셋 코스) 버튼을 보여 줄지. 길찾기 생성이 실패했고 오프셋 소스가 따로 있을 때.
  * @param routeDiag 길찾기 어댑터(NaverDirectionsProvider)의 진단 줄. 없으면 빈 목록.
  */
 data class CourseUi(
@@ -101,7 +100,7 @@ data class CourseUi(
     val routeDiag: List<String> = emptyList(),
     /** 고른 조건과 다른 점(조건을 다 맞춘 코스면 null). 예: "좌회전 4번(원함 1~2번), 거리 10.7 km(원함 6 km 이하)" */
     val mismatch: String? = null,
-    /** (지도·출발 위치가 없어 어디를 도는지 모른다) 경로 모양 미리보기용 좌표(최대 400점) */
+    /** 경로 모양 미리보기용 좌표(최대 400점). 지도·출발 위치가 없어도 어디를 도는지 보이게 */
     val routeShape: List<LatLon> = emptyList(),
     /** 난이도별 코스 생성기를 쓰는지(길찾기 키가 있을 때). false 면 난이도·시간 선택을 숨긴다. */
     val difficultyAvailable: Boolean = false,

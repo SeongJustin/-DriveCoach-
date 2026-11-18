@@ -1,4 +1,4 @@
-// 리포트 · 모의 시험 · 성장 기록 — fun main 러너
+// 리포트 · 모의 시험 · 성장 기록: fun main 러너
 package kr.drivecoach.core.report
 
 import kr.drivecoach.core.signal.FakeSignalSource

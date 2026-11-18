@@ -1,4 +1,4 @@
-// 건물 외벽 무늬 질감(CityBuilder.cs 에서 나눈 파일).
+// CityBuilder: 건물 외벽 무늬 질감
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -152,7 +152,7 @@ namespace DriveCoach.Unity
             return t;
         }
 
-        /// <summary>연석: 밝은 화강석(잔 얼룩) 1 m × 1 m, 왼쪽 끝에 어두운 이음매 한 줄 — 가로(u)로 1 m 마다 되풀이된다</summary>
+        /// <summary>연석: 밝은 화강석(잔 얼룩) 1 m × 1 m, 왼쪽 끝에 어두운 이음매 한 줄, 가로(u)로 1 m 마다 되풀이된다</summary>
         public static Texture2D Curb()
         {
             if (cache.TryGetValue("curb", out var t)) return t;

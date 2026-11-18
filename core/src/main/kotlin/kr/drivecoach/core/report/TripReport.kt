@@ -72,7 +72,7 @@ object ReportComposer {
     /** 이전 대비 이만큼 올라야 "나아진 점" 으로 본다. */
     const val IMPROVE_MIN_DELTA = 0.1
 
-    /** 지표 이름 멘트 ID 규칙. tts 모듈(K) 에 같은 ID 로 문장을 요청한다. */
+    /** 지표 이름 멘트 ID 규칙. tts 모듈에 같은 ID 로 문장을 요청한다. */
     fun phraseId(key: MetricKey) = "report_item_${key.phraseKey}"
 
     /** 리포트를 만든다. [previous] 는 같은 사용자의 직전 리포트(없으면 null). */

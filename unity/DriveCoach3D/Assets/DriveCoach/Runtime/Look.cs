@@ -230,7 +230,7 @@ namespace DriveCoach.Unity
             }
             if (weather != 0)
             {
-                // 흐림·비·눈·안개: 파란 하늘·해가 든 하늘 사진 대신 안개 색(흐린 회색) 바탕 — 비 오는 낮이 어두운 남색 하늘로 보이던 것
+                // 흐림·비·눈·안개: 파란 하늘·해가 든 하늘 사진 대신 안개 색(흐린 회색) 바탕
                 cam.clearFlags = CameraClearFlags.SolidColor;
                 cam.backgroundColor = fogC;
             }

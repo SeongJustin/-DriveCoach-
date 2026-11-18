@@ -13,7 +13,7 @@ object NaviHandoff {
     const val DEFAULT_MAX_WAYPOINTS = 2
 
     /**
-     * 코스 → 내비 요청. **넘기는 점은 전부 길찾기 경로(path) 위의 점** 이다 — 가상 경유지(위경도 오프셋)를 그대로 주면
+     * 코스 → 내비 요청. 넘기는 점은 전부 길찾기 경로(path) 위의 점이다. 가상 경유지(위경도 오프셋)를 그대로 주면
      * 도로 밖 점이라 차량 내비가 "경로 탐색 오류" 를 낸다(에뮬레이터에서 확인).
      * 1. 경유지: 경로의 WAYPOINT 안내(네이버 type 87)가 요청 경유지 수만큼 있으면 그 좌표(네이버가 도로에 붙인 점), 아니면 요청 경유지에서 가장 가까운 path 점.
      * 2. 경유지가 상한을 넘으면 순서를 유지한 채 고르게 솎는다(첫·마지막은 보존).
@@ -59,7 +59,7 @@ object NaviHandoff {
 
     /**
      * 출발 전 브리핑(5-2)용 "코스 특이사항" 판단: 반대 방향 회전이 500 m 안에 이어지는 지점의 guide 인덱스 쌍.
-     * 멘트 자체는 K 의 Phrases 로 만든다. 여기서는 위치만 준다.
+     * 멘트 자체는 Phrases 로 만든다. 여기서는 위치만 준다.
      */
     fun quickSuccessiveTurns(route: Route, windowM: Double = CourseSummarizer.LANE_CHANGE_WINDOW_M): List<Pair<Int, Int>> {
         val pos = CourseSummarizer.guidePositionsM(route)

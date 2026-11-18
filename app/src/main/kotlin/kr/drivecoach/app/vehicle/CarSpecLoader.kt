@@ -1,5 +1,5 @@
 // CarInfo 도메인 → core.signal.CarSpec. 실패하면 아반떼 CN8 기본값
-// 검증: Vehicle-2.3.2 jar 의 javap 시그니처로 재작성. checkVINInfoCapabilities 의 onComplete 는 (CapabilityConfig)->Unit 한 개 인자.
+// Vehicle 2.3.2 기준. checkVINInfoCapabilities 의 onComplete 는 인자 하나((CapabilityConfig)->Unit).
 package kr.drivecoach.app.vehicle
 
 import ai.pleos.playground.vehicle.Vehicle
@@ -18,7 +18,7 @@ import kr.drivecoach.core.signal.CarSpec
  * javap 확인 결과 Pleos CarInfo 도메인의 공개 API 는 VIN/CRN 조회뿐이다
  * (checkVINInfoCapabilities / getVINInfo / checkCRNInfoCapabilities / getCRNInfo). getCapabilityInfo 는 PRIVATE_CAR_INFO 권한(비공개).
  * 차체 크기(길이·폭·축거) API 는 없다.
- * 따라서 제원(길이·폭·축거·조향비)은 **차종 식별 → 내장 테이블** 로 정한다:
+ * 따라서 제원(길이·폭·축거·조향비)은 차종 식별 → 내장 테이블로 정한다:
  *  1) AAOS INFO_MODEL / INFO_MAKE / INFO_MODEL_YEAR (android.car.permission.CAR_INFO, normal) 로 모델명을 읽는다.
  *  2) 실패하면 Pleos getVINInfo 의 VIN 앞 3자리(WMI)·VDS 로 현대 차종을 추정한다.   // TODO(미확인) VIN 디코딩 규칙
  *  3) 모두 실패하면 [CarSpec.AVANTE_CN8].

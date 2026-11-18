@@ -1,6 +1,6 @@
 // 과속방지턱: 원호형 단면(길이 3.6 m · 높이 10 cm, 작은 것 7.5 cm)을
 // 실제로 솟게 그린다. 윗면은 노랑 바탕에 흰 빗금(우리나라 방지턱 도색), 양 옆은 단면 모양으로 막는다.
-// 노면 칠(평평한 방지턱 무늬)은 그 밑에 그대로 있지만 솟은 면이 덮는다(가장자리는 아스팔트보다 2 cm 위 — 칠과 겹쳐 깜빡이지 않게).
+// 노면 칠(평평한 방지턱 무늬)은 그 밑에 그대로 있지만 솟은 면이 덮는다(가장자리는 아스팔트보다 2 cm 위: 칠과 겹쳐 깜빡이지 않게).
 // 차가 넘을 때 튀는 것: SceneRig(내 차: 앞·뒤 바퀴 높이로 들림·기울기), TrafficView(다른 차: 가운데 높이).
 using DriveCoach.Core;
 using UnityEngine;
@@ -25,8 +25,8 @@ namespace DriveCoach.Unity
                 var hp = d.humps[hi];
                 var ax = hp.dir;                       // 진행 방향
                 var ay = new V2(-ax.y, ax.x);          // 가로
-                // (바닥 검사) 자료의 자리·폭이 길과 어긋나 한쪽은 보도 위로 올라가고 한쪽은 길이 비었다
-                //   → 가운데에서 양옆으로 아스팔트가 끝나는 곳을 찾아, 연석에서 12 cm 안쪽까지 길 폭에 맞춘다(자리·폭을 고쳐 차가 들리는 계산도 같이 맞는다).
+                // 자료의 자리·폭은 길과 어긋날 수 있다(한쪽은 보도 위로 올라가고 한쪽은 길이 빔).
+                //   가운데에서 양옆으로 아스팔트가 끝나는 곳을 찾아, 연석에서 12 cm 안쪽까지 길 폭에 맞춘다(자리·폭을 고쳐 차가 들리는 계산도 같이 맞는다).
                 if (surf != null && surf.Asphalt(hp.c))
                 {
                     float Reach(float sgn)
@@ -50,7 +50,7 @@ namespace DriveCoach.Unity
                     float u0 = -1f + 2f * i / Seg, u1 = -1f + 2f * (i + 1) / Seg;
                     float a0 = u0 * L / 2f, a1 = u1 * L / 2f;
                     float y0 = h + Lift + H * (1f - u0 * u0), y1 = h + Lift + H * (1f - u1 * u1);
-                    // 윗면(UV = 미터: 가로 b, 진행 a — 빗금 그림이 1.8 m 마다 되풀이)
+                    // 윗면(UV = 미터, 가로 b, 진행 a. 빗금 그림이 1.8 m 마다 되풀이)
                     top.Quad(P(a0, -W / 2f, y0), P(a0, W / 2f, y0), P(a1, W / 2f, y1), P(a1, -W / 2f, y1), Vector3.up,
                         new Vector2(-W / 2f / 1.8f, a0 / 1.8f), new Vector2(W / 2f / 1.8f, a0 / 1.8f), new Vector2(W / 2f / 1.8f, a1 / 1.8f), new Vector2(-W / 2f / 1.8f, a1 / 1.8f));
                     // 양 옆 단면(위 곡선 ~ 바닥)
@@ -68,7 +68,7 @@ namespace DriveCoach.Unity
             Debug.Log($"HumpBuilder: 과속방지턱 {d.humps.Count}");
         }
 
-        /// <summary>노랑 바탕 + 흰 빗금(0.9 m 마다 절반이 흰색, 비스듬히) — 1.8 m × 1.8 m 한 장, 되풀이</summary>
+        /// <summary>노랑 바탕 + 흰 빗금(0.9 m 마다 절반이 흰색, 비스듬히), 1.8 m × 1.8 m 한 장, 되풀이</summary>
         static Texture2D Tex() => Tex(CountryStyle.KR);
 
         static readonly System.Collections.Generic.Dictionary<string, Texture2D> texOther = new System.Collections.Generic.Dictionary<string, Texture2D>();

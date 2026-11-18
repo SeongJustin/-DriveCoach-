@@ -1,4 +1,4 @@
-// 앱 연결 — 차량 내비 TBT(다음 회전) 이벤트를 5-3 안내 멘트 ID 로 바꾸는 순수 규칙
+// 앱 연결: 차량 내비 TBT(다음 회전) 이벤트를 5-3 안내 멘트 ID 로 바꾸는 순수 규칙
 package kr.drivecoach.core.course
 
 import kr.drivecoach.core.tts.PhraseId
@@ -8,7 +8,7 @@ data class TbtAnnouncement(val phraseId: PhraseId, val params: Map<String, Strin
 
 /**
  * "다음 동작은 미리 한참 전부터 안내한다": 내비가 주는 다음 회전(종류·남은 거리)을 받아
- * 회전 하나당 **멀리서 한 번**("{distance}m 앞 우회전…"), **직전에 한 번**("여기서 우회전…")만 멘트 ID 를 낸다.
+ * 회전 하나당 멀리서 한 번("{distance}m 앞 우회전…"), 직전에 한 번("여기서 우회전…")만 멘트 ID 를 낸다.
  * 같은 회전에 대해 내비가 거리 갱신을 초마다 보내도 두 번 넘게 말하지 않는다.
  * 문장은 전부 core/tts 카탈로그의 guide_* ID 이고 여기서는 ID 와 {distance} 값만 만든다.
  *

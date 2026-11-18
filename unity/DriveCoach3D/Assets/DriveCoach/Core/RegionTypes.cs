@@ -1,4 +1,4 @@
-// 지역 지도 자료의 부품 타입(Region.cs 에서 나눈 파일).
+// Region: 지도 자료 부품 타입
 using System;
 using System.Collections.Generic;
 
@@ -19,13 +19,13 @@ namespace DriveCoach.Core
         public float twl, twr;
         /// <summary>실제 차선으로 잰 차로 가운데(오프셋 m, 진행 방향 오른쪽 +). laneR = 정방향, laneL = 역방향(음수). null = 모름(차로 수 × 폭)</summary>
         public float[] laneR, laneL;
-        /// <summary>점마다 차로 가운데를 옆으로 더 옮길 거리(m, 오른쪽 +, pts 와 같은 길이) — OSM 선이 실제 칠과 나란하지 않은 길(차로 경로가 차선 위로 비스듬히). null = 없음</summary>
+        /// <summary>점마다 차로 가운데를 옆으로 더 옮길 거리(m, 오른쪽 +, pts 와 같은 길이), OSM 선이 실제 칠과 나란하지 않은 길(차로 경로가 차선 위로 비스듬히). null = 없음</summary>
         public float[] laneShift;
         public bool oneway, bridge, tunnel;
         public int layer;
         public V2[] pts;
         public int[] jn;
-        /// <summary>입체 교차: 꼭짓점마다 높이(m, 고가 +·지하 −). null = 땅 높이</summary>
+        /// <summary>입체 교차: 꼭짓점마다 높이(m, 고가 +·지하 -). null = 땅 높이</summary>
         public float[] z;
     }
 
@@ -53,7 +53,7 @@ namespace DriveCoach.Core
 
     /// <summary>
     /// 시설: kind = parking | fuel | charging | services.
-    /// poly 넓이, stalls 주차칸 선(두 점씩), cars 세운 차(x, y, 각 라디안), canopy 주유소 지붕(cx, cy, 각 라디안, 길이, 폭) — 없으면 null.
+    /// poly 넓이, stalls 주차칸 선(두 점씩), cars 세운 차(x, y, 각 라디안), canopy 주유소 지붕(cx, cy, 각 라디안, 길이, 폭), 없으면 null.
     /// </summary>
     public class RegionFacility
     {

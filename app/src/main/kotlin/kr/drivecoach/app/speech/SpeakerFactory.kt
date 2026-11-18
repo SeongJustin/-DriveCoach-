@@ -1,4 +1,4 @@
-// 앱 연결 — 음성 엔진: Pleos TextToSpeech SDK(ON_DEVICE) 하나만. 안 되면 화면 글씨만(소리 없음)
+// 앱 연결: 음성 엔진은 Pleos TextToSpeech SDK(ON_DEVICE) 하나만. 안 되면 화면 글씨만(소리 없음)
 package kr.drivecoach.app.speech
 
 import android.content.Context
@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * 쓸 수 있는 TTS 엔진을 순서대로 시도한다.
  *  - Pleos 서포트 답변: TTS·STT 는 공모전용으로 에뮬레이터에서도 제공됨. 같은 날 에뮬레이터에서 동작 확인(로캘은 ko-KR 이어야 함)
- *    → **Pleos TextToSpeech SDK(ON_DEVICE)만 쓴다.**
+ *    → Pleos TextToSpeech SDK(ON_DEVICE)만 쓴다.
  *  - 공모전 사무국 안내: "음성 읽어 주기 기능은 개발 문서에 안내된 방식으로 구현 … 문서에 안내되지 않은 방식은 사용할 수 없습니다"
- *    → 예비로 두었던 사전 녹음 클립(assets/tts 527개)·Android TTS 를 모두 뺐다. Pleos TTS 가 실패하면 소리 없이 화면 글씨로만 안내하고([NoopSpeaker]),
+ *    → 사전 녹음 클립이나 Android TTS 로 대신 읽지 않는다. Pleos TTS 가 실패하면 소리 없이 화면 글씨로만 안내하고([NoopSpeaker]),
  *      [RETRY_MS] 부터 간격을 늘려 가며 Pleos TTS 를 다시 시도한다.
  *  - SERVER/HYBRID 모드는 쓰지 않는다(에뮬레이터에서 우리 프로젝트 자격 증명으로 UNAUTHENTICATED). 앱에 Pleos 키도 넣지 않는다.
  *

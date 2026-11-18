@@ -3,7 +3,7 @@
 //   칠(지하차도·고가 위·노면 파일 없는 길): 중앙선 색·겹선 여부·자리, 차로 점선 길이/간격
 //   점형블록 색, 과속방지턱 도색, 안전표지 그림 모음(번호 앞머리), 주유소 가격판 그림, 신호(빨강+노랑 뒤 초록, 보행 초록 깜빡임),
 //   버스·택시 색, 버스정류장 표지 색, 초록 옥상 비율.
-// 노면 파일(<지역>_surface.bytes)의 실제 칠은 데이터가 색을 정한다(베를린 칠은 모두 흰색 PNTW) — 여기 값은 Unity 가 직접 긋는 선에만 쓴다.
+// 노면 파일(<지역>_surface.bytes)의 실제 칠은 데이터가 색을 정한다(베를린 칠은 모두 흰색 PNTW). 여기 값은 Unity 가 직접 긋는 선에만 쓴다.
 using DriveCoach.Core;
 using UnityEngine;
 
@@ -20,8 +20,8 @@ namespace DriveCoach.Unity
         public bool centreDouble = true;
         /// <summary>
         /// 중앙선 자리: true = 지역 자료의 차로 자리로 정한 방향 경계(오른쪽 차로 중 가장 안쪽과 왼쪽 차로 중 가장 안쪽의 가운데, 자료 없으면 0) / false = 길 가운데선(0).
-        /// 베를린 브란덴부르크 거리: 차로 +2.9 | 0.0 −2.8 → 중앙선 +1.45(원자료 +1.3), 길 가운데 0 은 차로 한가운데.
-        /// 한국도 켬: 앱에 든 한국 동네의 양방향 지하·고가 길은 모두 차로 자료가 없거나 대칭이라 이 값이 0 — 화면 그대로.
+        /// 베를린 브란덴부르크 거리: 차로 +2.9 | 0.0 -2.8 → 중앙선 +1.45(원자료 +1.3), 길 가운데 0 은 차로 한가운데.
+        /// 한국도 켬: 앱에 든 한국 동네의 양방향 지하·고가 길은 모두 차로 자료가 없거나 대칭이라 이 값이 0, 화면 그대로.
         /// </summary>
         public bool centreFromLanes = true;
         /// <summary>동네길(큰길 아님) 중앙선을 점선으로(독일: 흰 Leitlinie). 0 = 실선</summary>
@@ -44,7 +44,7 @@ namespace DriveCoach.Unity
         public string stationBoard = "DC/Signs/station";
 
         // ── 신호 ──
-        /// <summary>초록 직전 빨강+노랑을 함께 켜는 초(독일 StVO §37 Rot-Gelb). 0 = 없음(한국). 화면 표시만 — 차는 빨강으로 다룬다</summary>
+        /// <summary>초록 직전 빨강+노랑을 함께 켜는 초(독일 StVO §37 Rot-Gelb). 0 = 없음(한국). 화면 표시만: 차는 빨강으로 다룬다</summary>
         public float redAmberSec;
         /// <summary>보행 초록 끝 무렵 깜빡임(한국 보행 녹색 점멸). 독일은 깜빡이지 않는다</summary>
         public bool pedGreenBlink = true;

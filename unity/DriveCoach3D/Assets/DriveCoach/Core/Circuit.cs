@@ -1,4 +1,4 @@
-// 3D 핸들 감각 — 서킷 돌아보기.
+// 3D 핸들 감각: 서킷 돌아보기.
 // 닫힌 트랙을 몇 바퀴 돈다. 실패는 방호벽·밖으로 나감뿐이고, 트랙 밖으로 바퀴가 나가면 횟수만 센다(별점).
 // 코너 앞에서 너무 빠르면 "속도를 줄이세요" 같은 짧은 안내를 낸다(코칭 앱과 같은 말투).
 using System;
@@ -56,7 +56,7 @@ namespace DriveCoach.Core
         public int lap;              // 끝낸 바퀴 수
         public int nextCheckpoint;   // 다음에 지나야 할 checkpoints 번호
         public float lapStart;
-        /// <summary>(출발 전부터 시간이 흐른다) 차가 처음 움직인 때부터 잰다</summary>
+        /// <summary>차가 처음 움직인 때부터 잰다(출발 전 시간은 넣지 않는다)</summary>
         public bool started;
         public float LapTime(float now) => started ? now - lapStart : 0f;
         public List<float> lapTimes = new List<float>();
@@ -150,7 +150,7 @@ namespace DriveCoach.Core
             string title, goal;
             if (i == 2)
             {
-                // 가장 급한 곳(헤어핀) 가운데선 반지름 약 6.6 m — 핸들을 거의 끝까지 돌려야 한다(최소회전반경 5.3~5.9 m 차)
+                // 가장 급한 곳(헤어핀) 가운데선 반지름 약 6.6 m. 핸들을 거의 끝까지 돌려야 한다(최소회전반경 5.3~5.9 m 차)
                 ctrl = new[] { P(0, 0), P(40, 0), P(64, 10), P(70, 32), P(54, 44), P(38, 38), P(24, 46), P(16, 62), P(-4, 68), P(-24, 60), P(-32, 38), P(-22, 12) };
                 width = 6f;
                 title = CircuitNames[1];
@@ -168,7 +168,7 @@ namespace DriveCoach.Core
             var s = MakeStage(200 + i, title, goal);
             s.mode = StageMode.Circuit;
             s.circuit = def;
-            // 바닥(잔디) — 트랙 전체 + 여유
+            // 바닥(잔디): 트랙 전체 + 여유
             var r = new Rect(center[0].x, center[0].y, 0, 0);
             foreach (var p in center) r = r.Expand(p);
             var f = MakeFloor("서킷", r.Grow(width / 2f + def.runoff + 12f));

@@ -4,7 +4,7 @@ package kr.drivecoach.core.law
 import kr.drivecoach.core.tts.Phrases
 import kr.drivecoach.core.tts.PhraseId
 
-/** 다른 나라 도로 법규(조사·검수를 마친 나라만). 글은 멘트로 등록해 한국 법규와 같은 길로 화면에 보이고 읽힌다. */
+/** 다른 나라 도로 법규(자료를 확인한 나라만). 글은 멘트로 등록해 한국 법규와 같은 길로 화면에 보이고 읽힌다. */
 object ForeignLaws {
     private fun t(cc: String, id: String, title: String, heading: String, basis: String, text: String): RuleTopic {
         val pid = "law_${cc}_$id"

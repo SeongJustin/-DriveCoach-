@@ -1,5 +1,4 @@
 // 설정 화면 + 진단
-// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -49,7 +48,7 @@ import kotlin.math.abs
 
 /**
  * 설정 화면: 코칭 음성(= 조용히) · 음성 속도 · 진단 보기 · 앱 버전 · 앱 종료(확인 대화상자).
- * 연습 기록 초기화는 넣지 않기로 함. 진단을 켜면 이 화면 아래에 진단 내용이 붙는다(스크롤).
+ * 진단을 켜면 이 화면 아래에 진단 내용이 붙는다(스크롤).
  */
 @Composable
 internal fun MainActivity.SettingsScreen(svc: CoachService, state: VehicleState, lastSpoken: String, modifier: Modifier = Modifier) {
@@ -71,13 +70,13 @@ internal fun MainActivity.SettingsScreen(svc: CoachService, state: VehicleState,
             HeaderChip(text = getString(R.string.setting_off), selected = quiet, onClick = { coach.setQuiet(true) })
         }
         SettingRow(getString(R.string.setting_rate)) {
-            // (마지막 칩 뒤에도 간격이 붙어 '빠르게'가 다른 줄보다 안쪽에 섰다) 칩 사이에만 간격
+            // 간격은 칩 사이에만(마지막 칩 뒤에 붙으면 줄 끝이 다른 줄보다 안쪽에 선다)
             listOf(0.85f to R.string.setting_rate_slow, 1f to R.string.setting_rate_normal, 1.2f to R.string.setting_rate_fast).forEachIndexed { i, (r, label) ->
                 if (i > 0) Spacer(Modifier.width(12.dp))
                 HeaderChip(text = getString(label), selected = kotlin.math.abs(rate - r) < 0.01f, onClick = { coach.setSpeechRate(r) })
             }
         }
-        // 버튼 하나("꺼짐")라 지금 상태인지 누르는 버튼인지 헷갈리던 것 → 코칭 음성처럼 켜짐/꺼짐 두 개
+        // 코칭 음성처럼 켜짐/꺼짐 두 버튼
         SettingRow(getString(R.string.setting_diag)) {
             HeaderChip(text = getString(R.string.setting_on), selected = diagOpen, onClick = {
                 if (!diagOpen) {
@@ -93,7 +92,7 @@ internal fun MainActivity.SettingsScreen(svc: CoachService, state: VehicleState,
         }
         // Pleos 실험은 진단 보기 바로 아래(차 화면에서 스크롤 없이 보이게)
         if (diagOpen) PleosLabSection(svc)
-        // (설정에 개발용 항목이 대부분) Pleos 연결 상태 줄은 진단 보기를 켰을 때만
+        // Pleos 연결 상태 줄은 개발용이라 진단 보기를 켰을 때만
         if (diagOpen) PleosStatus(svc)
         SettingRow(getString(R.string.setting_version)) {
             Text(text = BuildConfig.VERSION_NAME, style = CoachType.Body, color = CoachColors.Secondary)
@@ -201,7 +200,7 @@ internal fun MainActivity.PleosLabSection(svc: CoachService) {
         Spacer(Modifier.width(8.dp))
         HeaderChip(text = getString(R.string.lab_clear), selected = false, onClick = { svc.lab.clear() })
     }
-    // 말 넣기(debug 빌드만): 시험 녹음을 마이크 대신 음성 명령 엔진에 넣는다 — 사람이 옆에서 말하지 않아도 음성 명령을 끝까지 시험
+    // 말 넣기(debug 빌드만): 시험 녹음을 마이크 대신 음성 명령 엔진에 넣는다. 사람이 옆에서 말하지 않아도 음성 명령을 끝까지 시험
     val recordings = remember { svc.lab.commandRecordings() }
     if (recordings.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
@@ -251,7 +250,7 @@ internal fun MainActivity.DiagSection(svc: CoachService, state: VehicleState) {
     Row {
         Text("기어 ${state.gear}", fontSize = big, fontFamily = mono, color = black); Spacer(Modifier.width(32.dp))
         Text("속도 ${state.speedKmh?.let { "%.1f".format(it) } ?: "-"} km/h", fontSize = big, fontFamily = mono, color = black)
-        // RPM 은 뺐다(ENGINE_RPM 은 signature|privileged 권한이라 사용 불가)
+        // RPM 없음(ENGINE_RPM 은 signature|privileged 권한이라 사용 불가)
     }
     Row {
         Text("조향 ${state.steeringAngleDeg?.let { "%.0f°".format(it) } ?: "-"}", fontSize = big, fontFamily = mono, color = black); Spacer(Modifier.width(32.dp))

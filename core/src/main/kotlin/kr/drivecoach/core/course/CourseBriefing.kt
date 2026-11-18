@@ -4,7 +4,7 @@ package kr.drivecoach.core.course
 import kotlin.math.roundToInt
 
 /**
- * 출발 전 브리핑(5-2) 한 줄. phraseId 는 K 의 core/tts/Phrases.kt 카탈로그 ID(문자열) 이고 params 는 그 문장의 {자리표시자} 값.
+ * 출발 전 브리핑(5-2) 한 줄. phraseId 는 core/tts/Phrases.kt 카탈로그 ID(문자열) 이고 params 는 그 문장의 {자리표시자} 값.
  * 문장 자체는 여기 두지 않는다(하드코딩 멘트 금지).
  */
 data class BriefingNote(val phraseId: String, val params: Map<String, String>)
@@ -36,8 +36,8 @@ object CourseBriefing {
         ))
         val guides = course.route.guides
         // quickSuccessiveTurns 는 반대 방향 회전이 500 m 안에 이어지는 (앞, 뒤) 쌍. 뒤가 좌회전이면 "우회전 뒤 바로 좌회전".
-        // (같은 안내가 세 번 반복되고 화면에서 잘린다) 종류마다 첫 곳만
-        // (같은 곳이 '바로 뒤 좌회전'과 '비보호 좌회전'으로 두 번 나와 같은 곳인지 알 수 없다) 같은 곳(같은 안내 글)은 한 번만 —
+        // 종류마다 첫 곳만(같은 안내가 되풀이되어 화면에서 잘리지 않게)
+        // 같은 곳(같은 안내 글)은 한 번만.
         //   비보호 좌회전이 더 위험하므로 겹치면 비보호 쪽을 남긴다
         val uIdx = guides.indexOfFirst { it.type == ManeuverType.UNPROTECTED_LEFT }
         val uLoc = if (uIdx >= 0) location(course, uIdx) else null
@@ -60,7 +60,7 @@ object CourseBriefing {
 
     private fun location(course: Course, guideIndex: Int): String {
         val g = course.route.guides[guideIndex]
-        // ("'분당내곡로' 방면으로 비보호 좌회전 좌회전은 비보호입" 처럼 회전 말이 겹친다) 안내 글에서 회전 말을 떼고 도로·방면만
+        // 안내 글에서 회전 말을 떼고 도로·방면만(뒤에 붙이는 회전 말과 겹치지 않게)
         val place = g.instructions.replace(Regex("\\s*(으로|로)?\\s*(비보호\\s*)?(좌회전|우회전|유턴|직진)\\s*$"), "").replace(Regex("방면\\s*$"), "방면").trim()
         if (place.isNotBlank()) return place
         val turnOrdinal = course.route.guides.take(guideIndex + 1).count { it.type.isTurn || it.type == ManeuverType.MERGE || it.type == ManeuverType.HIGHWAY_ENTER }

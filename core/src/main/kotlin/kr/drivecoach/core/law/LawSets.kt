@@ -30,7 +30,7 @@ data class LawSet(
 object LawSets {
     val korea: LawSet = LawSet(LawSet.KOREA, "한국", TrafficRules.topics, asOf = "2026-10-13")
 
-    /** 화면에 보이는 순서: 한국 다음 조사·검수를 마친 나라. */
+    /** 화면에 보이는 순서: 한국 다음 자료를 확인한 나라. */
     val all: List<LawSet> by lazy { listOf(korea) + ForeignLaws.sets }
 
     fun of(country: String?): LawSet = all.firstOrNull { it.country.equals(country, ignoreCase = true) } ?: korea

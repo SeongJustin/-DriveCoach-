@@ -59,7 +59,7 @@ namespace DriveCoach.Unity
             float yaw = Space3D.Yaw(heading);
             var c = W(p, y0);
             metal.Box(c + Vector3.up * 1.4f, new Vector3(0.07f, 2.8f, 0.07f), yaw);
-            // 판: 길 방향으로 넓은 면이 오게(지나가는 운전자가 옆에서 보는 판 — 실제 정류장 표지처럼 길과 나란한 면 두 개)
+            // 판: 길 방향으로 넓은 면이 오게(지나가는 운전자가 옆에서 보는 판, 실제 정류장 표지처럼 길과 나란한 면 두 개)
             plate.Box(c + Vector3.up * 2.45f, new Vector3(0.06f, 0.70f, 0.52f), yaw);
             Axes(heading, out var fwd, out var side);
             foreach (var sg in new[] { -1f, 1f })
@@ -84,7 +84,7 @@ namespace DriveCoach.Unity
             foreach (var a in new[] { -1f, 1f })
                 foreach (var b in new[] { -1f, 1f })
                     metal.Box(c + fwd * (a * (L / 2f - 0.1f)) + back * (b * (Wd / 2f - 0.1f)) + Vector3.up * (H / 2f), new Vector3(0.07f, H, 0.07f), yaw);
-            // 지붕: 뒤가 조금 높게(빗물) — 판 + 앞 테두리
+            // 지붕: 뒤가 조금 높게(빗물). 판 + 앞 테두리
             roof.Box(c + Vector3.up * (H + 0.05f) + back * 0.1f, new Vector3(Wd + 0.4f, 0.08f, L + 0.3f), yaw);
             metal.Box(c + Vector3.up * (H - 0.04f) - back * (Wd / 2f + 0.08f), new Vector3(0.06f, 0.14f, L + 0.3f), yaw);
             // 뒷벽 유리·옆 유리(한쪽)
@@ -111,7 +111,7 @@ namespace DriveCoach.Unity
                 metal.Box(c + fwd * t + Vector3.up * (H / 2f), new Vector3(0.09f, H, 0.09f), yaw);
             }
             roof.Box(c + Vector3.up * (H + 0.05f), new Vector3(Wd + 0.3f, 0.09f, L), yaw);
-            // 양쪽 낮은 난간(유리 1.0 m) — 버스가 서는 쪽 가운데는 비운다(타고 내리는 자리 6 m)
+            // 양쪽 낮은 난간(유리 1.0 m): 버스가 서는 쪽 가운데는 비운다(타고 내리는 자리 6 m)
             foreach (var sg in new[] { -1f, 1f })
             {
                 float gap = Mathf.Min(6f, L - 2f);

@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 후방 카메라 안내선(실제 차 후방 카메라처럼)
+// 3D 주차 연습: 후방 카메라 안내선(실제 차 후방 카메라처럼)
 //  - 거리선: 뒤 범퍼에서 0.5 m(빨강)·1 m(노랑)·2 m(초록) 가로 막대와 양옆 세로선(차 폭)
 //  - 진행선: 지금 핸들 각으로 뒤로 갈 때 차 양옆이 지나갈 곡선(주황, 3 m)
 // 후방 카메라에만 보이는 층(29)에 그린다(화면 카메라·거울에는 안 보임).
@@ -44,7 +44,7 @@ namespace DriveCoach.Unity
         {
             var mk = new MeshKit();
             float z = rearZ - d;
-            // 가운데가 빈 막대(양옆 0.45 m 씩) — 실제 후방 카메라 모양
+            // 가운데가 빈 막대(양옆 0.45 m 씩): 실제 후방 카메라 모양
             foreach (var sx in new[] { -1f, 1f })
                 Seg(mk, new Vector3(sx * halfW, 0.03f, z), new Vector3(sx * (halfW - 0.45f), 0.03f, z), 0.06f);
             Obj(name, mk.Build("rear-" + name), DcAssets.Unlit(c));

@@ -1,5 +1,4 @@
 // 직각 주차 슬로우 모드(4-5) 동작
-// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
 package kr.drivecoach.app
 
 import android.util.Log
@@ -21,7 +20,7 @@ import kotlin.math.abs
 
 /**
  * "직각 주차" 열기. core ParkingSlowMode(공식 11단계 + 탈출 3종 + 자기평가)를 만들고, 먼저 시작 전 설명 화면을 보여 준다
- * (무엇을 하는 연습인지 모른 채 첫 지시가 'D' 였음). '시작'([parkingBegin]) 을 누르면 1단계부터.
+ * (무엇을 하는 연습인지 알고 시작하게). '시작'([parkingBegin]) 을 누르면 1단계부터.
  * 기어가 R/D 로 바뀌어 주행 모드가 돼도 닫지 않는다(그게 공식의 흐름). 그동안 발화 모드는 PRACTICE 라 PARKING 멘트가 나간다.
  */
 fun CoachController.startParking(kind: ParkingKind = ParkingKind.PERPENDICULAR) {
@@ -49,7 +48,7 @@ fun CoachController.parkingBegin() {
     if (m.phase != SlowModePhase.IDLE) return
     clearSubModeQueue()
     interruptCoaching()
-    // ("브레이크를 밟은 채 시작"인데 안 밟아도 시작된다) 막지는 않고(신호가 없는 차도 있다) 밟지 않았으면 먼저 알린다
+    // "브레이크를 밟은 채 시작": 막지는 않고(신호가 없는 차도 있다) 밟지 않았으면 먼저 알린다
     val noBrake = currentState().brakePressed == false
     showParkingNotice(if (noBrake) "브레이크 페달이 밟혀 있지 않습니다. 밟은 채로 따라 하십시오. " + Phrases.parkingSlowStart.text else Phrases.parkingSlowStart.text)
     requestQueued(Phrases.parkingSlowStart.id)
@@ -157,7 +156,7 @@ internal fun CoachController.onParkingOutput(out: SlowModeOutput) {
                     Phrases.find(out.phrase)?.let { showParkingNotice(it.text) }
                 }
             } else {
-                // 선택·평가·완료 화면: 그 멘트가 실제로 나갈 때 큰 문장을 바꾼다(여러 문장이 한꺼번에 나오면 마지막 것만 보이던 문제).
+                // 선택·평가·완료 화면: 그 멘트가 실제로 나갈 때 큰 문장을 바꾼다(여러 문장이 한꺼번에 나와도 화면은 지금 들리는 문장).
                 Phrases.find(out.phrase)?.let { ph -> screenTextWhenSpoken[out.phrase] = { parkingText = ph.text; publishParkingUi(currentState()) } }
             }
             // 확인으로만 넘어가는 단계면 입력을 기다린다(무응답 시 정차 중 1회 재안내, 휠 버튼 짧게 = 확인).
@@ -206,7 +205,7 @@ internal fun CoachController.publishParkingUi(state: VehicleState) {
         else -> {}
     }
     if (state.gear == Gear.R || state.gear == Gear.D) checks += ParkingCheck("속도 5 이하", speed <= PARKING_SPEED_OK_KMH)
-    // (상태 고르기 화면에 직전 단계 영상이 남아 고르는 내용과 맞지 않았다) 고르기 화면은 그림 없이
+    // 고르기 화면은 그림 없이(직전 단계 영상은 고르는 내용과 맞지 않는다)
     val illustration = if (m.phase == SlowModePhase.RECOVERY_CHOICE) "" else step?.illustration ?: parkingIllustration
     val inStep = step != null && (m.phase == SlowModePhase.STEP || m.phase == SlowModePhase.RECOVERY_STEP)
     _parkingUi.value = ParkingUi(

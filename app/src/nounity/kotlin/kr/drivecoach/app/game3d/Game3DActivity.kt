@@ -1,4 +1,4 @@
-// 3D 게임(Unity)이 빌드에 없을 때의 대체 화면: 알림만 띄우고 닫는다(2D 는 뺐다).
+// 3D 게임(Unity)이 빌드에 없을 때의 대체 화면: 알림만 띄우고 닫는다.
 // unity/export 가 있으면 src/unity 의 진짜 Game3DActivity 가 대신 들어간다(app/build.gradle.kts).
 package kr.drivecoach.app.game3d
 

@@ -1,5 +1,4 @@
 // 신호 소스·차종·주행 규제 생명주기, 권한 요청, 진단, CoachController·TTS 연결, 첫 화면, 흰 바탕 스타일·연습 그림, 포그라운드 서비스 바인딩, 핸들 감각·직각 주차·코스 주행 화면
-// Compose 는 compose-bom 2024.06.00(ui 1.6.8, material3 1.2.1) 의 표준 API 만 쓰고 모든 심볼을 명시 import 했다.
 package kr.drivecoach.app
 
 import android.content.ComponentName
@@ -34,7 +33,7 @@ import kotlinx.coroutines.launch
 
 /**
  * 앱 진입점. 신호 소스·차종·주행 규제·TTS·CoachController 는 [CoachService](포그라운드 서비스)가 소유하고,
- * 이 Activity 는 서비스를 띄운 뒤 바인딩해서 **같은 StateFlow 를 보여 주기만** 한다. 그래서 기어 D 에서 Pleos 런처가 화면을 덮거나
+ * 이 Activity 는 서비스를 띄운 뒤 바인딩해서 같은 StateFlow 를 보여 주기만 한다. 그래서 기어 D 에서 Pleos 런처가 화면을 덮거나
  * 사용자가 앱을 닫아도 음성 코칭은 계속된다. 두 가지 화면:
  *  - P 상태 화면(미니멀): "인식 차종: …" + 설정(톱니바퀴) 한 줄, 그 아래 메뉴 3개(차 기능 익히기 / 도로 법규 / 코스 주행)가 화면을 꽉 채운다(설정: 코칭 음성·음성 속도·진단·버전·앱 종료).
  *    "차 기능 익히기" → 선택 화면(검색창, 처음부터 순서대로/이어서, 핸들 감각, 직각 주차, 장별 항목 칩). 열린 활동에 따라
@@ -68,7 +67,7 @@ class MainActivity : ComponentActivity() {
     internal val parkingMenuOpen = mutableStateOf(false)
     /** 선택 화면의 검색어. */
     internal val practiceQuery = mutableStateOf("")
-    /** (항목을 보고 목록으로 돌아오면 맨 위로 돌아간다) 목록 스크롤 자리를 화면 밖에 둔다 */
+    /** 목록 스크롤 자리를 화면 밖에 둔다(항목을 보고 목록으로 돌아와도 보던 자리에 남게) */
     internal val practiceScroll = androidx.compose.foundation.ScrollState(0)
 
     /** 서비스가 붙기 전에 온 Gleo 음성 호출(붙자마자 처리, Gleo 는 7초 기다린다) */
@@ -169,13 +168,13 @@ class MainActivity : ComponentActivity() {
         // 패키지·권한 조사(진단용)는 설정에서 '진단 보기' 를 켤 때만, 백그라운드에서(매 시작마다 메인 스레드 전체 스캔).
 
         // Pleos CCP 가이드: Back 은 설정·선택 화면·열린 활동이면 한 단계 뒤로, 최상단이면 앱을 숨긴다
-        // (moveTaskToBack — finish 로 끝내면 심사 반려 사유). 숨겨도 CoachService(코칭·음성)는 계속 돈다.
+        // (moveTaskToBack: finish 로 끝내면 심사 반려 사유). 숨겨도 CoachService(코칭·음성)는 계속 돈다.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val svc = service.value
                 when {
                     settingsOpen.value -> settingsOpen.value = false
-                    // 연습 카드가 열려 있으면 카드부터 닫는다(전에는 첫 Back 에 화면 변화가 없었다)
+                    // 연습 카드가 열려 있으면 카드부터 닫는다
                     svc != null && svc.coach.subMode.value != SubMode.NONE -> svc.coach.endActivity()
                     practiceMenuOpen.value -> practiceMenuOpen.value = false
                     parkingMenuOpen.value -> parkingMenuOpen.value = false
@@ -267,7 +266,7 @@ class MainActivity : ComponentActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean =
         if (wheel.onKeyEvent(event)) true else super.dispatchKeyEvent(event)
 
-    /** 바인딩만 끊는다. 서비스는 **멈추지 않는다** — 화면이 닫혀도(런처가 덮어도) 코칭은 계속. */
+    /** 바인딩만 끊는다. 서비스는 멈추지 않는다. 화면이 닫혀도(런처가 덮어도) 코칭은 계속. */
     override fun onDestroy() {
         wheel.reset()
         unbind()

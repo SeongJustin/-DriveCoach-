@@ -1,5 +1,4 @@
 // 직각 주차(4-5) 화면
-// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -66,7 +65,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
         Spacer(Modifier.weight(1f))   // 남는 높이는 그림 위아래로 나눠 버튼 줄을 화면 아래에 붙인다
         // 그림 + 문장: 넓은 화면은 좌우, 좁은(세로) 화면은 위아래(Pleos 가이드)
         ArtWithText(ParkingArt.resIdFor(p.illustration), p.illustration, videoRes = ParkingArt.videoResFor(this@ParkingScreen, p.illustration), keepArtSlot = p.phase != SlowModePhase.IDLE) {
-            // (자기평가 화면에 시작 전 안내문이 그대로 남는다)
+            // 자기평가 화면에는 시작 전 안내문 대신 자기평가 글
             val bodyText = if (p.phase == SlowModePhase.SELF_EVAL) getString(if (p.kind == ParkingKind.PARALLEL) R.string.parking_par_selfeval_body else R.string.parking_selfeval_body) else p.text
             val longText = bodyText.length > 60   // 시작 전 설명 등
             Text(
@@ -104,7 +103,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
                     SecondaryButton(onClick = { coach.onCommand(Command.SKIP) }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_skip), fontSize = CoachSize.Button)
                     }
-                    // '다시' = 이번 단계 안내를 다시 듣기('처음부터' 와 헷갈리던 것)
+                    // '다시' = 이번 단계 안내를 다시 듣기('처음부터'와 다르다)
                     SecondaryButton(onClick = { coach.onCommand(Command.AGAIN) }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_listen_again), fontSize = CoachSize.Button)
                     }
@@ -125,7 +124,7 @@ internal fun MainActivity.ParkingScreen(coach: CoachController, p: ParkingUi) {
             }
             SlowModePhase.RECOVERY_CHOICE -> {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    // 상태 이름만으로는 무엇인지 몰라 고르기 어렵던 것: 한 줄 설명을 같이
+                    // 상태 이름 아래 한 줄 설명을 같이
                     for (t in p.recoveryOptions) {
                         SecondaryButton(onClick = { coach.parkingChooseRecovery(t) }, modifier = Modifier.weight(1f)) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {

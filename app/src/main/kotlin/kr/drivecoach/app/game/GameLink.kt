@@ -97,7 +97,7 @@ class GameLink(
         const val KEY_RPM = "rpm"
         const val KEY_ACCEL = "accel"   // 액셀 페달 0~100 %, 모르면 -1
         // 방향지시등·비상등·전조등·와이퍼·안전벨트를 게임에도
-        const val KEY_SWITCHES = "sw"   // "방향;비상;전조등;와이퍼;벨트" — L/R/O/U · 1/0/-1 · OFF/AUTO/LOW/HIGH/UNKNOWN · OFF/INT/LOW/HIGH/UNKNOWN · 1/0/-1
+        const val KEY_SWITCHES = "sw"   // "방향;비상;전조등;와이퍼;벨트": L/R/O/U · 1/0/-1 · OFF/AUTO/LOW/HIGH/UNKNOWN · OFF/INT/LOW/HIGH/UNKNOWN · 1/0/-1
         const val KEY_SPEC = "spec"
 
         fun stateMessage(s: VehicleState): Message = Message.obtain(null, MSG_STATE).apply {

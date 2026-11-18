@@ -1,4 +1,4 @@
-// 실제 Directions API 연결 — 요청 URL·좌표 순서 변환·오류 문구. 순수 Kotlin 이라 여기서 단위 테스트한다. HTTP 자체는 app/navi/NaverDirectionsProvider
+// 실제 Directions API 연결: 요청 URL·좌표 순서 변환·오류 문구. 순수 Kotlin 이라 여기서 단위 테스트한다. HTTP 자체는 app/navi/NaverDirectionsProvider
 package kr.drivecoach.core.course
 
 import java.net.URLEncoder
@@ -7,11 +7,11 @@ import java.util.Locale
 /**
  * 네이버 클라우드 Maps Directions 요청을 조립하는 순수 함수 모음.
  *
- * 좌표 순서(중요): 네이버는 요청 쿼리·응답 path 모두 **경도,위도(lon,lat)** 이고,
- * 우리 모델 [LatLon] 과 Pleos NaviHelper 의 data class 는 **위도 먼저** 다. 바뀌는 지점은 이 객체의 [toQuery] / [fromPathPair] 두 곳뿐이다.
+ * 좌표 순서(중요): 네이버는 요청 쿼리·응답 path 모두 경도,위도(lon,lat)이고,
+ * 우리 모델 [LatLon] 과 Pleos NaviHelper 의 data class 는 위도 먼저다. 바뀌는 지점은 이 객체의 [toQuery] / [fromPathPair] 두 곳뿐이다.
  */
 object NaverDirectionsApi {
-    /** Directions 15 (경유지 최대 15개). 사용자의 네이버 Application 이 이 API 로 등록돼 있어 **기본값**. */
+    /** Directions 15 (경유지 최대 15개). 사용자의 네이버 Application 이 이 API 로 등록돼 있어 기본값. */
     const val ENDPOINT_DIRECTIONS_15 = "https://naveropenapi.apigw.ntruss.com/map-direction-15/v1/driving"
     /** Directions 5 (경유지 최대 5개, 월 60,000회 무료). Application 에 Directions 5 를 추가 등록하면 [NaverDirectionsApi.endpoint] 를 이것으로 바꾼다. */
     const val ENDPOINT_DIRECTIONS_5 = "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving"

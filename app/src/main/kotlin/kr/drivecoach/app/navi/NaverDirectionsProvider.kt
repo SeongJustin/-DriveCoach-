@@ -1,4 +1,4 @@
-// 코스 자동 생성 — 네이버 Directions 어댑터: 일일 호출 상한, 실패 이유, 진단 줄, 엔드포인트 상수.
+// 코스 자동 생성: 네이버 Directions 어댑터: 일일 호출 상한, 실패 이유, 진단 줄, 엔드포인트 상수.
 package kr.drivecoach.app.navi
 
 import android.content.Context
@@ -23,7 +23,7 @@ import java.util.Locale
 
 /**
  * 하루 호출 상한. [NaverDirectionsProvider] 가 호출 전에 [tryConsume] 로 1회를 소비하고, 거부되면 "일일 호출 상한" 으로 즉시 실패한다.
- * 상한은 네이버 무료 구간(Directions 15 는 유료, Directions 5 는 월 60,000회 무료)과 무관한 **우리 쪽 안전장치** 다.
+ * 상한은 네이버 무료 구간(Directions 15 는 유료, Directions 5 는 월 60,000회 무료)과 무관한 우리 쪽 안전장치다.
  */
 interface DailyCallBudget {
     /** 하루 상한. */
@@ -72,7 +72,7 @@ class PrefsDailyCallBudget(context: Context, override val limit: Int = NaverDire
  * 네이버 클라우드 Maps Directions (자동차 길찾기) 를 HttpURLConnection 으로 호출해 core 의 Route 로 바꾸는 어댑터.
  * 요청 URL·좌표 순서(경도,위도)·오류 문구는 core 의 [NaverDirectionsApi](단위 테스트 있음), 응답 파싱은 [NaverDirectionsMapper](MiniJson).
  *
- * - **동기 호출**이므로 반드시 백그라운드(CoachController 는 Dispatchers.IO)에서 부른다. 메인이면 NetworkOnMainThreadException.
+ * - 동기 호출이므로 반드시 백그라운드(CoachController 는 Dispatchers.IO)에서 부른다. 메인이면 NetworkOnMainThreadException.
  * - 연결 5 s / 읽기 10 s 타임아웃.
  * - 실패 처리(RouteProvider 계약):
  *     · HTTP != 2xx → null, [lastFailure] = "HTTP {code}: {본문의 message}". 401/403/429 는 더 불러도 소용없으니 [RouteProviderException].
@@ -140,7 +140,7 @@ class NaverDirectionsProvider(
                 val detail = NaverDirectionsApi.failureFromBody(response.body)
                 val reason = "HTTP ${response.code}" + (detail?.let { ": $it" } ?: "")
                 lastFailure = reason
-                // 좌표는 진단 줄·logcat 어디에도 남기지 않는다(예전엔 출발·도착 좌표를 함께 남겼음)
+                // 좌표는 진단 줄·logcat 어디에도 남기지 않는다
                 diagAdd("FAIL $reason")
                 Log.w(TAG, "$reason / ${response.body?.take(200)}")
                 if (NaverDirectionsApi.isFatalHttp(response.code)) throw RouteProviderException(reason)

@@ -1,4 +1,4 @@
-// 도로 정의: 정지선, 차로, 길(Road.cs 에서 나눈 파일).
+// Road: 정지선, 차로, 길 정의
 using System;
 using System.Collections.Generic;
 
@@ -62,8 +62,10 @@ namespace DriveCoach.Core
             }
         }
         public float LimitOf(Lane ln) => ln != null && ln.speedLimitKmh > 0f ? ln.speedLimitKmh : speedLimitKmh;
-        /// <summary>다른 차 수(0 = 없음). 연습 동네 4, 내 동네 30.</summary>
+        /// <summary>다른 차 수(0 = 없음). 연습 동네 4, 내 동네 30, beta 동네 0.</summary>
         public int trafficCount;
+        /// <summary>횡단보도를 건너는 사람(CrossPeds)을 두지 않는다. 신호·횡단보도 칠·정류장은 그대로</summary>
+        public bool noPeds;
 
         // ── 입체 교차: 고가·지하 길 조각과 높이. 차가 어느 층에 있는지는 앞 높이에서 이어지는 쪽으로 정한다 ──
         readonly List<(V2 a, V2 b, float za, float zb, float half)> gradeSegs = new List<(V2, V2, float, float, float)>();

@@ -46,17 +46,17 @@ data class Phrase(
         get() = PLACEHOLDER.replace(text, "000").length
 
     companion object {
-        // 닫는 중괄호도 이스케이프: 안드로이드(ICU) 정규식은 홀로 있는 '}' 를 문법 오류로 본다 (JVM 은 허용) — 에뮬레이터 크래시로 확인
+        // 닫는 중괄호도 이스케이프: 안드로이드(ICU) 정규식은 홀로 있는 '}' 를 문법 오류로 본다 (JVM 은 허용). 에뮬레이터 크래시로 확인
         internal val PLACEHOLDER = Regex("\\{([a-z_]+)\\}")
     }
 }
 
-/** 2장 연습 항목 하나의 멘트 묶음(설명 → 해보기 → 확인 → 통과). practice 모듈(D)의 ID 규칙과 1:1. */
+/** 2장 연습 항목 하나의 멘트 묶음(설명 → 해보기 → 확인 → 통과). practice 모듈의 ID 규칙과 1:1. */
 data class PracticeItemPhrases(val explain: Phrase, val tryIt: Phrase, val pass: Phrase, val confirm: Phrase?)
 
 /**
  * 모든 멘트 카탈로그. 다른 모듈은 사용자에게 들리는 문장을 직접 쓰지 않고 여기 ID로만 참조한다.
- * 원칙: 한 단어 지적 금지, 위험 피드백 10자 안팎 한 문장, 실수 뒤 "괜찮아요" 한마디,
+ * 원칙: 한 단어 지적 금지, 위험 피드백 10자 안팎 한 문장, 실수를 탓하지 않는 말투,
  * 감지 불가 항목의 판단은 운전자에게("안전하면 이동하십시오, 위험하면 이동하지 마십시오").
  *
  * ID 규칙: 영문 snake_case.
@@ -143,11 +143,11 @@ object Phrases {
     val guideLaneChangeDone = p("guide_lane_change_done", G, "차로 변경을 마쳤습니다.")
     val guideMergeSignal = p("guide_merge_signal", G, "방향지시등을 켜십시오.", 12)
     val guideMergeSpeed = p("guide_merge_speed", G, "{target_speed}까지 올리십시오.", 14)
-    val guideMergeGo = p("guide_merge_go", G, "뒤 확인 후 진입하십시오.", 14)   // 페르소나 재검증: '보고' 뒤 동작 명시
+    val guideMergeGo = p("guide_merge_go", G, "뒤 확인 후 진입하십시오.", 14)   // 볼 곳과 할 동작을 함께
     val guideMergeDone = p("guide_merge_done", G, "합류를 마쳤습니다.")
     val guideMergeAbort = p("guide_merge_abort", G, "합류하지 못하면 다음 나들목으로 나가면 됩니다.")
     val guideSignalRemind = p("guide_signal_remind", G, "방향지시등에 주의하십시오.")
-    val guideSignalRemindReason = p("guide_signal_remind_reason", G, "방향지시등을 먼저 켜십시오. 옆 차가 알 수 있어야 합니다.")   // 페르소나 재검증: '못 봐요' 질책 어조 제거
+    val guideSignalRemindReason = p("guide_signal_remind_reason", G, "방향지시등을 먼저 켜십시오. 옆 차가 알 수 있어야 합니다.")   // 지시 뒤에 이유를 붙인다
     val guideSignalPreventive = p("guide_signal_preventive", G, "곧 지난번에 방향지시등을 놓친 지점입니다. 미리 켜 두십시오.")
     val guidePressureCalm = p("guide_pressure_calm", G, "지금 속도를 유지하십시오.")
     val guidePressureYield = p("guide_pressure_yield", G, "{distance}m 앞에서 비켜 줄 수 있습니다. 방향지시등을 켜고 이동하십시오.")
@@ -158,19 +158,19 @@ object Phrases {
     // ───────────────────────────────── 위험 피드백 (1장, 10자 안팎 한 문장) ─────────────────────────────────
     private val D = PhraseCategory.DANGER
     val dangerSpeeding = p("danger_speeding", D, "속도를 줄이십시오.")
-    val dangerSpeedingHigh = p("danger_speeding_high", D, "크게 감속하십시오.")              // F 요청 · 페르소나 재검증: 평가('빨라요') 대신 동작만
+    val dangerSpeedingHigh = p("danger_speeding_high", D, "크게 감속하십시오.")              // 평가 없이 할 동작만
     val dangerHardBrake = p("danger_hard_brake", D, "급제동에 주의하십시오.")
     val dangerHardLaneChange = p("danger_hard_lane_change", D, "차로 변경이 급합니다.")
-    val dangerHardLaneChangeNoSignal = p("danger_hard_lane_change_no_signal", D, "방향지시등을 켜십시오.")   // F 요청 · 페르소나 재검증: '천천히요' 어미 정리
+    val dangerHardLaneChangeNoSignal = p("danger_hard_lane_change_no_signal", D, "방향지시등을 켜십시오.")
     val dangerReverseRpm = p("danger_reverse_rpm", D, "가속 페달을 떼십시오.")
-    val dangerReverseSpeed = p("danger_reverse_speed", D, "천천히 후진하십시오.")                  // I 요청
+    val dangerReverseSpeed = p("danger_reverse_speed", D, "천천히 후진하십시오.")
     val dangerAccelAfterShift = p("danger_accel_after_shift", D, "브레이크를 밟으십시오.")
     val dangerReassure = p("danger_reassure", D, "정상 범위입니다.")
 
     // ───────────────────────────────── 공황 대응 (5-3) ─────────────────────────────────
     private val PN = PhraseCategory.PANIC
-    val systemPullOverAck = p("system_pull_over_ack", PN, "안내를 멈춥니다. 비상 경고등을 켜고 오른쪽에 천천히 정차하십시오.")        // C/G 요청
-    val systemPullOverHighway = p("system_pull_over_highway", PN, "여기서는 정차할 수 없습니다. 직진하십시오. 가까운 휴게소로 안내합니다.", variant = "highway") // C/G 요청
+    val systemPullOverAck = p("system_pull_over_ack", PN, "안내를 멈춥니다. 비상 경고등을 켜고 오른쪽에 천천히 정차하십시오.")
+    val systemPullOverHighway = p("system_pull_over_highway", PN, "여기서는 정차할 수 없습니다. 직진하십시오. 가까운 휴게소로 안내합니다.", variant = "highway")
     val panicPullOver = p("panic_pull_over", PN, "{distance}m 앞 {spot}에 정차 가능합니다. 방향지시등을 켜고 서행하십시오.")
     val panicPullOverNow = p("panic_pull_over_now", PN, "여기입니다. 비상 경고등을 켜고 천천히 정차하십시오.")
     val panicHighwayKeepStraight = p("panic_highway_keep_straight", PN, "그대로 직진을 유지하십시오.", variant = "highway")
@@ -179,7 +179,7 @@ object Phrases {
     val panicStoppedBreath = p("panic_stopped_breath", PN, "정차했습니다. 4초 들이쉬고, 6초 내쉬십시오.")
     val panicStoppedRest = p("panic_stopped_rest", PN, "오늘은 여기서 마쳐도 됩니다. 계속하려면 '다음'을 누르십시오.")
     val panicResume = p("panic_resume", PN, "다시 시작합니다. 천천히 출발하십시오.")
-    val panicDetectedAsk = p("panic_detected_ask", PN, "상태를 확인합니다. 쉬려면 버튼을 길게 누르십시오.")   // 페르소나 재검증: '급하게 섰네요' 지적처럼 들림
+    val panicDetectedAsk = p("panic_detected_ask", PN, "상태를 확인합니다. 쉬려면 버튼을 길게 누르십시오.")   // 급정지를 탓하지 않고 쉬는 방법만 알린다
 
     // ───────────────────────────────── 경고등 3색 (2-8, 7장) ─────────────────────────────────
     private val W = PhraseCategory.WARNING_LAMP
@@ -188,7 +188,7 @@ object Phrases {
     val warningLampRed = p("warning_lamp_red", W, "빨간색 경고등입니다. 즉시 안전한 곳에 정차하십시오.")
     val warningLampCoachingPaused = p("warning_lamp_coaching_paused", W, "안내를 멈추고 정차 안내만 합니다.")
     val warningLampStoppedNext = p("warning_lamp_stopped_next", W, "정차했습니다. 시동을 끄고 경고등을 확인하십시오.")
-    /** 주행 중 실제 점등: "{lamp}이 켜졌어요." 뒤에 아래 warning_action_* 을 잇는다 (warning 모듈 J). */
+    /** 주행 중 실제 점등: "{lamp}이 켜졌습니다." 뒤에 아래 warning_action_* 을 잇는다 (warning 모듈). */
     val warningLampOn = p("warning_lamp_on", W, "{lamp}이 켜졌습니다.")
     // 경고등별 행동 한 문장. ID 규칙 warning_action_<WarningLamp.id 소문자>, 문장은 WarningLamp.action 과 같아야 한다(테스트로 검사).
     val warningActionSeatBelt = p("warning_action_seat_belt", W, "안전벨트를 먼저 매십시오.", variant = "red")
@@ -239,7 +239,7 @@ object Phrases {
     val warningQuizRetryIntro = p("warning_quiz_retry_intro", PhraseCategory.PRACTICE, "틀린 문제만 다시 풉니다.")
     val warningQuizNotParked = p("warning_quiz_not_parked", PhraseCategory.PRACTICE, "퀴즈는 정차 후 P로 변속한 뒤에 진행합니다.")
 
-    // ───────────────────────────────── 기능 연습 공통·엔진 (2장, practice 모듈 D) ─────────────────────────────────
+    // ───────────────────────────────── 기능 연습 공통·엔진 (2장, practice 모듈) ─────────────────────────────────
     private val PR = PhraseCategory.PRACTICE
     val practiceNeedP = p("practice_need_p", PR, "이 연습은 정차 후 P로 변속한 상태에서 진행합니다.")
     val practiceNotDetected = p("practice_not_detected", PR, "아직 감지되지 않았습니다. 다시 하거나 '건너뛰기'를 누르십시오.")
@@ -252,8 +252,8 @@ object Phrases {
     val practiceAutoPass = p("practice_auto_pass", PR, "이미 마친 항목입니다. 통과합니다.")
     val practiceNext = p("practice_next", PR, "다음 항목으로 넘어갑니다.")
 
-    // ───────────────────────────────── 도로 법규 설명 (law 모듈 S) — 화면 글 = 음성, 길이 제한 170자 ─────────────────────────────────
-    // (추천안) 규칙은 도로교통법(시행 2026. 10. 13.) 조문에 근거한 것만 쉬운 말로 옮긴다. 과실 비율·캠페인 요령·해석은 넣지 않는다.
+    // ───────────────────────────────── 도로 법규 설명 (law 모듈): 화면 글 = 음성, 길이 제한 170자 ─────────────────────────────────
+    // 규칙은 도로교통법(시행 2026. 10. 13.) 조문에 근거한 것만 쉬운 말로 옮긴다. 과실 비율·캠페인 요령·해석은 넣지 않는다.
     //   우회전·신호: 시행규칙 별표 2, 법 제25조 제5항, 제27조 제2항 / 비보호 좌회전: 시행규칙 별표 2, 제25조 제2항 / 유턴: 제5조, 제18조 제1항, 제38조 제1항
     //   차로: 제13조 제3항, 제14조 제5항, 제19조 제3항 / 횡단보도: 제27조 제1항 / 어린이 보호구역: 제12조 제1항, 제27조 제7항, 제32조 제8호
     //   회전교차로: 제25조의2, 제38조 제1항 / 긴급자동차: 제29조 제4항·제5항 / 고속도로: 제21조 제1항, 제60조 / 주정차: 제32조, 제33조
@@ -363,7 +363,7 @@ object Phrases {
     val practiceSuddenAccelQuizQ2 = p("practice_2_4_sudden_accel_quiz_q2", PR, "두 번째. 브레이크 페달을 밟았는데 멈추지 않습니다. 순서를 고르십시오.")
     val practiceSuddenAccelQuizQ3 = p("practice_2_4_sudden_accel_quiz_q3", PR, "세 번째. 주차장에서 페달을 잘못 밟았습니다. 순서를 고르십시오.")
     val practiceSuddenAccelQuizCorrect = p("practice_2_4_sudden_accel_quiz_correct", PR, "정답입니다.")
-    val practiceSuddenAccelQuizWrong = p("practice_2_4_sudden_accel_quiz_wrong", PR, "오답입니다. 발 떼고 브레이크 끝까지, N, 시동 버튼 길게입니다.")   // 페르소나 재검증: 오답에도 '괜찮아요'
+    val practiceSuddenAccelQuizWrong = p("practice_2_4_sudden_accel_quiz_wrong", PR, "오답입니다. 발 떼고 브레이크 끝까지, N, 시동 버튼 길게입니다.")   // 오답이면 바른 순서를 바로 알려 준다
     val practiceSuddenAccelDone = p("practice_2_4_sudden_accel_done", PR, "급발진 대처를 마쳤습니다. 출발 전에 가끔 다시 확인합니다.")
     val practiceSuddenAccelReviewQuestion = p("practice_2_4_sudden_accel_review_question", PR, "차가 갑자기 튀어 나가면 무엇부터 합니까?")
     // 퀴즈 보기 음성용 라벨 (SuddenAccelDrill.Action 이름 소문자)
@@ -457,7 +457,7 @@ object Phrases {
         "녹색, 노란색, 빨간색. 각 색의 뜻을 한 번씩 소리 내어 말해 보십시오.", "경고등 색을 확인했습니다.", "기억했으면 '다음'을 누르십시오.")
     val practiceDashQuizAsk = p("practice_dash_quiz_ask", PR, "이 경고등이 켜지면 어떻게 해야 합니까?")
     val practiceDashQuizCorrect = p("practice_dash_quiz_correct", PR, "정답입니다.")
-    val practiceDashQuizWrong = p("practice_dash_quiz_wrong", PR, "오답입니다. 이것은 {color} 등이므로 {action}.")   // 페르소나 재검증: 오답에도 '괜찮아요'
+    val practiceDashQuizWrong = p("practice_dash_quiz_wrong", PR, "오답입니다. 이것은 {color} 등이므로 {action}.")   // 오답이면 등 색과 할 일을 알려 준다
     val practiceDashRehearsalIntro = p("practice_dash_rehearsal_intro", PR, "주행 중에 이 경고등이 켜지면 다음과 같이 안내합니다.")
     val practiceDashRehearsalOutro = p("practice_dash_rehearsal_outro", PR, "그때는 갓길이나 가까운 주차장에 정차하십시오.")
 
@@ -484,7 +484,7 @@ object Phrases {
     val senseBrakeIntro = p("sense_brake_intro", PR, "D에서 브레이크 페달을 살짝 놓으면 차가 천천히 움직입니다. 이 상태에서 세 가지 세기로 제동을 연습합니다.")
     val senseBrakeTrySoft = p("sense_brake_try_soft", PR, "브레이크 페달을 부드럽게 밟아 서서히 정지하십시오.")
     val senseBrakeTryMid = p("sense_brake_try_mid", PR, "이번에는 중간 세기로 밟으십시오.")
-    val senseBrakeTryHard = p("sense_brake_try_hard", PR, "마지막은 강하게 밟아 급정지하십시오. 느린 속도이므로 위험하지 않습니다.")   // 페르소나 재검증: 겁 많은 운전자 안심
+    val senseBrakeTryHard = p("sense_brake_try_hard", PR, "마지막은 강하게 밟아 급정지하십시오. 느린 속도이므로 위험하지 않습니다.")   // 겁 많은 운전자 안심
     val senseBrakePass = p("sense_brake_pass", PR, "세 가지 세기의 제동을 마쳤습니다.")
     // 4-2 액셀
     val senseAccelIntro = p("sense_accel_intro", PR, "N에서는 가속 페달을 밟아도 차가 움직이지 않습니다. 그래서 N에서 먼저 연습합니다.")
@@ -521,7 +521,7 @@ object Phrases {
     val senseLaneMergeGap = p("sense_lane_merge_gap", PR, "들어가도 되는 때는 뒤차가 미러에 작게 보이고, 내 속도가 옆 차로와 비슷할 때입니다.")
     val senseLanePass = p("sense_lane_pass", PR, "차로 변경 순서를 마쳤습니다.")
 
-    // ───────────────────────────────── 주차 (4-5, parking 모듈 I 의 ID 규칙) ─────────────────────────────────
+    // ───────────────────────────────── 주차 (4-5, parking 모듈의 ID 규칙) ─────────────────────────────────
     private val PK = PhraseCategory.PARKING
     // 사전 학습 (정차 중, 일러스트와 함께)
     val parkingPrelearnIntro = p("parking_prelearn_intro", PK, "주차는 순서대로 합니다. 기준점은 네 개입니다.", 40)
@@ -557,7 +557,7 @@ object Phrases {
     val parkingSlowWaiting = p("parking_slow_waiting", PK, "마쳤으면 '다음'을 누르십시오.")
     val parkingSlowRepeatAsk = p("parking_slow_repeat_ask", PK, "같은 기준점을 다시 안내할까요?")
     // 탈출법 (꼬였을 때)
-    val parkingRecoverChoose = p("parking_recover_choose", PK, "너무 붙음, 비스듬함, 너무 멂 중 고르십시오.")   // 페르소나 재검증: 보기 형태 통일
+    val parkingRecoverChoose = p("parking_recover_choose", PK, "너무 붙음, 비스듬함, 너무 멂 중 고르십시오.")   // 보기 형태 통일
     val parkingEscapeTooClose = p("parking_escape_too_close", PK, "너무 붙었습니다. D로 빠져나와 다시 하십시오.")
     val parkingEscapeAngle = p("parking_escape_angle", PK, "비스듬합니다. 앞으로 빼며 칸과 맞추십시오.")
     val parkingEscapeTooFar = p("parking_escape_too_far", PK, "너무 멉니다. 앞으로 빼십시오.")
@@ -583,7 +583,7 @@ object Phrases {
     val parkingFinishEngineOff = p("parking_finish_engine_off", PK, "시동을 끄십시오.")
     val parkingFinishWindows = p("parking_finish_windows", PK, "창문을 닫으십시오.")
     val parkingFinishLights = p("parking_finish_lights", PK, "전조등이 꺼졌는지 확인하십시오.")
-    // (실제 차 평행 주차) 평행 주차 공식(ParallelParkingProcedure) — D·R·핸들·P·주차브레이크 멘트는 직각 주차와 같은 것을 쓴다
+    // (실제 차 평행 주차) 평행 주차 공식(ParallelParkingProcedure). D·R·핸들·P·주차브레이크 멘트는 직각 주차와 같은 것을 쓴다
     val parkingParIntro = p("parking_par_intro", PR, "평행 주차 연습입니다. 길가 빈 칸의 앞차 옆에서 시작해 실제로 차를 아주 천천히 움직이며 따라 합니다. 브레이크 페달을 밟은 채 시작하고, 한 동작씩 안내하면 그대로 한 뒤 정지하십시오. 차가 움직이는 동안에는 화면이 가려지고 음성으로만 안내합니다. 준비되면 '시작'을 누르십시오.")
     val parkingParStepApproach = p("parking_par_step_approach", PK, "앞차 옆에 나란히 서면 정지하십시오.")
     val parkingParRefApproach = p("parking_par_ref_approach", PK, "앞차와 1미터쯤 띄우고 뒤 범퍼를 맞추십시오.")
@@ -610,13 +610,13 @@ object Phrases {
     val parkingParHintFrontBack = p("parking_par_hint_front_back", PK, "다음에는 앞뒤 차 간격을 보며 정지하십시오.")
     val parkingFinishDone = p("parking_finish_done", PK, "주차 마무리를 마쳤습니다.")
 
-    // ───────────────────────────────── 리포트 (5-4, 5-5, report 모듈 M) ─────────────────────────────────
+    // ───────────────────────────────── 리포트 (5-4, 5-5, report 모듈) ─────────────────────────────────
     private val R = PhraseCategory.REPORT
     val reportIntro = p("report_intro", R, "오늘 주행 리포트입니다.")
     val reportGood = p("report_good", R, "잘한 항목은 {item}입니다.")
     val reportImproved = p("report_improved", R, "지난번보다 나아진 항목은 {item}입니다.")
     val reportNext = p("report_next", R, "다음에 고칠 항목은 {item}입니다.")
-    // {item} 자리에 들어가는 지표 이름 (M 요청, ReportComposer.phraseId 규칙 report_item_<key>)
+    // {item} 자리에 들어가는 지표 이름 (ReportComposer.phraseId 규칙 report_item_<key>)
     val reportItemSignalUsage = p("report_item_signal_usage", R, "방향지시등 켜기")
     val reportItemSignalLead = p("report_item_signal_lead", R, "방향지시등 켜고 기다리기")
     val reportItemHardBrake = p("report_item_hard_brake", R, "부드럽게 제동하기")
@@ -635,27 +635,27 @@ object Phrases {
     val reportGraduation = p("report_graduation", R, "10번째 주행을 마쳤습니다. 초보 졸업입니다.")
     val reportEnd = p("report_end", R, "주행 리포트를 마칩니다.")
 
-    // ───────────────────────────────── 시스템 (명령 응답, 무응답, C/G 모듈) ─────────────────────────────────
+    // ───────────────────────────────── 시스템 (명령 응답, 무응답) ─────────────────────────────────
     private val S = PhraseCategory.SYSTEM
     val systemWelcomeCar = p("system_welcome_car", S, "현재 차량은 {car_model}입니다.")
     val systemWelcomeDefaultCar = p("system_welcome_default_car", S, "차종을 확인하지 못해 {car_model} 기준으로 안내합니다.")   // 차가 차종을 알려 주지 않을 때
     val systemCmdAgain = p("system_cmd_again", S, "다시 안내합니다.")
-    val systemQuietAck = p("system_quiet_ack", S, "안내를 멈춥니다. 위험할 때만 안내합니다.")       // C/G 요청
+    val systemQuietAck = p("system_quiet_ack", S, "안내를 멈춥니다. 위험할 때만 안내합니다.")
     val systemCmdQuietOff = p("system_cmd_quiet_off", S, "안내를 다시 시작합니다.")
     val systemCmdConfirmAck = p("system_cmd_confirm_ack", S, "확인.", 6)
     val systemCmdNextAck = p("system_cmd_next_ack", S, "다음.", 6)
-    val systemNoInputReprompt = p("system_no_input_reprompt", S, "마쳤으면 '다음'을 누르십시오.")   // C/G 요청, 1회만
+    val systemNoInputReprompt = p("system_no_input_reprompt", S, "마쳤으면 '다음'을 누르십시오.")   // 1회만
     val systemNoInputRepromptConfirm = p("system_no_input_reprompt_confirm", S, "마쳤으면 '확인'을 누르십시오.")   // 주차 단계 화면의 버튼은 '확인'
-    val systemModeParkedHint = p("system_mode_parked_hint", S, "정차했습니다. 이제 화면을 볼 수 있습니다.")     // C/G 요청
-    val systemWheelModeHint = p("system_wheel_mode_hint", S, "짧게 누르면 확인, 길게 누르면 정차할 곳을 찾습니다.")   // C/G 요청
+    val systemModeParkedHint = p("system_mode_parked_hint", S, "정차했습니다. 이제 화면을 볼 수 있습니다.")
+    val systemWheelModeHint = p("system_wheel_mode_hint", S, "짧게 누르면 확인, 길게 누르면 정차할 곳을 찾습니다.")
     val systemDetectFail = p("system_detect_fail", S, "지금은 감지되지 않습니다. 마쳤으면 '다음'을 누르십시오.")
     val systemDrivingVoiceOnly = p("system_driving_voice_only", S, "주행 중에는 음성으로만 안내합니다.")
     val systemCommandsDriving = p("system_commands_driving", S, "주행 중에는 휠 버튼 짧게 '다음', 길게 '세울래요'입니다.")
-    // S 요청 (앱 연결, CoachController): 주행 모드 진입/복귀 한마디, 미구현 메뉴 안내
+    // 앱 연결(CoachController): 주행 모드 진입/복귀 한마디, 미구현 메뉴 안내
     val systemDriveStart = p("system_drive_start", S, "출발합니다. 주행 중에는 음성으로만 안내합니다.")
     val systemDriveEnd = p("system_drive_end", S, "정차했습니다. 이제 화면을 볼 수 있습니다.")
     val systemFeatureNotReady = p("system_feature_not_ready", S, "이 기능은 아직 준비 중입니다.")
-    // S 요청 (코스 주행 내비 연동, 5-1): 코스를 차량 내비에 넣었을 때 / 내비가 경로를 못 찾았을 때 한마디
+    // 코스 주행 내비 연동(5-1): 코스를 차량 내비에 넣었을 때 / 내비가 경로를 못 찾았을 때 한마디
     val systemCourseSent = p("system_course_sent", S, "내비게이션에 코스를 보냈습니다. 경로가 표시되면 출발하십시오.")
     val systemCourseRouteFailed = p("system_course_route_failed", S, "경로를 찾지 못했습니다. 다른 코스를 선택하십시오.")
 

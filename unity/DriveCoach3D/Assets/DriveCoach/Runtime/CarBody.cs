@@ -154,7 +154,7 @@ namespace DriveCoach.Unity
             foreach (var p in parts)
             {
                 if (p.group != 0 && p.group != 3) continue;
-                // 와이퍼는 따로(움직여야 한다: Wipers 가 이름 "…wipers-l/r" 로 찾아 축을 감싼다). 합쳐져서 와이퍼·빗방울이 안 돌던 것
+                // 와이퍼는 따로(움직여야 한다: Wipers 가 이름 "…wipers-l/r" 로 찾아 축을 감싼다). 합치면 와이퍼·빗방울이 돌지 않는다
                 if (p.name != null && p.name.StartsWith("wipers")) { wipers.Add(p); continue; }
                 int key = p.group * 100 + p.mat;
                 if (!groups.TryGetValue(key, out var l)) groups[key] = l = new List<Part>();

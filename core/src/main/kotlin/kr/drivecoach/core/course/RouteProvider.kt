@@ -15,8 +15,8 @@ data class RouteRequest(
  */
 interface RouteProvider {
     /**
-     * 경로를 구한다. 실패(네트워크 오류, 응답 code != 0)면 null — 생성기는 다음 후보를 시도한다.
-     * 더 호출해도 소용없는 실패(일일 호출 상한, 인증 실패)는 [RouteProviderException] 을 던진다 — 생성기는 즉시 중단한다.
+     * 경로를 구한다. 실패(네트워크 오류, 응답 code != 0)면 null, 생성기는 다음 후보를 시도한다.
+     * 더 호출해도 소용없는 실패(일일 호출 상한, 인증 실패)는 [RouteProviderException] 을 던진다. 생성기는 즉시 중단한다.
      * @param option 공급자별 옵션 문자열. 네이버는 "traoptimal"/"trafast"/"tracomfort"/"traavoidtoll"/"traavoidcaronly".
      */
     fun route(start: LatLon, waypoints: List<LatLon>, goal: LatLon, option: String = "traoptimal"): Route?

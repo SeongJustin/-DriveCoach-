@@ -1,4 +1,4 @@
-// (3D 내 동네 도로 연수 — 들어 있는 동네 목록(Resources/DC/Regions/index.json)과 읽기.
+// (3D 내 동네 도로 연수: 들어 있는 동네 목록(Resources/DC/Regions/index.json)과 읽기.
 // 동네 파일(JSON)은 OSM·브이월드·서울 T-GIS 등 공개 자료로 미리 만들어 Resources/DC/Regions 에 넣었다. 나중에 서버에서 받는 동네도 같은 모양(파일 경로만 다름).
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -11,7 +11,7 @@ namespace DriveCoach.Unity
         public class Entry
         {
             public string file, name, desc, country = "한국", city = "서울", district = "";
-            /// <summary>아직 다듬는 중인 동네: 목록에서 이름 옆에 Beta 를 붙인다</summary>
+            /// <summary>아직 다듬는 중인 동네: 목록에서 이름 옆에 Beta 를 붙이고, 판에는 다니는 차·건너는 사람을 두지 않는다(Load 가 RegionData.beta 로 넘긴다)</summary>
             public bool beta;
             /// <summary>그 지역에 맞는 차량 통행량·보행자 수 배율(1 = 보통 주거지). index.json 의 traffic·peds</summary>
             public float trafficK = 1f, pedK = 1f;
@@ -19,7 +19,7 @@ namespace DriveCoach.Unity
             public float mb;
             /// <summary>앱에 든 지도가 아니라 기기 저장소(받은 지도 폴더)에서 읽는 동네</summary>
             public bool external;
-            /// <summary>아직 앱에 없는 이웃 동네 이름(index.json 의 more) — 맵 고르기 화면의 "동네 더 받기". 동네 파일을 열지 않고도 알 수 있게 목록에 둔다</summary>
+            /// <summary>아직 앱에 없는 이웃 동네 이름(index.json 의 more): 맵 고르기 화면의 "동네 더 받기". 동네 파일을 열지 않고도 알 수 있게 목록에 둔다</summary>
             public List<string> more = new List<string>();
             /// <summary>
             /// 출처 표기: index.json 의 "attribution"(글) 또는 "license"(목록, 항목마다 attribution)에서 만든 한 줄. 둘 다 없으면 빈 값
@@ -54,7 +54,7 @@ namespace DriveCoach.Unity
 
         /// <summary>
         /// (맵 다운로드) 받은 지도가 놓이는 폴더. 앱에 든 지도와 같은 모양(index.json + 동네.json + 동네_surface.bytes).
-        /// 지도 서버는 아직 없다 — 이 폴더에 파일이 있으면 앱을 새로 만들지 않아도 목록에 "받음"으로 나온다.
+        /// 지도 서버는 아직 없다. 이 폴더에 파일이 있으면 앱을 새로 만들지 않아도 목록에 "받음"으로 나온다.
         /// </summary>
         public static string ExtDir => System.IO.Path.Combine(Application.persistentDataPath, "regions");
 
@@ -153,7 +153,7 @@ namespace DriveCoach.Unity
             }
         }
 
-        // (동 사이 이동을 자연스럽게) 옆 동이 가까워지면 그 동의 지도 파일을 뒤에서 미리 읽어 둔다(읽기·해석만 — 화면은 그대로).
+        // (동 사이 이동을 자연스럽게) 옆 동이 가까워지면 그 동의 지도 파일을 뒤에서 미리 읽어 둔다(읽기·해석만: 화면은 그대로).
         //   실제로 넘어갈 때는 읽어 둔 것을 쓰므로 멈춰 있는 시간이 그만큼 준다. 파일 내용 꺼내기(Resources)는 주 스레드에서, 해석은 작업 스레드에서.
         static readonly Dictionary<string, System.Threading.Tasks.Task<RegionData>> pending = new Dictionary<string, System.Threading.Tasks.Task<RegionData>>();
 
@@ -208,6 +208,7 @@ namespace DriveCoach.Unity
                 d = RegionData.Parse(txt);
             }
             if (d != null && string.IsNullOrEmpty(d.country)) d.country = list[i].country;     // 지역 파일에 나라가 없으면 목록의 나라(한국 동네는 "한국")
+            if (d != null) d.beta = list[i].beta;                                                // 목록의 Beta 표시: 판을 만들 때 다니는 차·건너는 사람을 뺀다(Stages.Region)
             lock (cache) cache[f] = d;
             return d;
         }

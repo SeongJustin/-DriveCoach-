@@ -24,7 +24,7 @@ enum class DriveMode {
  * 모드별로 화면에 허용되는 것. 숫자는 "한 줄 요약 이상 띄우지 않는다" 원칙을 그대로 옮긴 것.
  *
  * AAOS `CarUxRestrictions` 와의 결합:
- *  - 앱은 `CarUxRestrictionsManager` 의 현재 제한과 이 정책을 **OR 조건**으로 합친다.
+ *  - 앱은 `CarUxRestrictionsManager` 의 현재 제한과 이 정책을 OR 조건으로 합친다.
  *    즉 둘 중 더 엄격한 쪽을 따른다 → [stricter] 로 두 정책을 합치면 된다.
  *  - 예) 이 모듈이 PARKED_LEARN 이어도 `UX_RESTRICTIONS_NO_VIDEO`/`LIMIT_STRING_LENGTH` 등이 켜져 있으면
  *    allowFullScreenContent=false, maxLines 는 `getMaxRestrictedStringLength()` 기준으로 더 줄인다.
@@ -75,7 +75,7 @@ fun interface DriveModeListener {
  *  4. gear in (D, R, N) 이고 주차브레이크가 켜져 있지 않음(해제 또는 모름) → MOVING_VOICE_ONLY
  *  5. 그 외 → UNKNOWN (MOVING 과 같은 제한)
  *
- * 히스테리시스: 새 모드가 [toMovingHoldMs]/[toParkedHoldMs] 동안 **연속으로** 관측돼야 전환한다.
+ * 히스테리시스: 새 모드가 [toMovingHoldMs]/[toParkedHoldMs] 동안 연속으로 관측돼야 전환한다.
  * 안전 쪽(MOVING/UNKNOWN)으로 가는 전환은 짧게, 느슨한 쪽(PARKED)으로 가는 전환은 길게 둔다.
  * 신호가 잠깐 튀어 모드가 깜빡이는 것(예: 주차브레이크 신호 순간 끊김)을 막기 위함.
  */

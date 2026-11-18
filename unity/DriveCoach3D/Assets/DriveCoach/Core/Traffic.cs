@@ -1,4 +1,4 @@
-// 3D 도로 주행 — 다른 차들
+// 3D 도로 주행: 다른 차들
 // 차로(Lane)를 따라 달리는 차들: 차로 제한 속도 근처로, 앞차·내 차와 거리를 두고(앞에 있으면 선다),
 // 빨간·노란불이면 정지선 앞에 서고, 차로가 끝나면 이어지는 차로나 꺾을 차로로 간다. 내 차에서 너무 멀어지면 다른 곳에 다시 나타난다.
 // 내 차가 부딪히면 실패(World). 다른 차끼리는 부딪힘을 따지지 않는다(교차로는 신호로 나뉜다).
@@ -21,7 +21,7 @@ namespace DriveCoach.Core
         int nextId;
         readonly int want;
         const float Cell = 12f;
-        // 차로 고르기 무게(교통량): 차로 길이 × 길 종류(제한 50 km/h 넘는 큰길 4, 그 밑 1) — 큰길에 차가 많다
+        // 차로 고르기 무게(교통량): 차로 길이 × 길 종류(제한 50 km/h 넘는 큰길 4, 그 밑 1). 큰길에 차가 많다
         float[] laneW;
         float laneWSum;
 
@@ -198,7 +198,7 @@ namespace DriveCoach.Core
 
         List<float>[] laneStops;
         float[] stopBack;
-        /// <summary>골목(같이 쓰는 길)마다 옆길 입구 자리(길 따라 거리, 쪽 ±1) — 처음 물을 때 한 번 찾는다</summary>
+        /// <summary>골목(같이 쓰는 길)마다 옆길 입구 자리(길 따라 거리, 쪽 ±1): 처음 물을 때 한 번 찾는다</summary>
         readonly Dictionary<int, List<(float s, float side)>> mouths = new Dictionary<int, List<(float s, float side)>>();
 
         /// <summary>시험용: 좁은 골목에서 옆길 입구로 비켜 선 횟수</summary>
@@ -232,7 +232,7 @@ namespace DriveCoach.Core
                         if (s > LaneLength(li) - 8f) continue;               // 골목 끝 교차로는 빼고(물러나는 쪽은 처음 쪽)
                         if (s < 8f)
                         {
-                            // 골목 처음 교차로: 옆길도 골목(같이 쓰는 길)일 때만 — 큰길로 비켜 서면 큰길 차와 겹친다
+                            // 골목 처음 교차로: 옆길도 골목(같이 쓰는 길)일 때만. 큰길로 비켜 서면 큰길 차와 겹친다
                             if (!road.lanes[k].shared) continue;
                             s = Math.Max(s, 6.5f);    // 교차로 한가운데가 아니라 골목 쪽(맞은편 차가 교차로를 지나며 스치지 않게)
                         }
@@ -249,7 +249,7 @@ namespace DriveCoach.Core
         /// <summary>시험용: 앞지르기로 차로를 옮긴 횟수</summary>
         public int LaneChanges;
 
-        /// <summary>앞지르기: 옆 차로를 찾아 옮긴다(왼쪽 먼저). 옮기면 true — 차 자리는 그대로 두고 옆 거리(lat)로 천천히 미끄러진다</summary>
+        /// <summary>앞지르기: 옆 차로를 찾아 옮긴다(왼쪽 먼저). 옮기면 true. 차 자리는 그대로 두고 옆 거리(lat)로 천천히 미끄러진다</summary>
         bool TrySideLane(TrafficCar c, V2 dir, V2 mePos)
         {
             var right = new V2(-dir.y, dir.x);
@@ -280,7 +280,7 @@ namespace DriveCoach.Core
                         // 내 차(플레이어) 둘레 12 m 도 비어야
                         if (mePos.DistanceTo(q) < 12f) free = false;
                         if (!free) continue;
-                        // 왼쪽(−) 먼저(도로교통법 제21조: 앞지르기는 왼쪽으로)
+                        // 왼쪽(-) 먼저(도로교통법 제21조: 앞지르기는 왼쪽으로)
                         if (best < 0 || (side < 0f && bestSide > 0f)) { best = oi; bestS = s2; bestSide = side; }
                     }
                 }
@@ -288,7 +288,7 @@ namespace DriveCoach.Core
             LaneChanges++;
             c.lane = best;
             c.s = bestS;
-            c.lat = -bestSide;      // 지금 자리 그대로(새 차로에서 옆으로 −side) → 0 으로 미끄러짐
+            c.lat = -bestSide;      // 지금 자리 그대로(새 차로에서 옆으로 -side) → 0 으로 미끄러짐
             c.planNext = -2;
             c.waitJ = 0f;
             if (!c.IsBus) { c.blink = bestSide < 0f ? -1 : 1; c.leaveT = 4f; }
@@ -312,7 +312,7 @@ namespace DriveCoach.Core
                 var nrm = new V2(-dir.y, dir.x);
                 var seen = new HashSet<long>();
                 // 끝에서 가장 가까운 점만 보면 비스듬히(70~80°) 지나는 차로가 내 길을 실제로 가로지르는 자리보다 앞으로 잡혀
-                //   서 있는 차 코가 큰길 차로에 걸렸다 → 내 가운데선(끝에서 뒤 14 m ~ 앞 4 m)과 그 차로 가운데선이 만나는 자리로,
+                //   서 있는 차 코가 큰길 차로에 걸리므로 내 가운데선(끝에서 뒤 14 m ~ 앞 4 m)과 그 차로 가운데선이 만나는 자리로,
                 //   그 차로 차 반폭 + 0.6 m 를 비스듬한 만큼(1/sin) 늘리고 내 차 반폭이 비스듬히 먼저 닿는 만큼(cot) 더 뒤에 선다
                 foreach (var probe in new[] { end, end - dir * 10f })
                     for (int gx = -1; gx <= 1; gx++)
@@ -372,8 +372,8 @@ namespace DriveCoach.Core
                         if (od.Dot(dir) < -0.3f) continue;
                         float s = cum[oi][seg] + q.DistanceTo(oc[seg]);
                         if (LaneLength(oi) - s < 15f) continue;
-                        // 도로교통법 제25조: 우회전은 도로 오른쪽 가장자리에서, 좌회전은 중앙선 쪽에서 — 오른쪽(왼쪽)에 같은 방향 차로가
-                        //   나란히 끝나면 그 쪽으로는 꺾지 않는다(전에는 2차로에서도 우회전해 교차로 안에서 옆 차로 직진 차와 서로 막혀 섰다 — 역삼역 시연 경로)
+                        // 도로교통법 제25조: 우회전은 도로 오른쪽 가장자리에서, 좌회전은 중앙선 쪽에서, 오른쪽(왼쪽)에 같은 방향 차로가
+                        //   나란히 끝나면 그 쪽으로는 꺾지 않는다(2차로에서 우회전하면 교차로 안에서 옆 차로 직진 차와 서로 막혀 선다)
                         Sample(oi, Math.Min(s + 6f, LaneLength(oi)), out _, out var dn);
                         if (dir.Dot(dn) < 0.8f)
                         {
@@ -389,7 +389,7 @@ namespace DriveCoach.Core
             return pick.lane;
         }
 
-        /// <summary>차로 끝 옆(side: +1 오른쪽, −1 왼쪽, 1.5~4.6 m)에 같은 방향 차로가 나란히 끝나는지 — 꺾는 차로 고르기(제25조)</summary>
+        /// <summary>차로 끝 옆(side: +1 오른쪽, -1 왼쪽, 1.5~4.6 m)에 같은 방향 차로가 나란히 끝나는지(꺾는 차로 고르기, 제25조)</summary>
         bool HasSideLane(int li, int side)
         {
             var c = road.lanes[li].center;
@@ -436,7 +436,7 @@ namespace DriveCoach.Core
                 if (c.passCool > 0f) c.passCool -= dt;
                 Sample(c.lane, c.s, out var p, out var dir);
                 var front = p + dir * (c.length / 2f);
-                // 옆으로 미끄러지는 중(앞지르기·골목 비킴)에는 실제 자리(옆 거리 lat 만큼)에서 앞을 본다 — 차로 가운데선에서만 보면
+                // 옆으로 미끄러지는 중(앞지르기·골목 비킴)에는 실제 자리(옆 거리 lat 만큼)에서 앞을 본다. 차로 가운데선에서만 보면
                 //   옛 차로에 선 버스를 3 m 옆으로 보고 그대로 밀고 들어가 겹쳤다(양재2동 논현로 시험)
                 var frontAct = Math.Abs(c.lat) > 0.05f ? front + new V2(-dir.y, dir.x) * c.lat : front;
                 // 앞에 있는 것(다른 차·내 차): 차 앞 40 m, 옆으로 1.8 m 안
@@ -457,7 +457,7 @@ namespace DriveCoach.Core
                     }
                     if (c.planNext >= 0 && o.lane == c.planNext && o.s >= c.planS && restL < 40f)
                     {
-                        // 세게 풀 때: 들어갈 자리 바로 옆(한 차 길이 안)에 나란히 선 그 차는 앞차로 보지 않는다(서로 코가 걸려 둘 다 섰다 — 양재2동 논현로20길)
+                        // 세게 풀 때: 들어갈 자리 바로 옆(한 차 길이 안)에 나란히 선 그 차는 앞차로 보지 않는다(서로 코가 걸려 둘 다 섰다, 양재2동 논현로20길)
                         if (c.passHard && o == c.passBy && o.s - c.planS < o.length + 1f) continue;
                         float g2 = restL + (o.s - c.planS) - (o.length + c.length) / 2f;
                         if (g2 < 40f && g2 < gap) { gap = g2; lead = o; }
@@ -467,7 +467,7 @@ namespace DriveCoach.Core
                     var rel = o.pos - frontAct;
                     float ahead = rel.Dot(dir);
                     if (ahead < 0f || ahead > 40f) continue;
-                    // 차로 끝에서 꺾을 차는 끝 너머를 곧게 보지 않는다(꺾어 갈 길은 몸통 겹침 막기·붙는 구간 양보가 본다) —
+                    // 차로 끝에서 꺾을 차는 끝 너머를 곧게 보지 않는다(꺾어 갈 길은 몸통 겹침 막기·붙는 구간 양보가 본다)
                     //   곧게 보면 교차로 안에서 꺾어 비켜 갈 차를 앞차로 보고 서로 섰다(양재1동 중앙로 (-1130,1503))
                     if (c.planNext >= 0 && c.planTurn != 0 && ahead > restL - c.length / 2f + 1f) continue;
                     float side = Math.Abs(rel.Dot(new V2(-dir.y, dir.x)));
@@ -479,7 +479,7 @@ namespace DriveCoach.Core
                 //   1 m 마다 놓아 보고, 다른 차 몸통과 겹치는 첫 자리 앞에서 선다. 위의 "앞차"(가운데가 옆 1.8 m 안)만 보면
                 //   교차로 정지선에서 코가 큰길로 나온 차, 옆 차로에서 비스듬히 선 버스 꼬리 같은 것을 못 보고 뚫고 지나갔다.
                 //   내 뒤에 있는 차(그 차가 나를 본다)와 맞은편에서 오는 차(골목 비켜 가기·맞은편 차로 규칙이 따로)는 빼고.
-                c.leadBy = lead != null && gap < 6f ? lead : null;      // 나를 세운(세울) 앞차 — 서로 기다림 풀기에 쓴다
+                c.leadBy = lead != null && gap < 6f ? lead : null;      // 나를 세운(세울) 앞차: 서로 기다림 풀기에 쓴다
                 var gapBy = lead;
                 c.guardBy = null;
                 if (c.speed > -0.1f && c.guardPoly != null)
@@ -520,7 +520,7 @@ namespace DriveCoach.Core
                     }
                 }
                 // 사람처럼 앞지르기: 앞차가 많이 느리면(내 제한 속도의 45 % 밑, 20 m 안) 성향에 따라 1.5~5초 뒤
-                //   옆 차로(같은 방향, 나란히 2.2~4.6 m — 왼쪽 먼저)로 옮긴다. 옆 차로 앞 20 m·뒤 15 m 가 비어 있고 그 차로가 60 m 넘게 남아야.
+                //   옆 차로(같은 방향, 나란히 2.2~4.6 m, 왼쪽 먼저)로 옮긴다. 옆 차로 앞 20 m·뒤 15 m 가 비어 있고 그 차로가 60 m 넘게 남아야.
                 //   깜빡이를 켜고 옆으로 미끄러지듯(옆 거리를 0.8 m/s 로 줄인다)
                 if (lead != null && !c.IsBus && !ln.shared && gap < 20f && lead.speed < limit * 0.45f && LaneLength(c.lane) - c.s > 50f && Math.Abs(c.lat) < 0.3f)
                     c.slowT += dt;
@@ -528,7 +528,7 @@ namespace DriveCoach.Core
                 if (c.slowT > (c.style == 2 ? 1.5f : (c.style == 1 ? 5f : 3f)))
                 {
                     c.slowT = 0f;
-                    if (TrySideLane(c, dir, me.Center)) { ln = road.lanes[c.lane]; Sample(c.lane, c.s, out p, out dir); front = p + dir * (c.length / 2f); frontAct = front + new V2(-dir.y, dir.x) * c.lat; }   // 옛 앞차까지 틈(gap)은 그대로 — 아직 그 뒤에 있다
+                    if (TrySideLane(c, dir, me.Center)) { ln = road.lanes[c.lane]; Sample(c.lane, c.s, out p, out dir); front = p + dir * (c.length / 2f); frontAct = front + new V2(-dir.y, dir.x) * c.lat; }   // 옛 앞차까지 틈(gap)은 그대로: 아직 그 뒤에 있다
                 }
                 bool meetMe = false;
                 if (Math.Abs(me.z - c.z) < 2.5f)
@@ -536,19 +536,19 @@ namespace DriveCoach.Core
                     var rel = me.Center - frontAct;
                     float ahead = rel.Dot(dir);
                     float side = Math.Abs(rel.Dot(new V2(-dir.y, dir.x)));
-                    // 마주 오는 내 차가 가까이(옆 3.2 m 안, 앞 18 m ~ 옆을 지나는 중) 오면 오른쪽으로 0.5 m 비켜 준다(좁은 길 사람 운전 — 골목 입구에서 스침)
+                    // 마주 오는 내 차가 가까이(옆 3.2 m 안, 앞 18 m ~ 옆을 지나는 중) 오면 오른쪽으로 0.5 m 비켜 준다(좁은 길 사람 운전: 골목 입구에서 스침)
                     if (me.Dir.Dot(dir) < -0.5f && side < 3.2f && ahead > -me.length - 2f && ahead < 18f) meetMe = true;
-                    // 옆 2.8 m 까지(좁은 골목에서 마주 오는 내 차 앞에 선다 — 2.2 m 로는 비스듬히 스쳐 부딪힘)
+                    // 옆 2.8 m 까지(좁은 골목에서 마주 오는 내 차 앞에 선다, 2.2 m 로는 비스듬히 스쳐 부딪힘)
                     // 내 차가 마주 오면 그 속도만큼(1.5초) 더 일찍
                     float closing = me.Dir.Dot(dir) < -0.5f ? Math.Max(0f, me.speed) * 1.5f : 0f;
                     // 서 있다가 출발할 때는 바로 옆을 지나가는 내 차가 다 지나갈 때까지(뒤로 내 차 길이 + 1 m) 기다린다
-                    //   (골목 입구에 서 있던 차가 옆을 스치며 꺾어 들어오는 내 차 옆구리로 출발)
+                    //   (골목 입구에 선 차가 꺾어 들어오는 내 차 옆구리로 출발하지 않게)
                     float behind = c.speed < 1f && Math.Abs(me.speed) > 0.5f ? -(me.length + 1f) : -1f;
                     if (ahead > behind && ahead < 40f && side < 2.8f && ahead - me.length / 2f - closing < gap) { gap = ahead - me.length / 2f - closing; gapBy = null; }
                 }
                 if (!float.IsInfinity(gap))
                 {
-                    // 교차로 안의 짧은 차로에서는 앞차에 바짝(1.8 m) 붙는다 — 4~6 m 띄우고 서면 꼬리가 가로지르는 차로를 덮어 교차로가 막혔다
+                    // 교차로 안의 짧은 차로에서는 앞차에 바짝(1.8 m) 붙는다. 4~6 m 띄우고 서면 꼬리가 가로지르는 차로를 덮어 교차로가 막혔다
                     float safe = Math.Max(0f, gap - (LaneLength(c.lane) < 30f ? Math.Min(c.GapM, 1.8f) : c.GapM));
                     float vg = (float)Math.Sqrt(2f * 3f * safe);
                     target = Math.Min(target, vg);
@@ -590,8 +590,8 @@ namespace DriveCoach.Core
                     }
                 }
                 // 신호: 이 차로를 따라 앞 50 m 안의 정지선이 빨강·노랑이면 그 앞 1.5 m 에 선다(왼쪽으로 꺾을 차는 좌회전 화살표를 본다)
-                float slAhead = float.PositiveInfinity;      // 내 차로 앞 정지선까지(색과 관계없이) — 꼬리물기 금지에 쓴다
-                // 이미 넘은 정지선(뒤 40 m 안)과 같은 교차로의 안쪽 정지선은 보지 않는다 — 교차로 안에 서면 가로지르는 차들과
+                float slAhead = float.PositiveInfinity;      // 내 차로 앞 정지선까지(색과 관계없이): 꼬리물기 금지에 쓴다
+                // 이미 넘은 정지선(뒤 40 m 안)과 같은 교차로의 안쪽 정지선은 보지 않는다. 교차로 안에 서면 가로지르는 차들과
                 //   서로 막는다(역삼1동 강남대로×도곡로 (-326,1246) 교차로 안 정지선). 넘은 교차로는 지난 장 것을 쓴다
                 bool inJ = c.inJct; var jIn = c.jct; c.inJct = false;
                 foreach (var sl in road.stopLines)
@@ -657,7 +657,7 @@ namespace DriveCoach.Core
                 var rgn = road.region;
                 if (rgn != null && rgn.humps.Count > 0 && Math.Abs(c.z) < 0.5f && rgn.HumpAhead(front, dir, -c.length, 6f + c.speed * 2f))
                     target = Math.Min(target, 20f / 3.6f);
-                // 버스: 이 차로의 다음 정류장(앞 60 m 안)에 선다 — 앞 범퍼가 표지 1 m 앞, 오른쪽 깜빡이, 10~20초 뒤 왼쪽 깜빡이 켜고 떠남
+                // 버스: 이 차로의 다음 정류장(앞 60 m 안)에 선다. 앞 범퍼가 표지 1 m 앞, 오른쪽 깜빡이, 10~20초 뒤 왼쪽 깜빡이 켜고 떠남
                 if (c.IsBus && laneStops != null && c.lane >= 0 && laneStops[c.lane] != null && Math.Abs(c.z) < 0.5f)
                 {
                     float frontS = c.s + c.length / 2f;
@@ -675,7 +675,7 @@ namespace DriveCoach.Core
                         }
                         else
                         {
-                            // 서는 까닭은 그 규칙 값으로만 적는다 — 다른 차 때문에 선 것을 '버스 정류장'으로 적어 고리를 못 찾았다(역삼1동 39대)
+                            // 서는 까닭은 그 규칙 값으로만 적는다. 다른 차 때문에 선 것을 '버스 정류장'으로 적어 고리를 못 찾았다(역삼1동 39대)
                             float vbs = (float)Math.Sqrt(2f * 1.6f * Math.Max(0f, ahead));
                             target = Math.Min(target, vbs);
                             if (vbs < 0.5f) hold = "bus";
@@ -687,14 +687,14 @@ namespace DriveCoach.Core
                 }
                 if (c.leaveT > 0f) { c.leaveT -= dt; if (c.leaveT <= 0f) c.blink = 0; }
                 // 좁은 양방향 골목(shared)에서 맞은편 차가 40 m 안에서 오면
-                //   둘 다 오른쪽으로 붙이고(길 폭/2 − 차 반폭 − 0.15 m, 최대 1.4 m) 25 m 안에서는 11 km/h 로 비켜 간다.
+                //   둘 다 오른쪽으로 붙이고(길 폭/2 - 차 반폭 - 0.15 m, 최대 1.4 m) 25 m 안에서는 11 km/h 로 비켜 간다.
                 //   둘이 못 지나갈 만큼 좁으면(폭 < 두 차 폭 + 0.35 m) 골목에 덜 들어온 쪽이 오른쪽에 붙어 서서 기다린다
                 c.latT = meetMe && !ln.shared ? 0.5f : 0f;
                 bool facing = false;
                 if (ln.shared && ln.pair >= 0 && Math.Abs(c.z) < 0.5f)
                 {
                     float pull = Math.Max(0f, Math.Min(1.4f, ln.room / 2f - c.width / 2f - 0.15f));
-                    // 짝 차로가 같은 선을 거꾸로 간 것(길이가 같다)이면 맞은편 차까지 거리를 길 따라 잰다 — 곧은 거리·옆 거리(3.5 m)로 재면
+                    // 짝 차로가 같은 선을 거꾸로 간 것(길이가 같다)이면 맞은편 차까지 거리를 길 따라 잰다. 곧은 거리·옆 거리(3.5 m)로 재면
                     //   굽은 짧은 골목에서 판정이 매 장 바뀌어(마주 섬 ↔ 아님) 덜 들어온 차가 물러나지 못하고 둘 다 섰다(양재1동 (1226,-1884))
                     float pairL = LaneLength(ln.pair);
                     bool sameLine = Math.Abs(pairL - LaneLength(c.lane)) < 1f;
@@ -716,7 +716,7 @@ namespace DriveCoach.Core
                             }
                             else if (myIn < oIn || (Math.Abs(myIn - oIn) < 0.5f && c.paint < o.paint))
                             {
-                                // 덜 들어온 쪽이 선다 — 3초 넘게 마주 서 있으면 골목 입구 쪽으로 천천히 물러난다(사람이 하듯)
+                                // 덜 들어온 쪽이 선다. 3초 넘게 마주 서 있으면 골목 입구 쪽으로 천천히 물러난다(사람이 하듯)
                                 facing = true;
                                 target = Math.Min(target, (float)Math.Sqrt(2f * 3f * Math.Max(0f, along - (c.length + o.length) / 2f - 4f)));
                                 if (c.speed < 0.3f && along < 15f) c.alleyWait += dt;
@@ -789,9 +789,9 @@ namespace DriveCoach.Core
                     if (c.planNext >= 0)
                     {
                         Sample(c.planNext, Math.Min(c.planS + 2f, LaneLength(c.planNext)), out var entry, out var entryDir);
-                        // 들어갈 자리: 그 차로 방향으로 놓은 내 차 네모(앞뒤 1 m·옆 0.4 m 여유) — 옆 차로(3 m 남짓 옆)에 선 차는 막지 않는다
+                        // 들어갈 자리: 그 차로 방향으로 놓은 내 차 네모(앞뒤 1 m·옆 0.4 m 여유). 옆 차로(3 m 남짓 옆)에 선 차는 막지 않는다
                         var entryPoly = Geom.RectPoly(entry, c.length + 2f, c.width + 0.8f, (float)Math.Atan2(entryDir.y, entryDir.x) * Geom.Rad2Deg);
-                        // 들어갈 자리에 내 차(플레이어)가 움직이며 있으면 기다린다(서 있는 내 차는 이 차를 기다리는 중일 수 있어 — 둘이 서로 기다려 멈추지 않게)
+                        // 들어갈 자리에 내 차(플레이어)가 움직이며 있으면 기다린다(서 있는 내 차는 이 차를 기다리는 중일 수 있어, 둘이 서로 기다려 멈추지 않게)
                         if (Math.Abs(me.z - c.z) < 2.5f && Math.Abs(me.speed) > 1f && (me.Center - c.pos).Dot(dir) > 0f && me.Center.DistanceTo(entry) < (me.length + c.length) / 2f + 3f + c.speed * c.speed / 8f) occ = true;
                         foreach (var o in cars)
                         {
@@ -803,12 +803,12 @@ namespace DriveCoach.Core
                             if (mutual && o.lane == c.planNext && o.s > c.planS - o.length && o.s < c.planS + c.length + 3f) { brk = true; continue; }
                             if (o.lane == c.planNext && o.s > c.planS - o.length && o.s < c.planS + c.length + 3f + c.speed * c.speed / 8f) { occ = true; c.occBy = occO = o; break; }
                             // 들어갈 차로 뒤쪽 20 m 안에서 다가오는 차(차로 중간으로 끼어들 때)
-                            //   (50 km/h 차는 20 m 를 1.4초에 온다 — 4초 안에 올 거리까지 본다)
+                            //   (50 km/h 차는 20 m 를 1.4초에 온다. 4초 안에 올 거리까지 본다)
                             if (o.lane == c.planNext && c.planS > 3f && o.s <= c.planS - o.length && o.s > c.planS - Math.Max(20f, o.speed * 4f) && o.speed > 1f) { occ = true; occO = o; break; }
-                            // 옆길 입구로 비켜 서 있는 차(골목 마주침)는 길을 비켜 준 것 — 그 차 때문에 서면 서로 기다려 멈춘다
+                            // 옆길 입구로 비켜 서 있는 차(골목 마주침)는 길을 비켜 준 것. 그 차 때문에 서면 서로 기다려 멈춘다
                             if (o.lane != c.lane && o.aside == 0f && o.pos.DistanceTo(entry) < (o.length + c.length) / 2f + 1f && Geom.ConvexOverlap(o.Poly, entryPoly))
                             {
-                                // (역삼역 시연 경로) 그 차도 나 때문에(내가 그 차 들어갈 자리에 있어) 서 있으면 둘 다 영영 선다 →
+                                // 그 차도 나 때문에(내가 그 차 들어갈 자리에 있어) 서 있으면 둘 다 영영 서므로
                                 //   5초 넘게 서로 기다렸으면 차로 끝에 더 가까운 쪽(같으면 번호 작은 쪽)이 먼저 간다(바로 앞을 막으면 앞차 보기로 여전히 선다)
                                 if (o.occBy == c && c.waitJ > 5f && o.lane >= 0)
                                 {
@@ -826,7 +826,7 @@ namespace DriveCoach.Core
                             }
                             // 다른 차로에서 같은 차로로 들어가려는 차가 나보다 그 끝에 가까우면(합류) 먼저 보낸다
                             //   들어가는 자리가 15 m 넘게 떨어진 차(그 차로 중간으로 들어오는 먼 차)는 빼고, 한쪽이 6초 넘게 기다렸으면 더 오래 기다린 차가
-                            //   먼저(상대가 아직 편히 설 수 있을 때만) — 큰길 끝에서 물러나 선 차가 옆길에서 잇달아 오는 차에 5분 넘게 밀렸다(양재1동 남부순환로 (1697,-1798))
+                            //   먼저(상대가 아직 편히 설 수 있을 때만). 큰길 끝에서 물러나 선 차가 옆길에서 잇달아 오는 차에 5분 넘게 밀렸다(양재1동 남부순환로 (1697,-1798))
                             if (o.planNext == c.planNext && o.lane != c.lane && o.lane >= 0 && Math.Abs(o.planS - c.planS) < 15f)
                             {
                                 float oRest = LaneLength(o.lane) - o.s;
@@ -850,7 +850,7 @@ namespace DriveCoach.Core
                             float dh = Math.Abs((float)Math.IEEERemainder(o.heading - c.heading, 2 * Math.PI)) * Geom.Rad2Deg;
                             if (dh <= 30f || dh >= 150f) continue;
                             // 도로교통법 제26조(신호 없는 교차로): ① 이미 교차로에 들어간 차(그 자리 4 m 안) 먼저 ② 넓은(제한 속도 높은) 길 차 먼저
-                            //   ③ 같으면 오른쪽에서 오는 차 먼저 — 그 밖에는 가까운 차 먼저
+                            //   ③ 같으면 오른쪽에서 오는 차 먼저, 그 밖에는 가까운 차 먼저
                             var olane = o.lane >= 0 ? road.lanes[o.lane] : null;
                             float myLim = road.LimitOf(ln), oLim = olane != null ? road.LimitOf(olane) : myLim;
                             bool fromRight = (o.pos - c.pos).Dot(new V2(-dir.y, dir.x)) > 0f;
@@ -862,7 +862,7 @@ namespace DriveCoach.Core
                                 || (coming && myD > 4f && tO < tMe);
                             if (give) { yield = true; occO = o; break; }
                         }
-                    // 들어갈 자리가 막힌 것(occ)은 기다림 시간과 관계없이 선다 — 4초 넘게 기다린 뒤 둘이 함께 들어가 겹쳤다
+                    // 들어갈 자리가 막힌 것(occ)은 기다림 시간과 관계없이 선다. 4초 넘게 기다린 뒤 둘이 함께 들어가 겹쳤다
                     if (occ || (yield && c.waitJ < 4f + (c.model % 5)))
                     {
                         float back = stopBack != null && c.lane < stopBack.Length ? stopBack[c.lane] : 2f;
@@ -890,7 +890,7 @@ namespace DriveCoach.Core
                 if (c.waitMe > 3f) c.backing = true;
                 if (c.backing)
                 {
-                    // 한 번 물러나기 시작하면 길 처음(교차로)까지 물러난다 — 내 차가 지나가거나 멀어지면 그만
+                    // 한 번 물러나기 시작하면 길 처음(교차로)까지 물러난다. 내 차가 지나가거나 멀어지면 그만
                     bool stillFacing = me.Dir.Dot(dir) < -0.6f && me.Center.DistanceTo(front) < 25f && (me.Center - front).Dot(dir) > -1f;
                     if (stillFacing) c.speed = -1.8f; else { c.backing = false; c.waitMe = 0f; }
                 }
@@ -1042,7 +1042,7 @@ namespace DriveCoach.Core
         readonly List<(int o, float s, float u)> xTmp = new List<(int, float, float)>();
         readonly HashSet<long> xSeen = new HashSet<long>();
 
-        /// <summary>붙는 구간 찾기용 격자(토막이 지나는 칸마다, 20 m) — 처음 만들 때 한 번</summary>
+        /// <summary>붙는 구간 찾기용 격자(토막이 지나는 칸마다, 20 m). 처음 만들 때 한 번</summary>
         void BuildSegGrid()
         {
             segGrid = new Dictionary<long, List<(int, int)>>();
@@ -1084,8 +1084,8 @@ namespace DriveCoach.Core
         /// <summary>
         /// 모든 차로의 붙는 구간을 한꺼번에 찾아 둔다(구간 수를 돌려준다). 동네를 열 때 불러오는 화면 뒤에서 한 번 부른다
         /// (GameMain.StartSession 이 부른다). 처음 쓸 때 찾게 두면 첫 장에 격자 + 차가 있는 차로 거의 전부가
-        /// 몰려 그 한 장이 36~77 ms·2.5 MB(.NET 시험 실행) 였다. 차로마다 찾는 값은 지도만 보고 언제 찾든 같으므로 결과는 처음 쓸 때 찾던 것과
-        /// 비트까지 같다. 다 찾은 뒤에는 찾기용 격자·작업 목록을 놓는다(더 찾을 차로가 없다). 부르지 않으면 예전처럼 처음 쓸 때 찾는다.
+        /// 몰려 그 한 장이 36~77 ms·2.5 MB(.NET 시험 실행)가 된다. 차로마다 찾는 값은 지도만 보고 언제 찾든 같으므로 결과는 처음 쓸 때 찾는 것과
+        /// 비트까지 같다. 다 찾은 뒤에는 찾기용 격자·작업 목록을 놓는다(더 찾을 차로가 없다). 부르지 않으면 처음 쓸 때 찾는다.
         /// </summary>
         public int PrepareCrossings()
         {
@@ -1097,7 +1097,7 @@ namespace DriveCoach.Core
             return n;
         }
 
-        /// <summary>이번 장에 정한 두 차의 가로지름 차례(번호 작은 차가 먼저면 true) — 두 차가 같은 판정을 쓰게</summary>
+        /// <summary>이번 장에 정한 두 차의 가로지름 차례(번호 작은 차가 먼저면 true), 두 차가 같은 판정을 쓰게</summary>
         readonly Dictionary<long, bool> xDec = new Dictionary<long, bool>();
 
         /// <summary>c 의 갈 길(지금 차로, 끝이 가까우면 다음 차로)과 o 의 갈 길이 붙는 가장 가까운 구간: 두 차 가운데에서 그 구간 처음·끝까지 길 따라 거리</summary>
@@ -1166,7 +1166,7 @@ namespace DriveCoach.Core
                 else
                 {
                     // 구간에 걸쳐 있어도 빨간불에 서 있는 차는 지나갈 차가 아니다(몸통이 정말 막으면 몸통 겹침 막기가 세운다)
-                    //   — 빨간불에 선 가로 길 차를 기다리다 초록이 끝나 15분 넘게 섰다(역삼1동 강남대로×도곡로)
+                    // 빨간불에 선 가로 길 차를 기다리다 초록이 끝나 15분 넘게 섰다(역삼1동 강남대로×도곡로)
                     if (inC && inO) first = stC != stO ? stO : (hc0 < ho0 || (hc0 == ho0 && c.id < o.id));
                     else if (inC != inO) first = inC ? !stC : stO;
                     else if ((o.guardBy == c) != (c.guardBy == o)) first = o.guardBy == c;     // 몸통이 이미 상대 길을 막고 있는 차가 먼저(빠져 줘야 풀린다)
@@ -1220,7 +1220,7 @@ namespace DriveCoach.Core
             for (int n = 0; n < 16; n++)
             {
                 var y = x.waitBy;
-                // 이번 장에 이미 빠진 차(차로 끝 lane −1·치운 차)를 가리키는 지난 장 waitBy 를 따라가지 않는다(LaneLength(−1) 예외)
+                // 이번 장에 이미 빠진 차(차로 끝 lane -1·치운 차)를 가리키는 지난 장 waitBy 를 따라가지 않는다(LaneLength(-1) 예외)
                 if (y == null || y.speed > 0.3f || y.lane < 0) return;
                 if (LoopRank(x) >= 0 && (best == null || LoopBefore(x, best))) best = x;
                 x = y;
@@ -1228,7 +1228,7 @@ namespace DriveCoach.Core
             }
             if (x != c || best != c) return;
             // 처음에는 규칙(들어갈 자리·꼬리물기·양보·붙는 구간)만 무시하고 몸통 겹침 막기는 지킨다. 45초 넘게 풀리지 않으면
-            //   고리에 든 차들의 몸통도 무시하고 천천히 빠져나간다(겹쳐 보여도 영영 서 있는 것보다 낫다 — 같은 차로 앞차는 그대로 본다)
+            //   고리에 든 차들의 몸통도 무시하고 천천히 빠져나간다(겹쳐 보여도 영영 서 있는 것보다 낫다, 같은 차로 앞차는 그대로 본다)
             StartPass(c, c.stopT > 45f);
         }
 
@@ -1251,7 +1251,7 @@ namespace DriveCoach.Core
         }
 
         /// <summary>
-        /// 기다림 사슬(waitBy)이 내 차(플레이어) 때문에 선 차에서 끝나는가. 그런 사슬은 90초 규칙으로 뚫지 않는다 —
+        /// 기다림 사슬(waitBy)이 내 차(플레이어) 때문에 선 차에서 끝나는가. 그런 사슬은 90초 규칙으로 뚫지 않는다
         /// 내 차 때문에 선 차(그 차는 내 차를 가린다)를 뚫고 지나가면 옆 차로에서 내 차를 못 보는 차(옆 2.8 m 밖, 차로 끝 너머는 곧게만 봄)가
         /// 서 있는 내 차 옆구리로 들어와 '다른 차와 부딪혔습니다'(내 부딪힘 횟수)가 90초마다 났다(양재1동 중앙로 (-1131,1502), 내 차를 세워 둔 점검).
         /// </summary>
@@ -1284,13 +1284,13 @@ namespace DriveCoach.Core
             return rest - x.length / 2f - back > x.speed * x.speed / 6f;
         }
 
-        /// <summary>고리 풀기 순위(작을수록 먼저, −1 이면 풀 수 없음: 같은 차로·들어갈 차로의 앞차에 막힘)</summary>
+        /// <summary>고리 풀기 순위(작을수록 먼저, -1 이면 풀 수 없음: 같은 차로·들어갈 차로의 앞차에 막힘)</summary>
         int LoopRank(TrafficCar x)
         {
             var y = x.waitBy;
             if (y.lane == x.lane && y.s > x.s) return -1;
             if (x.planNext >= 0 && y.lane == x.planNext && y.s > x.planS + (x.length + y.length) / 2f + 1f) return -1;
-            // 몸이 막히지 않고 규칙으로만 선 차 0, 앞차 보기로 선 차 1, 몸통 겹침 막기에 걸린 차(바로 앞에 몸이 있다) 2 — 몸이 막힌 차는 소프트로는 못 빠진다
+            // 몸이 막히지 않고 규칙으로만 선 차 0, 앞차 보기로 선 차 1, 몸통 겹침 막기에 걸린 차(바로 앞에 몸이 있다) 2. 몸이 막힌 차는 소프트로는 못 빠진다
             int r = x.guardBy != null ? 2 : (x.waitWhy == "gap" ? 1 : 0);
             return x.passCool > 0f ? r + 3 : r;
         }
@@ -1299,7 +1299,7 @@ namespace DriveCoach.Core
         {
             int ra = LoopRank(a), rb = LoopRank(b);
             if (ra != rb) return ra < rb;
-            // 차로 끝까지 남은 거리는 1 m 단위로 묶어 비교한다(0.5 m 차이로 비교하면 셋 사이에 순서가 돌아 아무도 뽑히지 않았다 — 양재1동 논현로 세 차로 합류)
+            // 차로 끝까지 남은 거리는 1 m 단위로 묶어 비교한다(0.5 m 차이로 비교하면 셋 사이에 순서가 돌아 아무도 뽑히지 않았다, 양재1동 논현로 세 차로 합류)
             int ea = (int)Math.Floor(LaneLength(a.lane) - a.s), eb = (int)Math.Floor(LaneLength(b.lane) - b.s);
             if (ea != eb) return ea < eb;
             return a.id < b.id;

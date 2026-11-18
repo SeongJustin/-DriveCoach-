@@ -1,4 +1,4 @@
-// 앱 연결 — Pleos SpeechToText SDK 로 음성 명령 받기
+// 앱 연결: Pleos SpeechToText SDK 로 음성 명령 받기
 // Pleos 서포트 답변(TTS·STT 는 공모전용으로 에뮬레이터에서 제공)에 따라 연결. 명령 해석은 core 의 CommandRecognizer.recognizeVoice.
 package kr.drivecoach.app.speech
 
@@ -21,17 +21,17 @@ import kotlinx.coroutines.flow.asStateFlow
  * "다음", "다시", "확인", "조용히", "세울래요" 같은 짧은 음성 명령을 Pleos SpeechToText(ON_DEVICE)로 받는다.
  *
  * javap 로 확인한 API (SpeechToText-3.3.1):
- *  - `SpeechToText(context, Mode)` — `Mode { HYBRID, SERVER, ON_DEVICE }`
+ *  - `SpeechToText(context, Mode)`: `Mode { HYBRID, SERVER, ON_DEVICE }`
  *  - `initialize(OnInitializeListener { onSuccess(); onFailure(ErrorType) })`, `addListener(ResultListener)`, `request()`, `stop()`, `setLocale(Locale)`, `release()`
  *  - `ResultListener { onUpdated(text, isFinal); onUpdatedEpdData(Long, Long); onStartedRecognition(); onEndedRecognition(); onError(ErrorType); onReady(); onUpdatedRms(Double) }`
  *  - 마이크는 Pleos 서비스가 차량 마이크로 연다(RECORD_AUDIO 불필요). 권한은 매니페스트 `pleos.car.permission.STT_SERVICE`.
  *
- * 듣는 방법: **항상 듣기**가 기본. 코치가 말하지 않는 동안에는 마이크를 계속 열어 두고(한 번 듣기가 끝나면 바로 다시 연다),
+ * 듣는 방법: 항상 듣기가 기본. 코치가 말하지 않는 동안에는 마이크를 계속 열어 두고(한 번 듣기가 끝나면 바로 다시 연다),
  * 운전자가 언제든 "다음"·"다시"라고 하면 받는다. 화면의 마이크 버튼으로 켜고 끈다(앱을 다시 켜도 유지, [alwaysOn]).
  *  - 코치가 말하는 동안에는 듣지 않는다: 차 스피커 소리를 자기 명령으로 알아듣지 않게(에뮬레이터에는 에코 제거가 없다). 말이 끝나고 [RESUME_AFTER_SPEECH_MS] 뒤 다시 연다.
  *    코치 말을 끊고 싶으면 휠 버튼·화면 버튼을 쓴다.
  *  - 끄면 [listen](한 번 듣기)만 쓴다.
- * 모든 SDK 호출은 try/catch — 서비스가 없거나 오류가 나도 앱은 휠·화면 버튼으로 계속 동작한다.
+ * 모든 SDK 호출은 try/catch. 서비스가 없거나 오류가 나도 앱은 휠·화면 버튼으로 계속 동작한다.
  */
 class VoiceCommandListener(
     context: Context,
@@ -94,7 +94,7 @@ class VoiceCommandListener(
     }
 
     /**
-     * 코치가 막 말하려 할 때(CoachController.speakNow 직전) 부른다. 항상 듣기로 연 마이크를 **바로** 닫는다 —
+     * 코치가 막 말하려 할 때(CoachController.speakNow 직전) 부른다. 항상 듣기로 연 마이크를 바로 닫는다.
      * [tick] 은 0.4초마다라 그 사이 코치 첫 소리("다음 주제…" 등)를 명령으로 알아들을 수 있다.
      */
     fun onCoachWillSpeak() {
@@ -118,7 +118,7 @@ class VoiceCommandListener(
 
     private val timeout = Runnable { if (_state.value == State.LISTENING) { Log.i(TAG, "듣기 시간 초과"); stopListening() } }
     /** request 뒤 [READY_TIMEOUT_MS] 안에 onReady 가 없으면 Pleos 서비스와의 콜백 연결이 끊긴 것으로 보고 엔진을 다시 연결한다.
-     *  듣기 시간([LISTEN_TIMEOUT_MS])은 마이크가 열린 뒤(onReady)부터 센다 — 에뮬레이터에서 마이크가 열리기까지 0.3~4초 걸렸다. */
+     *  듣기 시간([LISTEN_TIMEOUT_MS])은 마이크가 열린 뒤(onReady)부터 센다. 에뮬레이터에서 마이크가 열리기까지 0.3~4초 걸렸다. */
     private var gotReady = false
     private fun onMicOpen() {
         if (gotReady) return

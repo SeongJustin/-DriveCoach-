@@ -1,4 +1,4 @@
-// 신호등과 신호 계획(Road.cs 에서 나눈 파일).
+// Road: 신호등과 신호 계획
 using System;
 using System.Collections.Generic;
 
@@ -13,7 +13,7 @@ namespace DriveCoach.Core
         public float green = 12f, yellow = 3f, red = 15f, offset;
         /// <summary>
         /// 직진 뒤 좌회전 화살표: 0 이면 좌회전 화살표가 초록과 함께(동시 신호).
-        /// 0 보다 크면 한 주기 = [직진 초록 green][노랑][좌회전 화살표 leftGreen][노랑][빨강 red] — 화살표 동안 직진은 빨강.
+        /// 0 보다 크면 한 주기 = [직진 초록 green][노랑][좌회전 화살표 leftGreen][노랑][빨강 red]. 화살표 동안 직진은 빨강.
         /// </summary>
         public float leftGreen;
         /// <summary>이 진입로 앞 횡단보도(이 길을 가로지르는 것)의 보행 초록: 주기 처음에서 pedStart 초부터 pedLen 초(0 = 빨간불 내내)</summary>
@@ -42,14 +42,14 @@ namespace DriveCoach.Core
             return x >= 0f && x < leftGreen ? SignalColor.Green : (x >= leftGreen && x < leftGreen + yellow ? SignalColor.Yellow : SignalColor.Red);
         }
 
-        /// <summary>직진 초록이 끝나기까지 남은 초(초록이 아니면 0) — 보행등 깜빡임(초록 끝 무렵)</summary>
+        /// <summary>직진 초록이 끝나기까지 남은 초(초록이 아니면 0): 보행등 깜빡임(초록 끝 무렵)</summary>
         public float GreenLeft(float t)
         {
             float x = Phase(t);
             return x < green ? green - x : 0f;
         }
 
-        /// <summary>직진 빨강이 끝나(초록이 되기)까지 남은 초(빨강이 아니면 0) — 독일 빨강+노랑(Rot-Gelb) 표시용</summary>
+        /// <summary>직진 빨강이 끝나(초록이 되기)까지 남은 초(빨강이 아니면 0): 독일 빨강+노랑(Rot-Gelb) 표시용</summary>
         public float RedLeft(float t) => At(t) == SignalColor.Red ? Cycle - Phase(t) : 0f;
 
         /// <summary>앞 횡단보도 보행 초록인가(pedLen 0 이면 직진·좌회전이 모두 빨강인 동안)</summary>
@@ -79,7 +79,7 @@ namespace DriveCoach.Core
     /// <summary>
     /// 신호 교차로 하나의 시간 계획(같은 교차로 신호들이 함께 쓴다). slots 가 없으면 교차로 크기로 정한 값(서울 신호 크기:
     /// 들어오는 차로 수로 주기 90·120·160 s, 두 갈래가 차로 수 비율로 초록을 나눔, 큰 길은 직진 뒤 좌회전 화살표).
-    /// 현시 → 움직임(운영계획에는 현시가 어느 방향인지 없다 — 서울 흔한 순서로 맞춤):
+    /// 현시 → 움직임(운영계획에는 현시가 어느 방향인지 없다, 서울 흔한 순서로 맞춤):
     ///   2 현시 = [큰 갈래 직진(좌회전 함께)][작은 갈래], 3 = [큰 직진][큰 좌회전][작은 갈래], 4 이상 = [큰 직진][큰 좌회전][작은 직진][작은 좌회전(나머지 합)].
     ///   현시 값은 노랑 3 s 를 포함하고, 갈래의 마지막 현시는 전적색 2 s 도 포함한다고 본다.
     /// </summary>
@@ -88,7 +88,7 @@ namespace DriveCoach.Core
         public const float Y = 3f, AR = 2f;
         public int no;              // 서울 교차로 번호(0 = 모름)
         public string name = "";
-        public int nA, nB;          // 갈래별(양방향) 들어오는 차로 수 — A 가 큰 갈래(1 현시)
+        public int nA, nB;          // 갈래별(양방향) 들어오는 차로 수: A 가 큰 갈래(1 현시)
         public float defOffset;     // 고정 값일 때 교차로마다 다른 옵셋(같은 때 바뀌지 않게)
         public List<SignalSlot> slots = new List<SignalSlot>();
         /// <summary>지금 쓰는 시간대(null = 고정 값)</summary>
@@ -140,7 +140,7 @@ namespace DriveCoach.Core
             if (nB == 0) { gB = 0f; lB = 0f; }
             else if (lb > 0f) { gB = tb - Y; lB = lb - Y - AR; } else { gB = tb - Y - AR; lB = 0f; }
             if (gA < 5f || (nB > 0 && gB < 5f) || (la > 0f && lA < 3f) || (lb > 0f && lB < 3f)) return false;
-            // 옵셋: 하루 시계(자정부터 초)에서 이 교차로 1 현시가 시작하는 때 — 게임 시간 0 = 이 시간대의 그 시각(minute)
+            // 옵셋: 하루 시계(자정부터 초)에서 이 교차로 1 현시가 시작하는 때. 게임 시간 0 = 이 시간대의 그 시각(minute)
             offA = minute * 60f - s.offset;
             return true;
         }

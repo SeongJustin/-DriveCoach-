@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 앱이 보내는 평평한 JSON(제원·진행 기록)을 읽고 쓰는 작은 도구. UnityEngine 없음
+// 3D 주차 연습: 앱이 보내는 평평한 JSON(제원·진행 기록)을 읽고 쓰는 작은 도구. UnityEngine 없음
 using System;
 using System.Collections.Generic;
 using System.Globalization;

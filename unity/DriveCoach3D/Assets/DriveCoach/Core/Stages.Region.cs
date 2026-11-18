@@ -1,4 +1,4 @@
-// Stages 의 동네 도로 주행 판 만들기(Region.cs 에서 나눈 파일).
+// Stages: 동네 도로 주행 판 만들기
 using System;
 using System.Collections.Generic;
 
@@ -6,7 +6,7 @@ namespace DriveCoach.Core
 {
     public static partial class Stages
     {
-        /// <summary>신호 시계 기본(하루 중 분) — 게임 설정의 시간(아침 08:00·낮 14:00·해질녘 18:30·밤 23:00)</summary>
+        /// <summary>신호 시계 기본(하루 중 분): 게임 설정의 시간(아침 08:00·낮 14:00·해질녘 18:30·밤 23:00)</summary>
         public static readonly int[] SignalClocks = { 8 * 60, 14 * 60, 18 * 60 + 30, 23 * 60 };
         public static int SignalClockDefault = 8 * 60;
         /// <summary>차로 하나 폭(m): 큰길 3.3, 동네길 3.0, 골목·서비스 2.75</summary>
@@ -24,7 +24,7 @@ namespace DriveCoach.Core
         /// 지역 데이터 → 도로 주행 판. id 는 400번대(지역).
         /// 시작: 건물이 가장 많이 모인 곳 근처의 동네길 차로.
         /// </summary>
-        /// <summary>start: 시작 자리(가장 가까운 차로 위에 놓는다), headingDeg: 바라볼 방향 힌트(동 사이 이동 — 달리던 방향을 잇는다). 없으면 동네 한가운데</summary>
+        /// <summary>start: 시작 자리(가장 가까운 차로 위에 놓는다), headingDeg: 바라볼 방향 힌트(동 사이 이동: 달리던 방향을 잇는다). 없으면 동네 한가운데</summary>
         public static Stage Region(RegionData d, int id, V2 start, float headingDeg = float.NaN)
         {
             var s = Region(d, id);
@@ -41,7 +41,10 @@ namespace DriveCoach.Core
             return s;
         }
 
-        /// <summary>p 에서 가장 가까운 차로 위(고가·지하가 아닌 곳)에 차를 놓는다. headingDeg 가 있으면 그 방향과 맞는 차로를 고른다</summary>
+        /// <summary>
+        /// p 에서 가장 가까운 차로 위(고가·지하가 아닌 곳)에 차를 놓는다. headingDeg 가 있으면 그 방향과 맞는 차로를 고른다(동 사이 이동: 달리던 차로를 잇는다).
+        /// headingDeg 가 없으면(새로 출발) 버스전용차로(BusLane)는 건너뛴다
+        /// </summary>
         static void PlaceAt(Stage s, RoadDef road, V2 p, float headingDeg)
         {
             float bestScore = float.MaxValue; V2 bp = V2.Zero, bd = V2.Zero; bool found = false;
@@ -59,7 +62,8 @@ namespace DriveCoach.Core
                     var q = Geom.ClosestPointOnSegment(p, c[i], c[i + 1]);
                     var dir = (c[i + 1] - c[i]).Normalized;
                     float score = q.DistanceTo(p) + (hint ? (1f - dir.Dot(want)) * 25f : 0f);
-                    if (score < bestScore) { bestScore = score; bp = q; bd = dir; found = true; }
+                    if (!(score < bestScore) || (!hint && BusLane(road, q, dir))) continue;
+                    bestScore = score; bp = q; bd = dir; found = true;
                 }
             }
             if (!found) return;
@@ -71,11 +75,12 @@ namespace DriveCoach.Core
         {
             var s = MakeStage(id, "내 동네(" + d.name + ")", d.name + " 도로를 달려 보십시오(베타). 신호, 차로, 제한 속도를 지키고, 끝내려면 서서 P");
             s.mode = StageMode.Road;
-            var road = new RoadDef { speedLimitKmh = 50f, region = d, trafficCount = 30 };
+            // beta 동네: 다니는 차 0 대, 건너는 사람 없음(세운 차·신호·정류장·건물은 그대로)
+            var road = new RoadDef { speedLimitKmh = 50f, region = d, trafficCount = d.beta ? 0 : 30, noPeds = d.beta };
             // 1) 길 → 띠·차로
             foreach (var r in d.roads)
             {
-                // 지하차도 안(tunnel 이고 높이가 있는 길)도 차로·높이는 넣는다 — 안 넣으면 입구에서 차로가 끊기고 차가 땅 위로 튀어 오른다.
+                // 지하차도 안(tunnel 이고 높이가 있는 길)도 차로·높이는 넣는다. 안 넣으면 입구에서 차로가 끊기고 차가 땅 위로 튀어 오른다.
                 //   땅 위 띠(strips: 인도·바닥 꾸밈)만 뺀다. 높이 없는 터널(산 밑 터널·굴다리)은 전처럼 뺀다
                 bool under = false;
                 if (r.tunnel)
@@ -114,7 +119,7 @@ namespace DriveCoach.Core
                 if (!r.oneway && n == 1)
                 {
                     // 중앙선 없는 골목: 폭 4.6 m 넘으면 두 방향을 가운데에서 1.3 m 씩(마주 오는 두 차가 겹치지 않게),
-                    //   좁으면 가운데로 같이 쓴다(shared) — 다른 차는 마주치면 서로 오른쪽으로 붙여 비켜 간다
+                    //   좁으면 가운데로 같이 쓴다(shared): 다른 차는 마주치면 서로 오른쪽으로 붙여 비켜 간다
                     bool split = width >= 4.6f;
                     float off = split ? Math.Min(1.35f, width / 4f) : 0f;
                     int iF = road.lanes.Count;
@@ -125,7 +130,7 @@ namespace DriveCoach.Core
                     SetLaneZ(road, r, lane0);
                     continue;
                 }
-                // 일방통행(잰 차로 없음): 길 가운데선이 곧 차도 한가운데 — 차로를 가운데선 양쪽으로 나눈다(전에는 모두 오른쪽으로 밀려 차로 절반이 길 밖이었다)
+                // 일방통행(잰 차로 없음): 길 가운데선이 곧 차도 한가운데, 차로를 가운데선 양쪽으로 나눈다(한쪽으로 몰면 차로 절반이 길 밖에 놓인다)
                 float one = bwd == 0 ? -fwd * lw / 2f : median / 2f;
                 for (int i = 0; i < fwd; i++)
                     road.lanes.Add(new Lane { center = Offset(r.pts, one + (i + 0.5f) * lw), width = lw, name = r.name, speedLimitKmh = r.maxspeed });
@@ -163,7 +168,7 @@ namespace DriveCoach.Core
         }
 
         /// <summary>
-        /// 입체 교차 길의 차로 높이: 차로 가운데 점은 길 꼭짓점과 같은 수(Offset) — 거꾸로 만든 차로(역방향)는 높이도 거꾸로.
+        /// 입체 교차 길의 차로 높이: 차로 가운데 점은 길 꼭짓점과 같은 수(Offset). 거꾸로 만든 차로(역방향)는 높이도 거꾸로.
         /// 첫 점이 길 첫 점 쪽인지로 정한다.
         /// </summary>
         static void SetLaneZ(RoadDef road, RegionRoad r, int from)
@@ -186,7 +191,7 @@ namespace DriveCoach.Core
             for (int i = 0; i + 1 < r.pts.Length; i++)
             {
                 if (Math.Abs(r.z[i]) < 0.05f && Math.Abs(r.z[i + 1]) < 0.05f) continue;
-                // 좌우 따로 준 도랑(twl·twr): 그 바닥 위에서만 내려간다 — 가운데선을 바닥 한가운데로 옮겨 넣는다(옆 차로는 땅 높이 그대로)
+                // 좌우 따로 준 도랑(twl·twr): 그 바닥 위에서만 내려간다. 가운데선을 바닥 한가운데로 옮겨 넣는다(옆 차로는 땅 높이 그대로)
                 if ((r.twl > 0f || r.twr > 0f) && (r.z[i] < 0f || r.z[i + 1] < 0f))
                 {
                     var dd = (r.pts[i + 1] - r.pts[i]).Normalized; var nr = new V2(-dd.y, dd.x);      // 오른쪽
@@ -223,7 +228,7 @@ namespace DriveCoach.Core
             return m / Math.Max(1, ps.Count);
         }
 
-        /// <summary>선을 오른쪽(+)·왼쪽(−)으로 off 만큼 옮긴다(2D 화면 좌표: y 아래, 진행 방향 오른쪽 = (-dy, dx)).</summary>
+        /// <summary>선을 오른쪽(+)·왼쪽(-)으로 off 만큼 옮긴다(2D 화면 좌표: y 아래, 진행 방향 오른쪽 = (-dy, dx)).</summary>
         public static V2[] Offset(V2[] pts, float off, float[] shift = null)
         {
             var o = new V2[pts.Length];
@@ -447,7 +452,42 @@ namespace DriveCoach.Core
             return (lo + hi) / 2f;
         }
 
-        /// <summary>시작 자리: 동 안, 건물이 가장 많이 모인 곳(반지름 120 m) 근처의 동네길·2차로 차로 위, 차로 방향</summary>
+        /// <summary>
+        /// q 에서 dir 쪽으로 가는 차로가 버스전용차로인가(지역 자료에 파란 칠이 있을 때만 안다). 파란 칠(RegionData.BusPaintSide)이
+        /// 왼쪽 2.5 m 안에 있고 오른쪽에 같은 방향 차로가 없으면 길가 버스전용차로, 오른쪽 2.5 m 안에 있고 왼쪽에 같은 방향 차로가 없으면 중앙 버스전용차로.
+        /// 파란 선 건너편의 일반 차로(길가 버스 차로의 왼쪽 차로, 중앙 버스 차로의 오른쪽 차로)는 그 너머에 같은 방향 차로가 있어 해당하지 않는다
+        /// </summary>
+        static bool BusLane(RoadDef road, V2 q, V2 dir)
+        {
+            int side = road.region != null ? road.region.BusPaintSide(q, dir) : 0;
+            if (side == 0) return false;
+            return ((side & 1) != 0 && !SameWayLane(road, q, dir, -1)) || ((side & 2) != 0 && !SameWayLane(road, q, dir, 1));
+        }
+
+        /// <summary>q 의 왼쪽(sign 1) 또는 오른쪽(sign -1) 0.8~5 m 안에 같은 방향(25도 안)으로 가는 땅 위 차로가 있나</summary>
+        static bool SameWayLane(RoadDef road, V2 q, V2 dir, int sign)
+        {
+            var left = new V2(dir.y, -dir.x);
+            const float R = 5f;
+            foreach (var ln in road.lanes)
+            {
+                var c = ln.center;
+                if (c == null) continue;
+                for (int i = 0; i + 1 < c.Length; i++)
+                {
+                    V2 a = c[i], b = c[i + 1];
+                    if (Math.Min(a.x, b.x) > q.x + R || Math.Max(a.x, b.x) < q.x - R || Math.Min(a.y, b.y) > q.y + R || Math.Max(a.y, b.y) < q.y - R) continue;
+                    if (ln.z != null && (Math.Abs(ln.z[i]) > 0.5f || Math.Abs(ln.z[Math.Min(i + 1, ln.z.Length - 1)]) > 0.5f)) continue;
+                    if ((b - a).Normalized.Dot(dir) < 0.9f) continue;
+                    var m = Geom.ClosestPointOnSegment(q, a, b) - q;
+                    float w = m.Dot(left) * sign;
+                    if (Math.Abs(m.Dot(dir)) <= 3f && w > 0.8f && w <= R) return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>시작 자리: 동 안, 건물이 가장 많이 모인 곳(반지름 120 m) 근처의 동네길·2차로 차로 위, 차로 방향. 버스전용차로(BusLane)는 건너뛴다</summary>
         static void PickStart(Stage s, RoadDef road, RegionData d)
         {
             Lane best = null;
@@ -466,7 +506,8 @@ namespace DriveCoach.Core
                     int near = 0;
                     foreach (var b in d.buildings) if (b.center.DistanceTo(p) < 120f) near++;
                     float score = near + segLen * 0.05f;
-                    if (score > bestScore) { bestScore = score; best = ln; bestI = i; }
+                    if (!(score > bestScore) || BusLane(road, p, (c[i + 1] - c[i]).Normalized)) continue;
+                    bestScore = score; best = ln; bestI = i;
                 }
             }
             if (best == null && road.lanes.Count > 0) { best = road.lanes[0]; bestI = 0; }

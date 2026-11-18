@@ -1,4 +1,4 @@
-// (3D 도로 주행 — 다른 차 모습: Kenney 차 모델을 차 크기·실제 차 높이에 맞춰 놓고 매 프레임 자리·방향을 맞춘다.
+// (3D 도로 주행의 다른 차 모습: Kenney 차 모델을 차 크기·실제 차 높이에 맞춰 놓고 매 프레임 자리·방향을 맞춘다.
 // 서면 브레이크등, 바퀴는 달린 거리만큼 굴리고 앞바퀴는 도는 정도만큼 꺾는다)
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -21,20 +21,20 @@ namespace DriveCoach.Unity
         }
         readonly Dictionary<TrafficCar, Wheels> wheels = new Dictionary<TrafficCar, Wheels>();
         // 차체 움직임: 경사로에서는 길 기울기만큼 앞뒤로 기울고,
-        //   가속·감속 때 살짝 들리고 숙이며(±2°), 돌 때 바깥으로 살짝 기운다(±2.5°). 예전에는 고가 경사로에서도 차가 수평으로 떠 있었다
+        //   가속·감속 때 살짝 들리고 숙이며(±2°), 돌 때 바깥으로 살짝 기운다(±2.5°)
         class Motion { public float speed, z, heading, slope, dive, lean; public bool started; }
         readonly Dictionary<TrafficCar, Motion> motion = new Dictionary<TrafficCar, Motion>();
         readonly Transform root;
         readonly Elevation el;
         readonly Dictionary<TrafficCar, (GameObject go, Renderer[] lamps)> views = new Dictionary<TrafficCar, (GameObject, Renderer[])>();
-        // 방향지시등(버스가 정류장에 설 때 오른쪽, 떠날 때 왼쪽) — 차마다 왼쪽·오른쪽 등
+        // 방향지시등(버스가 정류장에 설 때 오른쪽, 떠날 때 왼쪽), 차마다 왼쪽·오른쪽 등
         readonly Dictionary<TrafficCar, (Renderer[] left, Renderer[] right)> ambers = new Dictionary<TrafficCar, (Renderer[], Renderer[])>();
         Material amberOff, amberOn;
         // 차 종류별 모델: 0 세단, 1 SUV, 2 해치백, 3 택시, 4 승합, 5 1톤 화물, 6 시내버스, 7 마을버스(없으면 Kenney)
         static readonly string[] FleetName = { "sedan", "suv", "hatch", "taxi", "van", "truck", "bus", "townbus" };
-        // 차체색: 종류별로 우리나라 길에 흔한 비율을 대충 따라 —
+        // 차체색: 종류별로 우리나라 길에 흔한 비율을 대충 따라
         //   승용은 흰·검정·회색·은색이 대부분, 남색·파랑·빨강·갈색·베이지·초록·하늘·주황·노랑이 가끔. 상표·로고 색은 쓰지 않는다.
-        //   (색, 비율) — 차마다 TrafficCar.paint(0~9999)로 고른다
+        //   (색, 비율): 차마다 TrafficCar.paint(0~9999)로 고른다
         static readonly (Color c, float w)[] CarPaint =
         {
             (DcAssets.Hex("#F3F3F0"), 0.20f), (DcAssets.Hex("#E7E3DA"), 0.07f),   // 흰, 진주 흰
@@ -68,7 +68,7 @@ namespace DriveCoach.Unity
         {
             (DcAssets.Hex("#F3F3F0"), 0.45f), (DcAssets.Hex("#2F5FB8"), 0.30f), (DcAssets.Hex("#C8CBD0"), 0.15f), (DcAssets.Hex("#8B9096"), 0.10f),
         };
-        // 시내버스: 서울 버스 색 체계 — 간선 파랑, 지선 초록, 광역 빨강, 순환 노랑
+        // 시내버스는 서울 버스 색 체계: 간선 파랑, 지선 초록, 광역 빨강, 순환 노랑
         static readonly (Color c, float w)[] BusPaint =
         {
             (DcAssets.Hex("#2F5FB8"), 0.50f), (DcAssets.Hex("#3E9E3A"), 0.35f), (DcAssets.Hex("#C8352B"), 0.10f), (DcAssets.Hex("#E2B12A"), 0.05f),
@@ -240,7 +240,7 @@ namespace DriveCoach.Unity
                         mo.lean = Mathf.Lerp(mo.lean, Mathf.Clamp(c.speed * yawRate * 0.45f, -2.5f, 2.5f) * big, 1f - Mathf.Exp(-4f * dtm));
                     }
                     mo.speed = c.speed; mo.z = c.z; mo.heading = c.heading; mo.started = true;
-                    // 앞이 높으면(오르막·가속) 코가 들린다: X 회전 −, 오른쪽으로 돌면 왼쪽으로 기운다: Z 회전 +
+                    // 앞이 높으면(오르막·가속) 코가 들린다: X 회전 -, 오른쪽으로 돌면 왼쪽으로 기운다: Z 회전 +
                     v.go.transform.rotation = Space3D.Rot(c.heading) * Quaternion.Euler(-(mo.slope - mo.dive), 0f, mo.lean);
                 }
                 if (wheels.TryGetValue(c, out var wh) && wh.all.Count > 0)

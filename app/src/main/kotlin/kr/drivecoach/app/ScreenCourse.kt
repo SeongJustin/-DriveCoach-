@@ -1,5 +1,4 @@
 // 코스 주행(5장) 화면
-// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -55,7 +54,7 @@ import kr.drivecoach.core.course.ManeuverType
  *  - CHOOSE: 제목 + 5-1 선택지 버튼 2열 격자(가장 무서운 것 / 목적) + 닫기
  *  - READY: 캡션(선택지·경유지 수·목적지 거리) + 브리핑 요약 문장 + 큰 "내비로 보내기"(주) + 닫기
  *  - ROUTING / DRIVING: 상태 한 줄("경로 계산 중…" / "주행 중 · 다음: 300 m 앞 우회전 · 제한속도 50") + 닫기(경로 취소)
- *  - GENERATING: (T) "코스 계산 중…" + 진행 막대 + 닫기 — 길찾기 API 가 백그라운드에서 도는 동안
+ *  - GENERATING: "코스 계산 중…" + 진행 막대 + 닫기(길찾기 API 가 백그라운드에서 도는 동안)
  *  - ARRIVED: 결과 한 줄(거리·시간·급제동·과속·코치 횟수) + 닫기(주)
  *  - ERROR: 이유 + 다시 시도(주) + (길찾기 실패면) 임시 코스로 진행 + 닫기
  * 에뮬레이터: Virtual Console 은 차를 못 움직이므로 DRIVING 이후(TBT·도착)는 실차에서만 보인다. 내비 앱에 경로가 뜨는 것까지가 시연 범위.
@@ -102,7 +101,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(text = getString(if (c.naviReady) R.string.course_navi_ready else R.string.course_navi_not_ready), style = CoachType.Caption, color = if (c.naviReady) CoachColors.Ok else CoachColors.Danger, maxLines = 1)
                     Spacer(Modifier.weight(1f))
-                    // (작은 글씨라 버튼처럼 안 보인다)
+                    // 닫기는 작은 글씨가 아니라 버튼으로
                     SecondaryButton(onClick = { coach.endActivity() }, minHeight = CoachChipMinHeight) {
                         Text(text = getString(R.string.btn_close), fontSize = CoachSize.Label)
                     }
@@ -112,7 +111,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                 // 길찾기 API 가 백그라운드에서 도는 동안. 닫기만 가능(닫으면 생성 작업 취소).
                 Text(text = getString(R.string.course_status_generating), style = CoachType.Body, maxLines = 3)
                 Spacer(Modifier.height(16.dp))
-                // 무한(indeterminate) 진행 바 — progress 인자 없는 material3 오버로드
+                // 무한(indeterminate) 진행 바: progress 인자 없는 material3 오버로드
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp), color = CoachColors.Primary, trackColor = CoachColors.Outline)
                 Spacer(Modifier.height(24.dp))
                 Spacer(Modifier.weight(1f))   // 버튼 줄은 화면 아래에
@@ -123,7 +122,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                 }
             }
             CoursePhase.READY -> {
-              // (안내 글 길이에 따라 버튼 높이가 매번 달라진다) 글 칸 높이를 고정
+              // 안내 글 길이에 따라 버튼 높이가 달라지지 않게 글 칸 높이를 고정
               // 남은 높이만큼 코스 모양을 크게(330 → 최대 560dp). 버튼 줄은 화면 아래에 붙는다
               val rowH = LocalArtMaxHeight.current.coerceIn(330.dp, 560.dp)
               Row(modifier = Modifier.fillMaxWidth().height(rowH), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
@@ -140,17 +139,17 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                 val lc = c.laneChanges
                 val ul = c.unprotectedLefts
                 val rt = c.rightTurns
-                // (같은 숫자가 큰 글과 작은 줄에 두 번) 작은 줄은 진단 보기에서만
+                // 큰 글과 같은 숫자를 되풀이하는 작은 줄은 진단 보기에서만
                 if (showDiag.value && dKm != null && lt != null && lc != null && ul != null && rt != null) {
                     Text(text = getString(R.string.course_summary_numbers, dKm, lt, lc, ul, rt), style = CoachType.Caption, maxLines = 2)
                     Spacer(Modifier.height(4.dp))
                 }
-                // (고른 목적과 나온 코스가 다르다) 조건을 못 맞췄으면 무엇이 다른지 그대로 알린다
+                // 고른 목적의 조건을 못 맞췄으면 무엇이 다른지 그대로 알린다
                 c.mismatch?.let {
                     Text(text = getString(R.string.course_mismatch, it), style = CoachType.Caption, color = CoachColors.Danger, maxLines = 2)
                     Spacer(Modifier.height(4.dp))
                 }
-                // ("실제 도로 경로 · 길찾기 8회"는 초보에게 뜻 없는 말) 임시 코스 경고만 늘 보이고, 길찾기 횟수는 진단 보기에서
+                // 임시 코스 경고만 늘 보이고, 길찾기 횟수("실제 도로 경로 · 길찾기 8회")는 진단 보기에서
                 if (!c.generated || showDiag.value) Text(
                     text = if (c.generated) getString(R.string.course_source_generated, c.apiCalls) else getString(R.string.course_source_offset),
                     style = CoachType.Caption, color = if (c.generated) CoachColors.Secondary else CoachColors.Danger, maxLines = 2,
@@ -165,7 +164,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                     PrimaryButton(onClick = { coach.sendCourseToNavi() }, modifier = Modifier.weight(2f)) {
                         Text(text = getString(R.string.btn_course_send), fontSize = CoachSize.Button)
                     }
-                    // (다른 목적을 보려면 매번 메뉴부터 다시 들어가야 한다)
+                    // 메뉴로 나가지 않고 바로 다른 목적을 고른다
                     SecondaryButton(onClick = { coach.endActivity(); coach.startCourse() }, modifier = Modifier.weight(1f)) {
                         Text(text = getString(R.string.btn_course_rechoose), fontSize = CoachSize.Button)
                     }
@@ -173,7 +172,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
                         Text(text = getString(R.string.btn_close), fontSize = CoachSize.Button)
                     }
                 }
-                // (누르면 예고 없이 내비 화면으로 바뀐다)
+                // 누르면 내비 화면으로 바뀐다는 것을 버튼 아래에 미리 알린다
                 Spacer(Modifier.height(10.dp))
                 Text(text = getString(R.string.course_send_hint), style = CoachType.Caption, maxLines = 2)
             }
@@ -237,7 +236,7 @@ internal fun MainActivity.CourseScreen(coach: CoachController, c: CourseUi) {
             }
         }
         // 내비 진단 줄(최근 6줄): 초기화·요청·이벤트가 실제로 오는지 에뮬레이터에서 바로 본다
-        // (개발 로그가 그대로 보인다) 설정의 "진단 보기"를 켰을 때만 보인다
+        // 개발 로그는 설정의 "진단 보기"를 켰을 때만 보인다
         if (showDiag.value && c.naviDiag.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))
             Text(getString(R.string.course_diag_title), fontSize = CoachSize.Mono, fontFamily = FontFamily.Monospace, color = CoachColors.Secondary)
@@ -261,7 +260,7 @@ internal fun MainActivity.courseCaption(c: CourseUi): String = when (c.phase) {
     CoursePhase.CHOOSE -> getString(R.string.course_caption_choose)
     CoursePhase.GENERATING -> getString(R.string.course_caption_generating, c.chosen?.let { courseOptionLabel(it) } ?: "")
     CoursePhase.READY, CoursePhase.ROUTING, CoursePhase.DRIVING -> {
-        // ("목적지 약 0.1 km"·"경유지 2"는 코스 길이와 헷갈린다) 목적 이름만
+        // 목적 이름만(목적지 거리·경유지 수는 코스 길이와 헷갈린다)
         getString(R.string.course_caption_ready, c.chosen?.let { courseOptionLabel(it) } ?: "")
     }
     CoursePhase.ARRIVED -> getString(R.string.course_caption_arrived)

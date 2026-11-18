@@ -1,4 +1,4 @@
-// 앱 연결 — TTS 어댑터 공통 인터페이스
+// 앱 연결: TTS 어댑터 공통 인터페이스
 package kr.drivecoach.app.speech
 
 /**
@@ -7,7 +7,7 @@ package kr.drivecoach.app.speech
  *
  * 규칙:
  *  - 한 번에 한 문장만 말한다고 가정한다(발화 큐·우선순위는 core/tts SpeechPolicy 가 담당).
- *  - 모든 콜백은 **메인 스레드**에서 온다(구현체가 보장).
+ *  - 모든 콜백은 메인 스레드에서 온다(구현체가 보장).
  *  - 말하기가 끝나든(onFinished completed=true), 끊기든, 실패하든 [SpeakerListener.onFinished] 가 반드시 한 번 불린다.
  */
 interface Speaker {

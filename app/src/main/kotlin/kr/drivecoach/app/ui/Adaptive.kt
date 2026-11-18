@@ -117,7 +117,7 @@ fun ArtWithText(artRes: Int?, artDescription: String?, videoRes: Int = 0, keepAr
             if (artRes != null) {
                 ArtOrVideo(artRes, artDescription, videoRes, Modifier.weight(ART_WEIGHT).heightIn(max = LocalArtMaxHeight.current))
             } else if (keepArtSlot) {
-                // (그림이 없는 단계·안내 글이 사라질 때 아래 버튼이 위아래로 움직여 잘못 누른다) 그림 자리를 비워 둔 채 같은 높이로
+                // 그림이 없는 단계에도 그림 자리를 같은 높이로 비워 둔다(아래 버튼이 위아래로 움직여 잘못 누르지 않게)
                 Spacer(Modifier.weight(ART_WEIGHT).heightIn(max = LocalArtMaxHeight.current).aspectRatio(8f / 5f))
             }
             Column(modifier = Modifier.weight(1f), content = content)
@@ -133,7 +133,7 @@ fun ArtWithText(artRes: Int?, artDescription: String?, videoRes: Int = 0, keepAr
 fun ArtOrVideo(artRes: Int, artDescription: String?, videoRes: Int, modifier: Modifier = Modifier) {
     val failed = remember(videoRes) { mutableStateOf(false) }
     if (videoRes == 0 || failed.value) {
-        // 그림 비율대로 칸 폭에 맞춰 키운다(전에는 원본 크기 800×500 보다 커지지 않았다). 높이는 modifier 의 최대 높이까지.
+        // 그림 비율대로 칸 폭에 맞춰 키운다(원본 크기 800×500 보다 커질 수 있다). 높이는 modifier 의 최대 높이까지.
         val painter = painterResource(id = artRes)
         val sz = painter.intrinsicSize
         val ratio = if (sz.width > 0f && sz.height > 0f && sz.width.isFinite() && sz.height.isFinite()) sz.width / sz.height else 8f / 5f

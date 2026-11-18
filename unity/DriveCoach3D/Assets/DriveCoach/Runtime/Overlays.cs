@@ -1,4 +1,4 @@
-// (3D 주차 연습 — 매 프레임 바뀌는 안내: 지나갈 자리(초록 띠)·내륜차(주황), 목표 칸, 튜토리얼 안내선·맞출 점,
+// (3D 주차 연습에서 매 프레임 바뀌는 안내: 지나갈 자리(초록 띠)·내륜차(주황), 목표 칸, 튜토리얼 안내선·맞출 점,
 // 주차 센서 호, 실패 표시, 보행자, 도로 신호등 불빛, 서킷 다음 체크포인트)
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -44,7 +44,7 @@ namespace DriveCoach.Unity
             failRing = Marker("fail", DcAssets.Red, 1.2f);
             failRing.GetComponent<Renderer>().sharedMaterial = failMat;
             foreach (var p in w.peds) peds.Add(Pedestrian());
-            // 신호등 불빛(빨강·노랑·초록 공) — 도로 주행. 실제 자리 신호등(SignalHeads)이 있으면 그쪽이 불을 켠다
+            // 신호등 불빛(빨강·노랑·초록 공): 도로 주행. 실제 자리 신호등(SignalHeads)이 있으면 그쪽이 불을 켠다
             if (w.st.road != null && SignalHeads.Current == null)
             {
                 foreach (var sg in w.st.road.signals)
@@ -141,7 +141,7 @@ namespace DriveCoach.Unity
             var car = w.car;
             float gy = el.At(car.Center, w.floorI);
             bool play = w.state == PlayState.Play;
-            // 지나갈 자리(주차·튜토리얼만 — 서킷·도로에서는 앞을 가린다)
+            // 지나갈 자리(주차·튜토리얼만: 서킷·도로에서는 앞을 가린다)
             bool showPath = play && w.st.mode == StageMode.Parking;
             UpdatePath(car, gy + 0.025f, showPath);
             // 목표(맥박처럼 밝기)
@@ -318,11 +318,11 @@ namespace DriveCoach.Unity
     public static class Dc
     {
         static System.Diagnostics.Stopwatch lapSw;
-        /// <summary>동네를 여는 데 걸리는 시간을 단계별로 적는다("DC3D lap 이름 ms") — 어디가 느린지 보려고. 처음 부르면 시계를 켠다.</summary>
+        /// <summary>동네를 여는 데 걸리는 시간을 단계별로 적는다("DC3D lap 이름 ms"). 어디가 느린지 보려고. 처음 부르면 시계를 켠다.</summary>
         public static void Lap(string label)
         {
             if (lapSw == null) { lapSw = System.Diagnostics.Stopwatch.StartNew(); return; }
-            // 단계마다 메모리도 함께(스크립트 힙 사용/크기, Unity 사용/예약 MB) — 어느 단계에서 부푸는지 보려고
+            // 단계마다 메모리도 함께(스크립트 힙 사용/크기, Unity 사용/예약 MB), 어느 단계에서 부푸는지 보려고
             if (label != null) Debug.Log($"DC3D lap {label} {lapSw.ElapsedMilliseconds} | mono {UnityEngine.Profiling.Profiler.GetMonoUsedSizeLong() >> 20}/{UnityEngine.Profiling.Profiler.GetMonoHeapSizeLong() >> 20} unity {UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() >> 20}/{UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong() >> 20}");
             lapSw.Restart();
         }
@@ -352,7 +352,7 @@ namespace DriveCoach.Unity
             }
             return r.Valid ? r.LastValue >> 20 : -1;
         }
-        /// <summary>그래픽 메모리(텍스처·메시·그림판, Unity 추정 MB) — release 빌드에서도 읽힌다. 못 읽으면 -1</summary>
+        /// <summary>그래픽 메모리(텍스처·메시·그림판, Unity 추정 MB). release 빌드에서도 읽힌다. 못 읽으면 -1</summary>
         public static long GfxMB() => Rec(ref gfxRec, "gfx");
         /// <summary>운영체제가 보는 이 프로세스의 메모리(MB). 못 읽으면 -1</summary>
         public static long SysMB() => Rec(ref sysRec, "sys");

@@ -1,5 +1,4 @@
 // 차 기능 익히기(선택 화면·연습 카드) + 도로 법규 화면
-// MainActivity 의 Compose 화면을 기능별 파일로 나눴다. 각 화면은 MainActivity 의 확장 함수다(상태·getString 을 그대로 쓴다).
 @file:OptIn(ExperimentalLayoutApi::class)
 
 package kr.drivecoach.app
@@ -65,19 +64,19 @@ import kr.drivecoach.core.signal.Wiper
 
 /**
  * 도로 법규 화면: 위에 주제 칩 12개(현재 주제는 라임 채움), 아래 카드에 제목 + 그림(law_<id>.webp 또는 .png) + 설명 글(= 음성), 이전 / 다음 / 닫기.
- * 퀴즈는 다음 빌드. 화면 글과 음성이 같은 문장이라 수정표 "멘트" 시트에서 함께 바뀐다.
+ * 화면 글과 음성은 같은 문장이다.
  */
 @Composable
 internal fun MainActivity.LawScreen(coach: CoachController, u: LawUi) {
     FillLastColumn(modifier = Modifier.fillMaxWidth()) {   // 카드가 화면 아래까지 차고 버튼 줄이 아래에 온다
-        // (들어가자마자 "우회전"이 열리고 "도로 법규" 제목이 없다)
+        // 맨 위에 "도로 법규" 제목
         Text(text = getString(R.string.menu_law), style = CoachType.Title, maxLines = 1)
         Spacer(Modifier.height(12.dp))
         val seen by coach.lessonsDone.collectAsState()
         val set = LawSets.of(u.country)
         // 다른 나라 법규가 있으면 맨 위에 나라 고르기 한 줄(한국이 먼저). 한국만 있으면 보이지 않는다.
         if (LawSets.all.size > 1) {
-            // 나라는 탭 줄(한 줄, 가로로 밀림) — 아래 주제 칩과 모양이 달라 두 줄이 섞여 보이지 않게(ScreenLaw.kt)
+            // 나라는 탭 줄(한 줄, 가로로 밀림): 아래 주제 칩과 모양이 달라 두 줄이 섞여 보이지 않게(ScreenLaw.kt)
             LawCountryTabs(LawSets.all, set.country) { c -> coach.startLaw(null, c) }
             Spacer(Modifier.height(16.dp))
         }
@@ -91,7 +90,7 @@ internal fun MainActivity.LawScreen(coach: CoachController, u: LawUi) {
         Spacer(Modifier.height(20.dp))
         CoachCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // 다른 나라 제목은 원어 괄호가 붙어 길다(111개 중 77개가 45자 넘음) — 한 줄에서 잘리던 것을 우리말 두 줄 + 원어 작은 줄로(ScreenLaw.kt)
+                // 다른 나라 제목은 원어 괄호가 붙어 길다(111개 중 77개가 45자 넘음). 우리말 두 줄 + 원어 작은 줄로 나눈다(ScreenLaw.kt)
                 LawHeading(u.heading)
                 Spacer(Modifier.width(20.dp))
                 Text(text = "${u.index + 1} / ${u.total}", style = CoachType.Caption)
@@ -104,7 +103,7 @@ internal fun MainActivity.LawScreen(coach: CoachController, u: LawUi) {
             ArtWithText(art.takeIf { it != 0 }, u.title) {
                 // 그림이 없는 주제(다른 나라)는 글이 카드 폭 전체를 쓰므로 한 단계 크게(28 → 32sp)
                 SentenceParagraphs(u.text, CoachType.Body.copy(fontSize = if (art != 0) CoachSize.Option else CoachSize.Button, lineBreak = CoachType.KoLineBreak), if (art != 0) 42.sp else 46.sp)
-                // 근거 조문 — 화면에만(음성으로 읽지 않음)
+                // 근거 조문: 화면에만(음성으로 읽지 않음)
                 if (u.basis.isNotBlank()) {
                     Spacer(Modifier.height(14.dp))
                     Text(text = getString(R.string.law_basis, u.basis), style = CoachType.Caption.copy(color = CoachColors.OnBackground))
@@ -160,7 +159,7 @@ internal fun MainActivity.PracticeChooser(coach: CoachController, modifier: Modi
                 focusedContainerColor = CoachColors.Background, unfocusedContainerColor = CoachColors.Background,
                 cursorColor = CoachColors.Primary,
             ),
-            // (지우기 버튼이 없다)
+            // 검색어가 있으면 지우기 버튼
             trailingIcon = if (query.isNotEmpty()) ({
                 IconButton(onClick = { query = "" }) { Icon(imageVector = Icons.Filled.Close, contentDescription = getString(R.string.practice_search_clear), tint = CoachColors.Secondary, modifier = Modifier.size(32.dp)) }
             }) else null,
@@ -170,8 +169,7 @@ internal fun MainActivity.PracticeChooser(coach: CoachController, modifier: Modi
         Column(modifier = Modifier.weight(1f).verticalScroll(practiceScroll)) {
             val q = query.replace(" ", "")
             if (q.isBlank()) {
-                // 맨 위 버튼 줄과 칸 색 설명을 뺐다.
-                //   항목 칩을 누르면 그 항목부터 시작하고, '다음'은 목록 순서대로 이어진다.
+                // 항목 칩을 누르면 그 항목부터 시작하고, '다음'은 목록 순서대로 이어진다.
                 Chapter2Items.chapterTitles.forEach { (chapter, title) ->
                     val chapterItems = items.filter { it.chapter == chapter }
                     if (chapterItems.isNotEmpty()) {
@@ -193,8 +191,8 @@ internal fun MainActivity.PracticeChooser(coach: CoachController, modifier: Modi
                     norm(it.title).contains(q, ignoreCase = true) ||
                         Chapter2Items.aliases[it.id].orEmpty().any { a -> norm(a).contains(q, ignoreCase = true) }
                 }
-                // ("등" 한 글자에 이름에 없는 속도계·경음기까지 나온다) 장 제목으로는 두 글자 이상일 때만 찾는다
-                // ("와이퍼" 에 장 제목만 같은 방향지시등 3개가 섞여 나온다) 장 제목으로는 제목·별칭에 맞는 것이 없을 때만 찾는다
+                // 장 제목으로는 두 글자 이상일 때만 찾는다("등" 한 글자에 속도계·경음기까지 걸리지 않게)
+                // 장 제목으로는 제목·별칭에 맞는 것이 없을 때만 찾는다("와이퍼"에 장 제목만 같은 방향지시등이 섞이지 않게)
                 val byChapter = if (q.length < 2 || byTitle.isNotEmpty()) emptyList() else items.filter { it -> it !in byTitle && Chapter2Items.chapterTitles[it.chapter].orEmpty().replace(" ", "").contains(q, ignoreCase = true) }
                 val hits = byTitle + byChapter
                 if (hits.isEmpty()) {
@@ -227,13 +225,12 @@ internal fun MainActivity.ItemChips(list: List<PracticeItem>, done: Set<String>,
 @Composable
 internal fun MainActivity.PracticeCard(coach: CoachController, p: PracticeUi) {
     CoachCard {
-        // 항목 이름은 큰 제목으로, 번호·단계·확인 방식은 그 아래 한 줄(작은 회색 한 줄에만 있어 안 읽히던 문제)
+        // 항목 이름은 큰 제목으로
         Text(text = p.title, style = CoachType.Title, maxLines = 1)
-        // 번호·단계·확인 방식 한 줄은 뺐다. 센서가 확인하는 항목은 지금 차 상태를 표시등으로 보여 준다(밟으면 "브레이크 밟힘"이 켜짐).
+        // 센서가 확인하는 항목은 지금 차 상태를 표시등으로 보여 준다(밟으면 "브레이크 밟힘"이 켜짐).
         val vs by coach.stateFlow.collectAsState()
-        // (표시등이 있는 항목과 없는 항목에서 버튼 줄이 위아래로 움직인다) 표시등 자리는 늘 같은 높이로 비워 둔다
+        // 표시등 자리는 늘 같은 높이로 비워 둔다(항목마다 버튼 줄이 위아래로 움직이지 않게)
         Spacer(Modifier.height(10.dp))
-        // '지금 차 상태' 표시등 줄은 뺐다
         Spacer(Modifier.height(12.dp))
         // 얇은 진행 바: 몇 번째 항목인지 / 전체
         val fraction = if (p.total > 0) (p.index - 1).toFloat() / p.total.toFloat() else 0f
@@ -265,9 +262,9 @@ internal fun MainActivity.PracticeCard(coach: CoachController, p: PracticeUi) {
         AdaptiveButtonRow {
             // 이전 / 다음 / 건너뛰기 ("다시"는 음성 명령으로만). 다음 = 설명→해보기→통과, 통과 후엔 다음 항목.
             SecondaryButton(onClick = { coach.onCommand(Command.PREV) }, modifier = Modifier.weight(1f)) {
-                Text(text = getString(R.string.btn_prev), fontSize = CoachSize.Button, color = if (p.index > 1) CoachColors.OnBackground else CoachColors.Secondary)   // (첫 항목에도 "이전"이 눌리는 모양)
+                Text(text = getString(R.string.btn_prev), fontSize = CoachSize.Button, color = if (p.index > 1) CoachColors.OnBackground else CoachColors.Secondary)   // 첫 항목에서는 "이전"을 흐리게
             }
-            // ("다음"이 같은 항목의 다음 장으로 갈지 다음 항목으로 갈지 모르겠다) 단계마다 이름을 바꾼다
+            // "다음" 버튼 이름은 단계마다 바꾼다(같은 항목의 다음 장인지 다음 항목인지 알 수 있게)
             PrimaryButton(onClick = { coach.onCommand(Command.NEXT) }, modifier = Modifier.weight(1f)) {
                 Text(text = getString(R.string.btn_next), fontSize = CoachSize.Button)
             }
@@ -285,7 +282,7 @@ internal fun MainActivity.PracticeCard(coach: CoachController, p: PracticeUi) {
 /** 센서 표시등 하나: 켜지면 라임 바탕 + 채운 점, 꺼져 있으면 테두리만 + 빈 점. */
 @Composable
 internal fun SensorChip(label: String, on: Boolean) {
-    // (누를 수 있는 동그라미 버튼처럼 보인다) 테두리 없는 상태 표시로 — 켜진 것만 연두 점
+    // 버튼처럼 보이지 않게 테두리 없는 상태 표시로, 켜진 것만 연두 점
     Row(
         modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,

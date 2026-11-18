@@ -18,7 +18,7 @@ namespace DriveCoach.Unity
 
         static Dictionary<string, (int cell, string shape)> meta;
         static int cols = 8;
-        /// <summary>그림 모음 줄 수(signs.json 의 rows, 없으면 cols = 정사각 — 한국 그림 모음)</summary>
+        /// <summary>그림 모음 줄 수(signs.json 의 rows, 없으면 cols = 정사각, 한국 그림 모음)</summary>
         static int rows = 8;
         /// <summary>번호 뒤 변형("-10" 등)을 모두 같은 그림으로 쓰는 번호(signs_de.json 의 셋째 값 1)</summary>
         static HashSet<string> anyVariant;
@@ -167,7 +167,7 @@ namespace DriveCoach.Unity
                 float a = s.faceDeg * Mathf.Deg2Rad;
                 var f2 = new V2(Mathf.Cos(a), Mathf.Sin(a));               // 2D 바라보는 쪽
                 var fw = new Vector3(f2.x, 0f, -f2.y);                     // 월드
-                // 표지를 마주 본 사람의 오른쪽. 예전에는 Cross(up, fw) = 마주 본 사람의 왼쪽이라 표지 그림·글자가 좌우로 뒤집혀 보였다(사진에서 "50"이 거울상)
+                // 표지를 마주 본 사람의 오른쪽(Cross(up, fw) 는 왼쪽이라 그림·글자가 거울상이 된다)
                 var right = Vector3.Cross(fw, Vector3.up).normalized;
                 var basePos = Space3D.W(pos, y0) + fw * 0.06f;
                 float yTop = y0 + Top;
@@ -252,7 +252,7 @@ namespace DriveCoach.Unity
                 }
                 float a = hd.faceDeg * Mathf.Deg2Rad;
                 var fw = new Vector3(Mathf.Cos(a), 0f, -Mathf.Sin(a));
-                // 신호등을 마주 본 사람의 오른쪽. 예전에는 반대라 가로 신호등이 왼쪽부터 초록·화살표·노랑·빨강으로 뒤집혀 있었다(실제: 왼쪽부터 빨강·노랑·화살표·초록)
+                // 신호등을 마주 본 사람의 오른쪽. 가로 신호등은 마주 보아 왼쪽부터 빨강·노랑·화살표·초록
                 var right = Vector3.Cross(fw, Vector3.up).normalized;
                 bool arm = hd.kind != 2 && !ped && hd.pole.DistanceTo(hd.head) > 1.0f;
                 float poleH = arm ? 5.6f : (ped ? 2.9f : 4.2f);
@@ -291,7 +291,7 @@ namespace DriveCoach.Unity
                     if (!lampMk.TryGetValue(key, out var mk)) lampMk[key] = mk = new MeshKit();
                     if (ped) Square(mk, lc, fw, right, 0.15f);   // 보행등: 네모 등 안에 사람 그림(빨강 선 사람·초록 걷는 사람)
                     else Disc(mk, lc, fw, right, lampR);
-                    // 차양(등마다 위쪽을 덮는 반원 갓, 앞으로 0.2 m) — 낮에 불빛이 햇빛에 씻기지 않게 하는 우리나라 신호등 모양
+                    // 차양(등마다 위쪽을 덮는 반원 갓, 앞으로 0.2 m). 낮에 불빛이 햇빛에 씻기지 않게 하는 우리나라 신호등 모양
                     Visor(hous, lc, fw, right, lampR + 0.025f, ped ? 0.14f : 0.2f);
                 }
                 placed++;

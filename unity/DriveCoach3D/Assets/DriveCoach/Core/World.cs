@@ -68,9 +68,9 @@ namespace DriveCoach.Core
         public Traffic traffic;
         /// <summary>내 동네 횡단보도를 건너는 사람들(없으면 null)</summary>
         public CrossPeds crossPeds;
-        /// <summary>자동 속도(핸들만 돌리기)로 달리는 중 — 안내 말을 "속도를 줄이세요" 대신 핸들·시선 쪽으로 바꾼다</summary>
+        /// <summary>자동 속도(핸들만 돌리기)로 달리는 중: 안내 말을 "속도를 줄이세요" 대신 핸들·시선 쪽으로 바꾼다</summary>
         public bool autoSpeed;
-        /// <summary>젖은 길(비·눈): 앞차 거리 기준을 늘린다. 전조등이 필요한 때(밤·비·안개·눈, 해질녘 궂은 날) — GameMain 이 설정에서</summary>
+        /// <summary>젖은 길(비·눈): 앞차 거리 기준을 늘린다. 전조등이 필요한 때(밤·비·안개·눈, 해질녘 궂은 날). GameMain 이 설정에서</summary>
         public bool wetRoad, needHeadlights;
 
         public World(Stage stage, CarSpec spec)
@@ -92,14 +92,14 @@ namespace DriveCoach.Core
             if (st.road?.region != null)
                 foreach (var pc in st.road.region.parked) AddOb(Geom.RectPoly(pc.c, pc.L, pc.W, pc.ang * Geom.Rad2Deg), "car");   // 이면도로 세운 차
             // 주차장 칸에서 출발: 출발 자리 150 m 안 주차장에 세워 둔 차는 부딪히는 물체(빠져나올 때 옆 차를 뚫고 지나가지 않게).
-            //   길(차로) 위로 나온 칸의 차는 그리지 않으므로(FacilityBuilder) 차로 가운데에서 2.2 m 안의 차는 넣지 않는다
+            //   차로 가운데에서 2.2 m 안의 차는 넣지 않는다. 화면에 그리지 않는 차는 장면을 지은 뒤 DropLotCars 로 뺀다
             if (st.road?.region != null)
                 foreach (var fc in st.road.region.facilities)
                 {
                     if (fc.kind != "parking" || fc.poly == null || fc.poly.Length < 3 || fc.cars.Count == 0) continue;
                     if (Geom.PolyCenter(fc.poly).DistanceTo(st.startC) > 150f) continue;
                     foreach (var (p, ang) in fc.cars)
-                        if (!NearLane(st.road, p, 2.2f)) AddOb(Geom.RectPoly(p, 4.6f, 1.85f, ang * Geom.Rad2Deg), "car");
+                        if (!NearLane(st.road, p, 2.2f)) lotCars.Add((p, AddOb(Geom.RectPoly(p, 4.6f, 1.85f, ang * Geom.Rad2Deg), "car")));
                 }
             foreach (var pd in st.peds)
                 peds.Add(new PedState { def = pd, pos = pd.path[0], i = 1, dir = 1, wait = pd.delay });
@@ -113,7 +113,7 @@ namespace DriveCoach.Core
                 car.model = DriveModel.Road();
                 roadRun = new RoadRun(st.road, car);
                 if (st.road.trafficCount > 0 && st.road.lanes.Count > 0) traffic = new Traffic(st.road, st.road.trafficCount, car.Center, car.heading);
-                if (st.road.region != null && (st.road.region.crossings.Count > 0 || st.road.region.crosswalks.Count > 0)) crossPeds = new CrossPeds(st.road, 1f);
+                if (!st.road.noPeds && st.road.region != null && (st.road.region.crossings.Count > 0 || st.road.region.crosswalks.Count > 0)) crossPeds = new CrossPeds(st.road, 1f);
             }
         }
 
@@ -132,12 +132,30 @@ namespace DriveCoach.Core
             return false;
         }
 
-        void AddOb(V2[] poly, string kind)
+        Obstacle AddOb(V2[] poly, string kind)
         {
             var c = Geom.PolyCenter(poly);
             float r = 0f;
             foreach (var p in poly) r = Math.Max(r, p.DistanceTo(c));
-            obstacles.Add(new Obstacle { poly = poly, c = c, r = r, kind = kind });
+            var ob = new Obstacle { poly = poly, c = c, r = r, kind = kind };
+            obstacles.Add(ob);
+            return ob;
+        }
+
+        /// <summary>주차장에 세워 둔 차로 넣은 부딪힘 물체(차 자리, 물체)</summary>
+        readonly List<(V2 p, Obstacle ob)> lotCars = new List<(V2, Obstacle)>();
+
+        /// <summary>
+        /// 주차장에 세워 둔 차 중 hidden(차 자리)이 참인 차를 부딪힘 물체에서 뺀다(화면에 그리지 않은 차가
+        /// 보이지 않는 벽이 되지 않게). 뺀 수를 돌려준다.
+        /// </summary>
+        public int DropLotCars(Func<V2, bool> hidden)
+        {
+            var drop = new HashSet<Obstacle>();
+            foreach (var (p, ob) in lotCars) if (hidden(p)) drop.Add(ob);
+            if (drop.Count == 0) return 0;
+            lotCars.RemoveAll(lc => drop.Contains(lc.ob));
+            return obstacles.RemoveAll(drop.Contains);
         }
 
         public bool IsTutorial => steps.Count > 0;
@@ -329,7 +347,7 @@ namespace DriveCoach.Core
         public bool Touching => touching;
         /// <summary>닿았을 때 가던 쪽(1 = 앞으로 가다, -1 = 뒤로 가다)</summary>
         public int BumpDir => bumpDir;
-        /// <summary>(차가 왜 서 있는지 모르겠다) 자동 속도가 차를 세운 까닭(없으면 "")</summary>
+        /// <summary>자동 속도가 차를 세운 까닭(없으면 ""). 화면 정보 칸에 붙인다</summary>
         public string autoWhy = "";
         bool touching; int bumpDir; float lastBumpT = -10f; V2 lastPos; float lastHeading;
 
@@ -442,9 +460,9 @@ namespace DriveCoach.Core
                 // 도로 주행 미리보기: 서서 P 를 누르면 끝. 위반이 없을수록 별이 많다.
                 var rr = roadRun;
                 int bad = rr.redLightCount * 2 + rr.laneDepartCount + rr.speedingCount + rr.rightOnRedCount + rr.tailgateCount + rr.lightCount + rr.beltCount + rr.humpCount + rr.schoolStopCount * 2 + rr.pedCount * 2
-                    + rr.bumpCount * 3 + rr.curbCount + rr.noSignalCount + rr.highBeamCount;   // 부딪힘, 연석, 방향지시등, 상향등도 별점에 넣는다(부딪혀도 별 셋이 나오던 것)
+                    + rr.bumpCount * 3 + rr.curbCount + rr.noSignalCount + rr.highBeamCount;   // 부딪힘, 연석, 방향지시등, 상향등도 별점에 넣는다
                 state = PlayState.Done;
-                // (골목을 10초 달리고 P 를 눌렀는데 ★★★ "모두 잘 지켰어요") 300 m 안쪽이면 평가하지 않고 별 하나
+                // 300 m 안쪽이면 평가하지 않고 별 하나(짧게 달리고 끝내도 별 셋이 나오지 않게)
                 bool tooShort = rr.distance < 300f;
                 result = new JudgeResult { ok = true, kind = "road", stars = tooShort ? 1 : (bad == 0 ? 3 : (bad <= 3 ? 2 : 1)), moves = bad, precise = bad == 0 && !tooShort, efficient = true };
                 return;
@@ -571,7 +589,7 @@ namespace DriveCoach.Core
             return false;
         }
 
-        /// <summary>직각 후진 주차(30° 방법): 뒷축이 칸 가운데 x 에 오도록 선다 → 어깨는 그보다 (축거 − 1.25 m) 앞.</summary>
+        /// <summary>직각 후진 주차(30° 방법): 뒷축이 칸 가운데 x 에 오도록 선다 → 어깨는 그보다 (축거 - 1.25 m) 앞.</summary>
         public float PerpShoulderX() => Geom.PolyCenter(Target.poly).x + (car.wheelbase - 1.25f);
 
         public float MinRearRadius() => car.wheelbase / (float)Math.Tan(car.maxWheelDeg * Geom.Deg2Rad);

@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 화면 글자·버튼을 코드로 만드는 도구. 앱(CoachTheme)과 같은 흰 바탕·검정 글씨·현대 블루, 둥근 카드
+// 3D 주차 연습: 화면 글자·버튼을 코드로 만드는 도구. 앱(CoachTheme)과 같은 흰 바탕·검정 글씨·현대 블루, 둥근 카드
 using System;
 using UnityEngine;
 using UnityEngine.Events;

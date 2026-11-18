@@ -1,5 +1,4 @@
 // 발화 파이프라인: 요청 → SpeechPolicy 판정 → Speaker, 직렬 줄, 감시견, 로그
-// CoachController 를 기능별 파일로 나눴다. 상태는 CoachController 클래스에, 동작은 이 파일의 확장 함수에 있다.
 package kr.drivecoach.app
 
 import android.util.Log
@@ -48,7 +47,7 @@ internal fun CoachController.clearSubModeQueue() { subModeQueue.clear(); screenT
 
 /** 지금 말하는 멘트가 코칭(위험·공황·경고등이 아닌 것)이면 끊는다. */
 internal fun CoachController.interruptCoaching() {
-    requestGen++   // 미뤄진(DEFER) 이전 요청은 더 이상 유효하지 않다('다음' 연타 때 옛 주제가 뒤늦게 나오던 문제)
+    requestGen++   // 미뤄진(DEFER) 이전 요청은 더 이상 유효하지 않다('다음' 을 연달아 누르면 옛 주제가 뒤늦게 나올 수 있다)
     val s = speaking ?: return
     if (SpeechPolicy.priorityOf(s.category) >= SpeechPolicy.priorityOf(PhraseCategory.GUIDE)) speaker.stop()
 }
@@ -109,7 +108,7 @@ internal fun CoachController.decide(req: SpeechRequest, vars: Map<String, String
     when (outcome.decision) {
         Decision.SPEAK -> speakNow(req, vars, outcome.interrupt, onDone)
         Decision.DEFER -> {
-            // 재생 중인 문장이 길면(설명 30~40초) 그만큼 더 기다린다(환영·재안내가 8초 만에 버려지던 문제).
+            // 재생 중인 문장이 길면(설명 30~40초) 그만큼 더 기다린다. 8초로 끊으면 환영·재안내가 버려진다.
             val maxDefers = speaking?.let { maxOf(MAX_DEFERS, (it.expectedMs / 1_000L).toInt() + 2) } ?: MAX_DEFERS
             if (attempt >= maxDefers) {
                 log("GIVEUP ${outcome.reason} ${req.phraseId.id}")
@@ -145,7 +144,7 @@ internal fun CoachController.speakNow(req: SpeechRequest, vars: Map<String, Stri
         }
     }
     // 클립 실측 약 5자/초. 느린 속도(0.85)·여유 5초를 더해 글자 수 기준으로 감시 시간을 잡되 최소 20초.
-    // 예전 식은 속도를 Long 으로 잘라(0.85 → 0 → 1) 느린 속도가 반영되지 않았다. 실수로 나눈다.
+    // 속도는 실수 그대로 나눈다(정수로 자르면 0.85 같은 느린 속도가 반영되지 않는다).
     val expected = maxOf(SPEAK_WATCHDOG_MS, (text.length * 250.0 / maxOf(0.5f, _speechRate.value)).toLong() + 5_000L)
     speaking = CoachController.Speaking(req.phraseId, req.category, uid, clock(), expectedMs = expected, vars = vars)
     if (onDone != null && uid !in afterUtterance) afterUtterance[uid] = onDone

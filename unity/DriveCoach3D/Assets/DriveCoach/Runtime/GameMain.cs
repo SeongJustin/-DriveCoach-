@@ -1,4 +1,4 @@
-// (3D 주차 연습 — 게임 전체 흐름. 규칙:
+// (3D 주차 연습: 게임 전체 흐름. 규칙:
 // 앱(Kotlin Game3DActivity)이 실제 차의 핸들 각·기어·브레이크·속도·회전수를 보낸다. 실제 차는 P 에 둔 채로 하고,
 // 게임 속 차의 기어는 화면 버튼으로 바꾼다. 실제 차가 P 가 아니거나 움직이면 멈춘다.
 // PC·편집기 시험: ←→(A D) 핸들, 스페이스 브레이크, ↑(W) 가속, 1~4 기어(P R N D), V 시점, Q/E 고개, Esc 목록, Enter 다시.
@@ -37,14 +37,6 @@ namespace DriveCoach.Unity
         float keyTurnHeading;
         float keySteer, steer;
         bool crossing;            // 옆 동으로 이어 달리는 중(핸들 각을 그대로 잇는다)
-        // 자동 운전: 설정에서 켜거나 실행 인자 -dcAutoDrive <경로 글자|-> 로. 도로·내 동네·서킷에서만
-        AutoDrive auto;
-        bool autoArg;
-        string autoPlan = "";
-        bool autoStop;
-        float autoAccel, autoBrakeAmount; bool autoBrake;
-        bool autoRoute;      // 메뉴에서 시연 경로를 골랐다 → 설정과 상관없이 이 판은 자동 운전
-        bool AutoOn => (autoArg || Prefs.AutoDrive || autoRoute) && world != null && world.st.mode != StageMode.Parking && world.st.road != null;
         bool screenBrake, brakeOn, paused;
         bool settingsPaused;      // 주행 중 설정 창을 연 동안 멈춤
 
@@ -140,7 +132,6 @@ namespace DriveCoach.Unity
                     autoExitAt = Time.realtimeSinceStartup + sec;
                 if (args[i] == "-dcCrossTest" && float.TryParse(args[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out var cs))
                     crossTestAt = Time.realtimeSinceStartup + cs;
-                if (args[i] == "-dcAutoDrive") { autoArg = true; autoPlan = args[i + 1] == "-" ? "" : args[i + 1]; }
                 if (args[i] == "-dcCam")
                 {
                     var v = args[i + 1].ToLowerInvariant();

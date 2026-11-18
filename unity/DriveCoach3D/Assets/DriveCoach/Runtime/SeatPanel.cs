@@ -1,4 +1,4 @@
-// 운전자 시점을 앞뒤·위아래·좌우로 옮기기 — 각자 맞추고 싶은 시야가 있으니까
+// 운전자 시점을 앞뒤·위아래·좌우로 옮기기: 각자 맞추고 싶은 시야가 있으니까
 // 설정 화면과 게임 중(운전석 시점의 '시야 조절' 버튼) 둘 다 이 조절판을 쓴다. 누를 때마다 2 cm, 값은 Prefs 에 바로 저장되고
 // 운전석 카메라는 매 프레임 Prefs.SeatOffset 을 읽으므로 게임 중이면 곧바로 보인다.
 using System;
@@ -16,7 +16,7 @@ namespace DriveCoach.Unity
         readonly Text[] values = new Text[3];
         public Action onChanged;
 
-        /// <summary>parent 의 왼쪽 위 (x, y)부터 폭 w, 줄 높이 rowH 로 세 줄(이름 · [−] · 값 · [+])</summary>
+        /// <summary>parent 의 왼쪽 위 (x, y)부터 폭 w, 줄 높이 rowH 로 세 줄(이름 · [-] · 값 · [+])</summary>
         public SeatPanel(RectTransform parent, float x, float y, float w, float rowH, int font)
         {
             float nameW = w * 0.16f, bw = w * 0.3f, valW = w - nameW - 2f * bw - 20f;

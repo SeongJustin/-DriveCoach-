@@ -1,4 +1,4 @@
-// 앱 연결 — 코치 음성의 오디오 포커스
+// 앱 연결: 코치 음성의 오디오 포커스
 package kr.drivecoach.app.speech
 
 import android.content.Context
@@ -60,7 +60,7 @@ class GuidanceAudioFocus(
 
     /**
      * 말하기 직전에 부른다. 이미 잡고 있으면 놓기 예약만 취소한다. 실패해도 말은 한다(포커스는 충돌 방지용, Pleos 가이드).
-     * @return 이번에 새로 포커스를 받았으면 true — 새 음성 세션의 시작이라 선행 묵음(pre-roll)을 넣을 때다.
+     * @return 이번에 새로 포커스를 받았으면 true. 새 음성 세션의 시작이라 선행 묵음(pre-roll)을 넣을 때다.
      */
     fun acquire(): Boolean {
         main.removeCallbacks(releaseLater)

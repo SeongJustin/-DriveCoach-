@@ -2,7 +2,7 @@
 // 종류마다 본(꺼 둔 GameObject) 하나를 만들고, 차마다 복사해 차체색만 바꾼다. 상표·글자 없음.
 //   본: 재질별 차체 조각("fleet-<재질>"), 브레이크등 조각은 이름 "brake", 방향지시등은 "amber"(TrafficView 가 켜고 끈다),
 //       바퀴 4개("wheel-front-left" … : TrafficView 가 굴리고 앞바퀴를 꺾는다, 시내·마을버스 뒤는 복륜처럼 두 겹).
-// 세단·택시도 같은 방식(택시는 지붕 표시등 — 글자 없음). 내 차는 따로(더 자세한 sedan.bytes, CarBody).
+// 세단·택시도 같은 방식(택시는 지붕 표시등: 글자 없음). 내 차는 따로(더 자세한 sedan.bytes, CarBody).
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;

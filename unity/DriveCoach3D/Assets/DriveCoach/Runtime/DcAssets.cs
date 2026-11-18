@@ -1,4 +1,4 @@
-// 3D 주차 연습 — 재질·모델·글꼴·하늘 불러오기. Resources/DC 아래, 없으면 단순한 대체물
+// 3D 주차 연습: 재질·모델·글꼴·하늘 불러오기. Resources/DC 아래, 없으면 단순한 대체물
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -153,7 +153,7 @@ namespace DriveCoach.Unity
         }
 
         /// <summary>
-        /// 투명 자르기(잎·울타리 그물) 재질: 질감 알파 0.5 밑은 버리고 앞뒤 두 면을 그린다(DC_LitCutout — 빌드에 변형이 들어가게 미리 만든 재질).
+        /// 투명 자르기(잎·울타리 그물) 재질: 질감 알파 0.5 밑은 버리고 앞뒤 두 면을 그린다(DC_LitCutout: 빌드에 변형이 들어가게 미리 만든 재질).
         /// 질감이 없으면 fallback 단색.
         /// </summary>
         public static Material Cutout(string texPath, Color tint, Color fallback)
@@ -244,7 +244,7 @@ namespace DriveCoach.Unity
 
         public static Font Font(bool bold)
         {
-            // Pleos 디자인 가이드: 시스템 UI 글꼴 Asta Sans(42dot, OFL) — 차량 화면과 같은 글꼴. 자주 쓰는 글자만 남긴 부분 글꼴(약 480 KB)
+            // Pleos 디자인 가이드: 시스템 UI 글꼴 Asta Sans(42dot, OFL), 차량 화면과 같은 글꼴. 자주 쓰는 글자만 남긴 부분 글꼴(약 480 KB)
             var f = Load<Font>(bold ? "DC/Fonts/AstaSans-Bold" : "DC/Fonts/AstaSans-Regular");
             if (f != null) return f;
             return UnityEngine.Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");

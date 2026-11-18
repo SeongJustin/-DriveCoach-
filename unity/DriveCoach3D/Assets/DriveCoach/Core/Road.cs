@@ -131,7 +131,7 @@ namespace DriveCoach.Core
         }
 
         /// <summary>
-        /// 앞차 거리(2초, 비·눈은 3초 — 1.5초·2.5초보다 가까운 채 3초 넘게 달리면), 밤·비·안개에 전조등을 끈 채 달림,
+        /// 앞차 거리(2초, 비·눈은 3초: 1.5초·2.5초보다 가까운 채 3초 넘게 달리면), 밤·비·안개에 전조등을 끈 채 달림,
         /// 마주 오는 차(150 m 안) 앞에서 상향등, 안전벨트를 안 맨 채 달림. 실제 차가 값을 줄 때만 따진다(모름 = -1 이면 말하지 않는다).
         /// </summary>
         void CarRules(World w, float dt)
@@ -232,7 +232,7 @@ namespace DriveCoach.Core
         }
 
         /// <summary>
-        /// 어린이보호구역: 들어서면 알림(30 km/h, 신호 없는 횡단보도 일시정지 — 2022.7.12 시행), 제한 속도 30.
+        /// 어린이보호구역: 들어서면 알림(30 km/h, 신호 없는 횡단보도 일시정지, 2022.7.12 시행), 제한 속도 30.
         /// 구역 안 신호 없는 횡단보도(30 m 안에 신호가 없는 것): 앞 25 m 안이면 zoneStopDist 로 알려(자동 속도가 그 앞에서 선다),
         /// 13 m 안 또는 그 횡단보도 정지선(가운데에서 13.5 m 안, 8~13 m 앞에 있는 곳이 있다) 바로 앞 4 m 안에서 멈추면(0.3 m/s 밑) 통과, 멈추지 않고 지나가면 안내·셈.
         /// </summary>
@@ -270,7 +270,7 @@ namespace DriveCoach.Core
                 float ahead = rel.Dot(dir), side = Math.Abs(rel.x * dir.y - rel.y * dir.x);
                 if (side > 7f || ahead < -3f || ahead > 25f) continue;
                 if (ahead > 0.5f) zoneStopDist = Math.Min(zoneStopDist, ahead);
-                // 13 m 안, 또는 이 횡단보도 정지선(가운데에서 13.5 m 안에 칠해진 것) 바로 앞(4 m 안)에서 멈추면 통과 —
+                // 13 m 안, 또는 이 횡단보도 정지선(가운데에서 13.5 m 안에 칠해진 것) 바로 앞(4 m 안)에서 멈추면 통과
                 //   정지선이 횡단보도 가운데에서 11~13 m 앞인 곳(양재1동 바우뫼로 (348,-174) 12.4 m)에서는 정지선에 바르게 서도 13 m 를 넘어
                 //   '안 멈춤'으로 셌고, 자동 운전(정지선 2.4 m 앞에 섬)은 영영 섰다. 일괄 16 m 로 넓히지 않고 정지선이 있는 곳만 넓힌다.
                 if (Math.Abs(car.speed) < 0.3f && (ahead < 13f || StopLineJustAhead(rg, front, dir, ahead))) { crossCleared[i] = w.t; continue; }   // 멈췄다 → 통과
@@ -302,7 +302,7 @@ namespace DriveCoach.Core
 
         /// <summary>
         /// 위험 예측 한마디를 물을 자리: 신호 없는 횡단보도(0)·버스 정류장(1).
-        /// 세우지 않는 중앙 정류장(kind 2 = JSON "m":2, 섬 없음 — BusStopBuilder 도 짓지 않음)은 뺀다. 없는 정류장을 "앞에 버스 정류장" 이라고 물었다.
+        /// 세우지 않는 중앙 정류장(kind 2 = JSON "m":2, 섬 없음. BusStopBuilder 도 짓지 않음)은 뺀다. 없는 정류장을 "앞에 버스 정류장" 이라고 물었다.
         /// </summary>
         public static List<(V2 p, int type)> HazardPoints(RegionData rg)
         {
@@ -379,7 +379,7 @@ namespace DriveCoach.Core
                     var lcol = sg.LeftAt(w.t);
                     if (col == SignalColor.Red && !redPending)
                     {
-                        // 우회전이면 일시정지했는지만 본다(빨간불 우회전은 멈춘 뒤 허용) — 곧게·왼쪽이면 신호 위반. 18 m 또는 10초 안에 판단
+                        // 우회전이면 일시정지했는지만 본다(빨간불 우회전은 멈춘 뒤 허용), 곧게·왼쪽이면 신호 위반. 18 m 또는 10초 안에 판단
                         // 좌회전 화살표가 켜져 있으면 왼쪽으로 꺾는 것은 괜찮다(곧게 가면 위반)
                         redPending = true; redT = w.t; redH = car.heading; redDist = distance;
                         redStopped = w.t - stoppedT < 8f && distance - distAtStop < 12f;
@@ -452,9 +452,9 @@ namespace DriveCoach.Core
                 limitKmh = def.region == null ? flowKmh : alignedLane.postedKmh;      // 동네 지도: 자료로 확인된 값만(없으면 0)
             }
             if (schoolZone >= 0) limitKmh = limitKmh > 0f ? Math.Min(limitKmh, 30f) : 30f;      // 어린이보호구역
-            // 교차로에서 꺾는 동안(핸들을 120° 넘게 돌린 상태)은 차로 가운데 판정을 하지 않는다 — 바르게 원호로 돌아도 "차로 가운데로 가세요"가 났다
+            // 교차로에서 꺾는 동안(핸들을 120° 넘게 돌린 상태)은 차로 가운데 판정을 하지 않는다. 바르게 원호로 돌아도 "차로 가운데로 가세요"가 났다
             // 주차장 안, 그리고 주차장에서 나와 차로에 들어서기(차로 안에서 방향이 맞기) 전까지는
-            //   차로 가운데 판정을 하지 않는다 — 길로 들어가는 동안은 차로를 가로지르는 것이 맞다
+            //   차로 가운데 판정을 하지 않는다. 길로 들어가는 동안은 차로를 가로지르는 것이 맞다
             bool inLot = def.region != null && def.region.InParkingLot(car.Center);
             if (!joined && bestLane != null && best < bestLane.width / 2f && alignedLane == bestLane) joined = true;
             if (inLot) joined = false;
@@ -465,14 +465,14 @@ namespace DriveCoach.Core
             SignalRules(w, dt, alignedLane, bestA);
             CarRules(w, dt);
 
-            // 제한속도(차로마다 다를 수 있다: 큰길 50, 동네길 30 — 안전속도 5030)
+            // 제한속도(차로마다 다를 수 있다: 큰길 50, 동네길 30, 안전속도 5030)
             bool over = limitKmh > 0f && car.speed * 3.6f > limitKmh + 2f;
             if (over && !speeding) { speedingCount++; w.Say($"제한속도 {limitKmh:0} km/h 입니다", 2.2f); }
             speeding = over;
 
             // 내 동네: 동 경계(막다른 길이 아니라 옆 동으로 이어진다).
             //   옆 동 데이터가 앱에 있으면 그대로 넘어간다(알림). 없으면 경계 밖 4 m 안에서 속도를 0 까지 줄여 세우고
-            //   "OO동 데이터를 아직 다운받지 않으셨습니다" — 동 안쪽으로 돌아가는 움직임은 막지 않는다.
+            //   "OO동 데이터를 아직 다운받지 않으셨습니다". 동 안쪽으로 돌아가는 움직임은 막지 않는다.
             var rg = def.region;
             if (rg != null && rg.boundary.Length >= 3)
             {

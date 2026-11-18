@@ -253,7 +253,7 @@ class PracticeEngine(
         val startIdx = if (after == null) 0 else items.indexOf(after) + 1
         // 이미 통과한 항목을 건너뛰지 않고 목록 순서대로 바로 다음 항목을 연다.
         //   마지막 항목 뒤에만 아직 안 한 항목(없으면 건너뛴 항목)으로 돌아가고, 그것도 없으면 끝.
-        //   ("다음·건너뛰기가 어디로 가는지 모르겠다") 끝낸 항목도 건너뛴 항목도 지나치지 않는다.
+        //   끝낸 항목도 건너뛴 항목도 지나치지 않는다(다음·건너뛰기가 어디로 가는지 알 수 있게).
         //   장을 통째로 건너뛴 직후(skipAll)에만 그 장의 남은 항목을 지나 다음 장 첫 항목으로 간다.
         if (after != null) {
             val ch = skippedChapter; skippedChapter = null

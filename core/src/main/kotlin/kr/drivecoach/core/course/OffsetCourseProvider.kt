@@ -1,4 +1,4 @@
-// 앱 연결 — 길찾기 API 키가 없을 때 현재 위치 기준 오프셋으로 짧은 연습 코스를 만드는 임시 코스 소스(키가 있으면 실제 Directions API 를 쓴다)
+// 앱 연결: 길찾기 API 키가 없을 때 현재 위치 기준 오프셋으로 짧은 연습 코스를 만드는 임시 코스 소스(키가 있으면 실제 Directions API 를 쓴다)
 package kr.drivecoach.core.course
 
 import kotlin.math.cos
@@ -61,7 +61,7 @@ object CourseOptions {
 /**
  * 코스 소스. "출발지 + 조건 → 코스 결과" 한 가지 계약으로, 앱(CoachController)은 이것만 안다.
  * - [OffsetCourseProvider]: API 키 없이 현재 위치 기준 오프셋 코스(지금).
- * - [GeneratedCourseSource]: CourseGenerator + 실제 길찾기 API(T 가 교체할 것).
+ * - [GeneratedCourseSource]: CourseGenerator + 실제 길찾기 API.
  * 둘 다 결과를 [NaviHandoff.toNaviRequest] 로 차량 내비에 넘긴다.
  */
 interface CourseSource {
@@ -79,7 +79,7 @@ interface CourseSource {
  * 내비에 넘길 점은 [NaviHandoff.toNaviRequest] 가 경로 path 위의 점으로 만든다.
  */
 class GeneratedCourseSource(private val generator: CourseGenerator) : CourseSource {
-    // ("재시험 대비"와 "시내 입문"이 같은 코스) 조건마다 첫 경유지 방위를 다르게 돌려 서로 다른 후보부터 본다
+    // 조건마다 첫 경유지 방위를 다르게 돌려 서로 다른 후보부터 본다(목적이 달라도 같은 코스가 나오지 않게)
     override fun generate(start: LatLon, headingDeg: Double?, spec: CourseSpec): CourseResult =
         generator.generate(start, spec, ((spec.hashCode() and 0x7fffffff) % 8) * 22.5)
 }
@@ -93,7 +93,7 @@ class GeneratedCourseSource(private val generator: CourseGenerator) : CourseSour
  *  - LEFT:     RIGHT 의 좌우 대칭. 모서리마다 좌회전.
  * 목적지는 출발지에서 약 1.5 km, 경유지 간격은 약 0.7 km. 경유지는 최대 [NaviHandoff.DEFAULT_MAX_WAYPOINTS] 개.
  *
- * 위경도 환산은 1 km ≈ 0.009° 위도, 경도는 0.009° / cos(위도) (37.4°N 에서 ≈ 0.0113°). 도로 스냅은 하지 않는다 —
+ * 위경도 환산은 1 km ≈ 0.009° 위도, 경도는 0.009° / cos(위도) (37.4°N 에서 ≈ 0.0113°). 도로 스냅은 하지 않는다.
  * 차량 내비가 가장 가까운 도로로 경유지를 붙인다(실제 Directions API 가 붙으면 [GeneratedCourseSource] 로 교체).
  * 결과 Route 는 직선 구간 + 모서리 회전으로 조립하므로 [CourseSummarizer]/[CourseBriefing] 이 그대로 동작한다.
  */
@@ -103,7 +103,7 @@ class OffsetCourseProvider(private val shapeOf: (CourseSpec) -> OffsetShape = { 
         val shape = shapeOf(spec)
         val pts = points(start, headingDeg ?: 0.0, shape)
         val course = buildCourse(start, pts, shape, spec)
-        // 오프셋 코스는 편도(1.5 km 앞)라 순환 조건은 채점에서 뺀다 — 임시 구현이지 조건 위반이 아니다.
+        // 오프셋 코스는 편도(1.5 km 앞)라 순환 조건은 채점에서 뺀다. 임시 구현이지 조건 위반이 아니다.
         val scored = CourseScorer.score(course, spec.copy(loop = false))
         return CourseResult(scored, listOf(scored), apiCalls = 0, candidatesTried = 1)
     }
@@ -146,7 +146,7 @@ class OffsetCourseProvider(private val shapeOf: (CourseSpec) -> OffsetShape = { 
         /** 출발점에서 진행 방향 heading 기준으로 앞 fwdKm, 오른쪽 rightKm 만큼 간 점(단순 평면 오프셋). */
         fun offset(from: LatLon, headingDeg: Double, fwdKm: Double, rightKm: Double): LatLon {
             val h = Math.toRadians(headingDeg)
-            // 앞 = (sin h 동, cos h 북), 오른쪽 = (cos h 동, −sin h 북)
+            // 앞 = (sin h 동, cos h 북), 오른쪽 = (cos h 동, -sin h 북)
             val eastKm = fwdKm * sin(h) + rightKm * cos(h)
             val northKm = fwdKm * cos(h) - rightKm * sin(h)
             return LatLon(from.lat + northKm * LAT_DEG_PER_KM, from.lon + eastKm * lonDegPerKm(from.lat))

@@ -1,11 +1,11 @@
-// 도로 법규 설명 — 중요한 것 위주
+// 도로 법규 설명: 중요한 것 위주
 package kr.drivecoach.core.law
 
 import kr.drivecoach.core.tts.PhraseId
 
 /**
  * 도로 법규 주제 하나. 화면 제목 + 설명 멘트(음성과 화면 글이 같다. 문장은 [Phrases] 의 `law_<id>` 에 있다).
- * 근거: 도로교통법(2026 기준) 중 초보가 자주 틀리는 것 — 우회전·비보호 좌회전·유턴·신호·차선·보호구역·횡단보도·회전교차로·긴급차 양보·고속도로·주정차·기본 상식.
+ * 근거: 도로교통법(2026 기준) 중 초보가 자주 틀리는 것: 우회전·비보호 좌회전·유턴·신호·차선·보호구역·횡단보도·회전교차로·긴급차 양보·고속도로·주정차·기본 상식.
  */
 /** @param heading 글 위 제목(조문 표현), @param basis 근거 조문(화면에만, 음성으로 읽지 않는다) */
 data class RuleTopic(val id: String, val title: String, val phraseId: PhraseId, val heading: String = title, val basis: String = "")
@@ -49,7 +49,7 @@ object TrafficRules {
         t("unprotected_left", "비보호 좌회전"),
         t("u_turn", "유턴"),
         t("signal_stopline", "신호와 교차로"),
-        t("lanes", "차로와 진로 변경"),   // ("차선 종류"인데 그림·글은 진로 변경) 그림 제목과 같게
+        t("lanes", "차로와 진로 변경"),   // 그림 제목과 같게
         t("crosswalk", "횡단보도"),
         t("school_zone", "어린이 보호구역"),
         t("roundabout", "회전교차로"),

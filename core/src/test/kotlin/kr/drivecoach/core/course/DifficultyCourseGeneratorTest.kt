@@ -108,7 +108,7 @@ fun main() {
         var index = 0
         val p = FakeRouteProvider {
             val r = fixture(traffic = if (index++ == 0) 1 else 3)
-            // Different geometry to avoid deliberate candidate deduplication.
+            // 후보가 같은 것으로 합쳐지지 않게 모양을 조금 바꾼다
             if (index == 1) r else r.copy(points = r.points.mapIndexed { i, pt -> if (i == 2) Geo.offset(pt, 0.0, 1.0) else pt })
         }
         val r = DifficultyCourseGenerator(p, 2).generate(origin, null, spec.copy(difficulty = 5))

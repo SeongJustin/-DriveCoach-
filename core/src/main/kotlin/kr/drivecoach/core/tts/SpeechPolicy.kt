@@ -128,7 +128,7 @@ class SpeechPolicy(private val config: SpeechPolicyConfig = SpeechPolicyConfig()
         if (cat !in allowedIn(context.mode)) return drop("mode_${context.mode.name.lowercase()}")
 
         // 2. 조용히 / 코칭 중지 / 경고등 대응 중
-        // 코칭 음성 꺼짐: 위험·공황·경고등만. 시스템 멘트는 운전자가 누른 것에 대한 직접 응답(force)만 허용 —
+        // 코칭 음성 꺼짐: 위험·공황·경고등만. 시스템 멘트는 운전자가 누른 것에 대한 직접 응답(force)만 허용.
         // "출발합니다/정차했습니다/현재 차량은…" 같은 자동 시스템 멘트도 막는다.
         if (context.quietMode && cat !in QUIET_ALLOWED && !(cat == PhraseCategory.SYSTEM && request.force)) return drop("quiet_mode")
         if (context.coachingPaused && cat !in PAUSED_ALLOWED) return drop("coaching_paused")

@@ -1,7 +1,7 @@
 // 고가도로: 길 모양 그대로 높이를 따라 오르내리는 상판(아스팔트),
 //   양옆 콘크리트 방호벽(높이 1 m), 상판 아래 두께 1.2 m 보, 높이 2.5 m 넘는 곳은 25 m 마다 기둥(교각), 그보다 낮은 경사로는
 //   상판 가장자리에서 땅까지 옹벽(흙을 쌓은 진입로처럼). 상판 위 칠: 차로 경계 흰 점선, 양방향이면 가운데 황색 복선, 바깥 흰 실선.
-// 땅의 노면(make_surface)은 고가 길 바닥 자리를 비워 둔다(그 밑을 지나는 길만 남긴다). 지하차도(z < 0)는 땅을 파야 해서 다음 단계 — 지금은 땅 높이.
+// 땅의 노면(make_surface)은 고가 길 바닥 자리를 비워 둔다(그 밑을 지나는 길만 남긴다). 지하차도(z < 0)는 땅을 파야 해서 다음 단계, 지금은 땅 높이.
 using System.Collections.Generic;
 using DriveCoach.Core;
 using UnityEngine;
@@ -23,7 +23,7 @@ namespace DriveCoach.Unity
             int n = 0;
             var decks = new List<(RegionRoad rd, float wl, float wr)>();
             ground.Clear();
-            // 땅 길(높이 없음) 조각과 반폭: 교각이 그 위(차로)에 서지 않게(고가 검토: 바우뫼로 차로 한가운데 교각)
+            // 땅 길(높이 없음) 조각과 반폭: 교각이 그 위(차로)에 서지 않게(예: 바우뫼로 차로 한가운데)
             float gx0 = float.MaxValue, gy0 = float.MaxValue, gx1 = float.MinValue, gy1 = float.MinValue;
             foreach (var rd in d.roads)
                 if (rd.z != null) foreach (var p in rd.pts) { gx0 = Mathf.Min(gx0, p.x); gy0 = Mathf.Min(gy0, p.y); gx1 = Mathf.Max(gx1, p.x); gy1 = Mathf.Max(gy1, p.y); }
@@ -53,7 +53,7 @@ namespace DriveCoach.Unity
                 if (rd.oneway && rd.wl <= 0f) { wl = wr = Mathf.Max(3.5f, rd.lanes * 3.3f / 2f); }
                 decks.Add((rd, wl, wr));
             }
-            // 고가 길이 다른 길로 이어지는 이음에서 폭이 계단처럼 바뀌었다 →
+            // 고가 길이 다른 길로 이어지는 이음에서 폭이 계단처럼 바뀌지 않게:
             //   끝이 맞닿은 고가 길끼리는 이음 폭을 두 길의 평균으로 맞추고 30 m 에 걸쳐 제 폭으로 돌아간다
             var joint = new Dictionary<(int, int), List<(int k, bool start)>>();
             (int, int) Key(V2 p) => (Mathf.RoundToInt(p.x * 5f), Mathf.RoundToInt(p.y * 5f));
@@ -97,7 +97,7 @@ namespace DriveCoach.Unity
                 Deck(rd, h, WL, WR, deck, concrete, white, yellow);
             }
             if (n == 0) return;
-            deck.ToObject("overpass-deck", DcAssets.Pbr("clean_asphalt", DcAssets.Hex("#4C5056"), new Color(1.05f, 1.05f, 1.08f), 0.9f), node, true, true);   // 갈색 아스팔트 질감이라 위에서 보면 보도처럼 보였다 → 땅 큰길과 같은 질감
+            deck.ToObject("overpass-deck", DcAssets.Pbr("clean_asphalt", DcAssets.Hex("#4C5056"), new Color(1.05f, 1.05f, 1.08f), 0.9f), node, true, true);   // 땅 큰길과 같은 질감(갈색 아스팔트는 위에서 보면 보도처럼 보인다)
             concrete.ToObject("overpass-concrete", DcAssets.Pbr("concrete", DcAssets.Hex("#A9A9A4"), Color.white), node, true, true);
             if (!white.IsEmpty) white.ToObject("overpass-paint-w", DcAssets.Unlit(DcAssets.Paint), node);
             if (!yellow.IsEmpty) yellow.ToObject(CountryStyle.Current.IsKorea ? "overpass-paint-y" : "overpass-paint-c", DcAssets.Unlit(CountryStyle.Current.centre), node);   // 중앙선 색은 나라 표(한국 #E2B33C 그대로)
@@ -107,7 +107,7 @@ namespace DriveCoach.Unity
         static Vector3 P(V2 p, float y) => Space3D.W(p, y);
 
         // 연결로가 본선에 붙는 곳: 두 상판이 겹치는 자리에는
-        //   방호벽·가장자리 실선을 그리지 않는다(예전에는 길마다 양옆에 벽을 세워 합류 자리가 벽으로 막혔다).
+        //   방호벽·가장자리 실선을 그리지 않는다(합류 자리가 벽으로 막히지 않게).
         static readonly List<(RegionRoad rd, float wl, float wr)> all = new List<(RegionRoad, float, float)>();
 
         /// <summary>점 q(높이 z)가 다른 고가 길의 상판 안(가장자리에서 pad 만큼 더)인가. wider: 나보다 넓은 길만</summary>
@@ -129,7 +129,7 @@ namespace DriveCoach.Unity
                     float t = Mathf.Clamp01((q - a).Dot(ab) / L2);
                     var c = a + ab * t;
                     var d = q - c;
-                    float side = ab.x * d.y - ab.y * d.x;          // 길 방향의 오른쪽(+) / 왼쪽(−): nr = (−dir.y, dir.x) 와 같은 쪽
+                    float side = ab.x * d.y - ab.y * d.x;          // 길 방향의 오른쪽(+) / 왼쪽(-): nr = (-dir.y, dir.x) 와 같은 쪽
                     float w = (side >= 0f ? wr : wl) + pad;
                     if (d.Dot(d) > w * w) continue;
                     if (Mathf.Abs(zz[i] + (zz[i + 1] - zz[i]) * t - z) > 1.0f) continue;
@@ -169,6 +169,9 @@ namespace DriveCoach.Unity
                 else dir = ((pts[i] - pts[i - 1]).Normalized + (pts[i + 1] - pts[i]).Normalized).Normalized;
                 nr[i] = new V2(-dir.y, dir.x);
             }
+            // 차로 옆 옮김(laneShift): 게임 차로(Stages.Offset)가 꼭짓점마다 옮겨진 만큼. 차로 점선·중앙선만 따라가고 상판·방호벽·가장자리 실선은 그대로
+            var shift = rd.laneShift != null ? Stages.Offset(pts, 0f, rd.laneShift) : null;
+            if (shift != null) for (int i = 0; i < n; i++) shift[i] = shift[i] - pts[i];
             float along = 0f, nextPier = 12f;
             for (int i = 0; i + 1 < n; i++)
             {
@@ -180,7 +183,7 @@ namespace DriveCoach.Unity
                 float ya = h + za + 0.03f, yb = h + zb + 0.03f;
                 float zm = (za + zb) / 2f, selfW = wl + wr;
                 V2 mL = (aL + bL) * 0.5f, mR = (aR + bR) * 0.5f;
-                // 상판 윗면(더 넓은 길의 상판 안에 다 들어가면 그리지 않는다 — 본선에 합쳐진 연결로 끝)
+                // 상판 윗면(더 넓은 길의 상판 안에 다 들어가면 그리지 않는다. 본선에 합쳐진 연결로 끝)
                 bool buried = InOther(rd, selfW, mL, zm, 0f, true) && InOther(rd, selfW, mR, zm, 0f, true);
                 if (!buried) deck.Quad(P(aL, ya), P(aR, ya), P(bR, yb), P(bL, yb), Vector3.up, Vector2.zero, Vector2.right, Vector2.one, Vector2.up);
                 // 방호벽(0.3 m 폭, 1.0 m 높이) 양쪽
@@ -232,9 +235,10 @@ namespace DriveCoach.Unity
                 // 칠: 차로 경계(lr·ll 사이) 흰 점선, 양방향 가운데 황색 복선, 바깥 흰 실선(0.4 m 안쪽)
                 float yP = Mathf.Min(ya, yb) + 0.012f;
                 float ypa = ya + 0.012f, ypb = yb + 0.012f;
-                void Line(float off, float w, MeshKit mk, bool dashed)
+                void Line(float off, float w, MeshKit mk, bool dashed, bool lane = false)
                 {
                     V2 a = pts[i] + nr[i] * off, b = pts[i + 1] + nr[i + 1] * off;
+                    if (lane && shift != null) { a += shift[i]; b += shift[i + 1]; }      // 차로를 따르는 칠: 옮긴 자리
                     float L = a.DistanceTo(b);
                     if (L < 0.2f) return;
                     if (InOther(rd, selfW, (a + b) * 0.5f, zm, 0.2f, dashed)) return;       // 합류 자리: 가장자리 실선 끊김, 묻힌 연결로의 칠 없음
@@ -259,17 +263,17 @@ namespace DriveCoach.Unity
                 if (!rd.oneway)
                 {
                     // 중앙선 자리 = 지역 자료 차로로 정한 방향 경계(차로 자료가 없으면 예전처럼 길 가운데 0), 색·겹선은 나라 표.
-                    //   한국: 황색 복선(앱에 든 동네는 모두 0 → 예전 그대로). 독일: 흰 실선 한 줄(베를린 아데나워 광장 진입로: 차로 +2.9 | 0.0 −2.8 → +1.45.
-                    //   예전에는 0 = 왼쪽 차로 한가운데에 그어졌다)
+                    //   한국: 황색 복선(앱에 든 동네는 모두 0 → 예전 그대로). 독일: 흰 실선 한 줄(베를린 아데나워 광장 진입로: 차로 +2.9 | 0.0 -2.8 이면
+                    //   +1.45. 길 가운데 0 은 이 자리에서 왼쪽 차로 한가운데다)
                     var cs = CountryStyle.Current;
                     float co = cs.CentreOffset(rd);
-                    if (cs.centreDouble) { Line(co - 0.15f, 0.15f, yellow, false); Line(co + 0.15f, 0.15f, yellow, false); }
-                    else Line(co, 0.15f, yellow, false);
+                    if (cs.centreDouble) { Line(co - 0.15f, 0.15f, yellow, false, true); Line(co + 0.15f, 0.15f, yellow, false, true); }
+                    else Line(co, 0.15f, yellow, false, true);
                 }
                 foreach (var offs in new[] { rd.laneR, rd.laneL })
                 {
                     if (offs == null || offs.Length < 2) continue;
-                    for (int k = 0; k + 1 < offs.Length; k++) Line((offs[k] + offs[k + 1]) / 2f, 0.15f, white, true);
+                    for (int k = 0; k + 1 < offs.Length; k++) Line((offs[k] + offs[k + 1]) / 2f, 0.15f, white, true, true);
                 }
                 along += segL;
             }

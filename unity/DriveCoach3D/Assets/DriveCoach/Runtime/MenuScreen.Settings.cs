@@ -1,4 +1,4 @@
-// MenuScreen 의 설정 부분(MenuScreen.cs 에서 나눈 파일). 전체 설명은 MenuScreen.cs 맨 위.
+// MenuScreen: 설정
 using System;
 using System.Collections.Generic;
 using DriveCoach.Core;
@@ -17,7 +17,7 @@ namespace DriveCoach.Unity
         public void OpenSettings()
         {
             settingsGo.SetActive(true);
-            // (주행 화면 위에 띄우면 뒤 버튼·글이 창 가장자리에 반쯤 잘려 보였다) 주행 중에는 뒤를 더 어둡게
+            // 주행 중에는 뒤를 더 어둡게(뒤 버튼·글이 창 가장자리에 반쯤 잘려 보이지 않게)
             var dim = settingsGo.GetComponent<Image>(); if (dim != null) dim.color = new Color(0f, 0f, 0f, inGame ? 0.62f : 0.35f);
             ClearSettings();
             var t = UiKit.Label(settingsCard, "설정", 40, DcAssets.UiText, true, TextAnchor.MiddleLeft);
@@ -25,7 +25,7 @@ namespace DriveCoach.Unity
             if (false)
             {
                 // 주행 중에 바꾸면 바로 바뀌는 것(화면 조작·속도·거울·센서음)과 판을 다시 지어야 바뀌는 것을 알린다
-                // (날씨를 비로 바꾸자 '다시' 전에 빗줄기가 내렸다) 하늘·비·눈은 바로, 판을 다시 지어야 하는 것만 '다시'
+                // 하늘·비·눈은 바로 바뀌고, 판을 다시 지어야 하는 것만 '다시'
                 var note = UiKit.Label(settingsCard, "날씨와 시간은 바로 바뀝니다.\n그래픽, 교통, 보행자는 '리셋'을 누르면 바뀝니다.", 20, DcAssets.UiText, false, TextAnchor.MiddleRight);
                 UiKit.Place(note.rectTransform, new Vector2(1, 1), new Vector2(-48, -30), new Vector2(560, 60));
             }
@@ -49,30 +49,29 @@ namespace DriveCoach.Unity
             // 날씨·시간(바깥 판: 내 동네·서킷·도로. 지하 주차장은 늘 실내등)
             ActionRow(ref y, "날씨, 시간, 교통", WeatherNames[Prefs.Weather] + ", " + TimeNames[Prefs.TimeOfDay] + ", 교통 " + new[] { "적게", "보통", "많게" }[Prefs.TrafficLevel] + ", 보행자 " + new[] { "없음", "적게", "보통", "많게" }[Prefs.PedLevel],
                 new[] { ("바꾸기", (Action)OpenWeatherPage) });
-            // 화면 조작(가상 운전대·액셀·브레이크)·자동 운전
-            ActionRow(ref y, "화면 조작 및 자동 운전", "스티어링 휠 " + OnOff(Prefs.VWheel) + ", 가속 페달 " + OnOff(Prefs.VAccel) + ", 브레이크 " + (Prefs.VBrake ? "누르는 동안" : "켜고 끄기") + ", 자동 운전 " + OnOff(Prefs.AutoDrive),
+            // 화면 조작(가상 운전대·액셀·브레이크)
+            ActionRow(ref y, "화면 조작", "스티어링 휠 " + OnOff(Prefs.VWheel) + ", 가속 페달 " + OnOff(Prefs.VAccel) + ", 브레이크 " + (Prefs.VBrake ? "누르는 동안" : "켜고 끄기"),
                 new[] { ("바꾸기", (Action)OpenControlPage) });
             BottomButton("닫기", CloseSettings);
         }
 
         static string OnOff(bool b) => b ? "켬" : "끔";
 
-        /// <summary>설정 안 한 장: 화면을 눌러 운전하기 — 가상 운전대·액셀·브레이크를 따로 켜고 끈다. 자동 운전</summary>
+        /// <summary>설정 안 한 장 '화면을 눌러 운전하기': 가상 운전대·액셀·브레이크를 따로 켜고 끈다</summary>
         void OpenControlPage()
         {
             ClearSettings();
-            var t = UiKit.Label(settingsCard, "화면 조작 및 자동 운전", 40, DcAssets.UiText, true, TextAnchor.MiddleLeft);
+            var t = UiKit.Label(settingsCard, "화면 조작", 40, DcAssets.UiText, true, TextAnchor.MiddleLeft);
             UiKit.Place(t.rectTransform, new Vector2(0, 1), new Vector2(48, -28), new Vector2(700, 64));
             var h = UiKit.Label(settingsCard,
                 "",
                 22, DcAssets.UiSub, false, TextAnchor.UpperLeft);
             UiKit.Place(h.rectTransform, new Vector2(0, 1), new Vector2(48, -104), new Vector2(944, 110));
             float y = -100f;   // 설명 줄이 비어 생긴 빈칸 없이 제목 바로 아래부터(첫 화면과 같은 자리)
-            // (브레이크 버튼 방식이 설정에 따라 바뀌는데 이름으로는 모른다) 무엇이 바뀌는지 그대로 쓴다
+            // 설정 이름에 무엇이 바뀌는지 그대로 쓴다
             Seg(ref y, "화면 스티어링 휠", "", new[] { "끔", "켬" }, () => Prefs.VWheel ? 1 : 0, v => Prefs.VWheel = v == 1);
             Seg(ref y, "화면 가속 페달", "누르는 동안 가속", new[] { "끔", "켬" }, () => Prefs.VAccel ? 1 : 0, v => Prefs.VAccel = v == 1);
             Seg(ref y, "브레이크 버튼", "한 번 누르면 밟은 채로 / 누르는 동안만 밟음", new[] { "켜고 끄기", "누르는 동안" }, () => Prefs.VBrake ? 1 : 0, v => Prefs.VBrake = v == 1);
-            Seg(ref y, "자동 운전", "도로 주행에서", new[] { "끔", "켬" }, () => Prefs.AutoDrive ? 1 : 0, v => Prefs.AutoDrive = v == 1);
             BottomButton("설정으로", OpenSettings);
         }
 
@@ -136,14 +135,14 @@ namespace DriveCoach.Unity
             UiKit.Place(l.rectTransform, new Vector2(0, 1), new Vector2(48, y + 4f), new Vector2(360, 68));
             const float bw = 170f, gap = 10f;
             float buttonsW = buttons.Length * bw + (buttons.Length - 1) * gap;
-            help = "";   // 회색 설명 글은 뺐다
+            help = "";
             var hl = UiKit.Label(settingsCard, help, 20, DcAssets.UiSub, false, TextAnchor.UpperLeft);
             UiKit.Place(hl.rectTransform, new Vector2(0, 1), new Vector2(48, y - 46), new Vector2(Mathf.Min(560f, 1040f - 96f - buttonsW - 24f), 54));
             float x = -48f;
             for (int i = buttons.Length - 1; i >= 0; i--)
             {
                 var act = buttons[i].act;
-                // (첫 버튼만 라임이라 "기본 자리"인데 "맞추기"가 골라진 상태로 보였다) 고르는 칸(Seg)과 헷갈리지 않게 모두 흰 버튼
+                // 고르는 칸(Seg)과 헷갈리지 않게 모두 흰 버튼
                 var b = UiKit.Btn(settingsCard, buttons[i].name, 26, UiKit.Kind.Plain, () => act(), out _);
                 UiKit.Place((RectTransform)b.transform, new Vector2(1, 1), new Vector2(x, y + 4f), new Vector2(bw, 68));
                 x -= bw + gap;
@@ -156,13 +155,13 @@ namespace DriveCoach.Unity
 
         void Seg(ref float y, string label, string help, string[] options, Func<int> get, Action<int> set)
         {
-            // 이름을 버튼(높이 68)의 가운데 높이에 맞춘다(전에는 버튼 위쪽에 붙어 보였다)
+            // 이름을 버튼(높이 68)의 가운데 높이에 맞춘다
             var l = UiKit.Label(settingsCard, label, 30, DcAssets.UiText, true, TextAnchor.MiddleLeft);
             UiKit.Place(l.rectTransform, new Vector2(0, 1), new Vector2(48, y + 4f), new Vector2(300, 68));
             float bw = options.Length > 4 ? 136f : (options.Length > 3 ? 150f : 170f);
             const float gap = 10f;
             float buttonsW = options.Length * bw + (options.Length - 1) * gap;
-            help = "";   // 설정의 회색 설명 글은 모두 뺐다
+            help = "";
             var h = UiKit.Label(settingsCard, help, 20, DcAssets.UiSub, false, TextAnchor.UpperLeft);
             UiKit.Place(h.rectTransform, new Vector2(0, 1), new Vector2(48, y - 46), new Vector2(Mathf.Min(420f, 1040f - 96f - buttonsW - 24f), 54));
             var row = new SegRow { get = get, set = set, btns = new Button[options.Length], texts = new Text[options.Length] };

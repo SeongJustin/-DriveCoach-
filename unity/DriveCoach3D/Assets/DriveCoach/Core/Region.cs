@@ -16,18 +16,86 @@ namespace DriveCoach.Core
         public string name = "", attribution = "© OpenStreetMap contributors";
         /// <summary>나라: 지역 파일의 "country"(예: "DE"). 비어 있으면 목록(index.json)의 country 를 RegionCatalog 가 채운다. 칠 색·표지 그림 등 나라별 모양은 Unity 쪽 CountryStyle 이 이 값으로 고른다</summary>
         public string country = "";
+        /// <summary>목록(index.json)의 beta 표시. RegionCatalog 가 채운다(지역 파일에는 없다). 참이면 Stages.Region 이 다니는 차·건너는 사람 없이 판을 만든다</summary>
+        public bool beta;
         public double originLat, originLon;
         public float margin = 300f;
         /// <summary>실제 노면 파일(Resources/DC/Regions/&lt;이름&gt;.bytes: 아스팔트·보도·칠·연석·소품). 없으면 빈 문자열</summary>
         public string surfaceFile = "";
         public V2[] boundary = new V2[0];
-        /// <summary>데이터가 없는 옆 동 쪽으로 경계선에서 이만큼(m)까지는 그냥 다닌다 — 경계선이 큰길 한가운데를 지나서, 그 길의 반대쪽 차로까지는 다닐 수 있어야 한다</summary>
+        /// <summary>데이터가 없는 옆 동 쪽으로 경계선에서 이만큼(m)까지는 그냥 다닌다. 경계선이 큰길 한가운데를 지나서, 그 길의 반대쪽 차로까지는 다닐 수 있어야 한다</summary>
         public const float BorderSlack = 22f;
         public List<RegionRoad> roads = new List<RegionRoad>();
         public List<RegionJunction> junctions = new List<RegionJunction>();
         public List<V2> signals = new List<V2>(), crossings = new List<V2>();
         public List<RegionBuilding> buildings = new List<RegionBuilding>();
         public List<RegionArea> areas = new List<RegionArea>();
+
+        /// <summary>
+        /// 노면의 파란 칠(버스전용차로 선) 삼각형 꼭짓점(셋씩 한 삼각형, 지역 좌표 m). 노면 파일을 읽는 쪽이 채운다(게임은 동네를 열 때 RoadSurface 에서).
+        /// null 이면 모른다: 출발 자리를 고를 때 버스전용차로를 가리지 않는다
+        /// </summary>
+        public V2[] busPaint;
+        Dictionary<long, List<int>> busGrid;
+        const float BusCell = 16f;
+
+        /// <summary>
+        /// p 에서 dir(단위 벡터) 쪽으로 가는 차로 둘레의 파란 칠: 차로 가운데에서 왼쪽 2.5 m 안(1)·오른쪽 2.5 m 안(2)에 앞뒤 10 m 안으로 차로와 나란한 파란 칠이 있으면
+        /// 그 값을 더해 돌려준다. busPaint 가 없으면 0
+        /// </summary>
+        public int BusPaintSide(V2 p, V2 dir)
+        {
+            var v = busPaint;
+            if (v == null || v.Length < 3) return 0;
+            if (busGrid == null)
+            {
+                var g = new Dictionary<long, List<int>>();
+                for (int t = 0; t + 2 < v.Length; t += 3)
+                {
+                    float x0 = Math.Min(v[t].x, Math.Min(v[t + 1].x, v[t + 2].x)), x1 = Math.Max(v[t].x, Math.Max(v[t + 1].x, v[t + 2].x));
+                    float y0 = Math.Min(v[t].y, Math.Min(v[t + 1].y, v[t + 2].y)), y1 = Math.Max(v[t].y, Math.Max(v[t + 1].y, v[t + 2].y));
+                    for (int gx = (int)Math.Floor(x0 / BusCell); gx <= (int)Math.Floor(x1 / BusCell); gx++)
+                        for (int gy = (int)Math.Floor(y0 / BusCell); gy <= (int)Math.Floor(y1 / BusCell); gy++)
+                        {
+                            long k = ((long)gx << 32) ^ (uint)gy;
+                            if (!g.TryGetValue(k, out var l)) g[k] = l = new List<int>();
+                            l.Add(t);
+                        }
+                }
+                busGrid = g;
+            }
+            const float Along = 10f, Side = 2.5f;
+            var left = new V2(dir.y, -dir.x);
+            float r = Along + Side;
+            int res = 0;
+            for (int gx = (int)Math.Floor((p.x - r) / BusCell); gx <= (int)Math.Floor((p.x + r) / BusCell); gx++)
+                for (int gy = (int)Math.Floor((p.y - r) / BusCell); gy <= (int)Math.Floor((p.y + r) / BusCell); gy++)
+                {
+                    if (!busGrid.TryGetValue(((long)gx << 32) ^ (uint)gy, out var l)) continue;
+                    foreach (int t in l)
+                    {
+                        // 가장 긴 변의 방향이 차로와 나란한(25도 안) 삼각형만: 선을 이루는 조각
+                        V2 a = v[t], b = v[t + 1], c = v[t + 2];
+                        V2 e = b - a;
+                        if ((c - b).Length > e.Length) e = c - b;
+                        if ((a - c).Length > e.Length) e = a - c;
+                        if (e.Length < 1e-3f || Math.Abs(e.Normalized.Dot(dir)) < 0.9f) continue;
+                        // 차로 기준(앞 = dir, 옆 = 왼쪽)으로 잰 삼각형 범위가 앞뒤 10 m 안이고 왼쪽 0~2.5 m 또는 오른쪽 0~2.5 m 칸과 겹치면
+                        float s0 = float.MaxValue, s1 = float.MinValue, w0 = float.MaxValue, w1 = float.MinValue;
+                        for (int k = 0; k < 3; k++)
+                        {
+                            var d = v[t + k] - p;
+                            float s = d.Dot(dir), w = d.Dot(left);
+                            s0 = Math.Min(s0, s); s1 = Math.Max(s1, s); w0 = Math.Min(w0, w); w1 = Math.Max(w1, w);
+                        }
+                        if (s1 < -Along || s0 > Along) continue;
+                        if (w1 >= 0f && w0 <= Side) res |= 1;
+                        if (w0 <= 0f && w1 >= -Side) res |= 2;
+                        if (res == 3) return res;
+                    }
+                }
+            return res;
+        }
 
         /// <summary>
         /// 시작할 수 있는 자리: 동 안에서 가장 긴 큰길 3곳·동네길 2곳의 실제 길 이름.
@@ -184,7 +252,7 @@ namespace DriveCoach.Core
             return false;
         }
 
-        /// <summary>p 가 주차장(시설 parking) 안인지 — 도로 주행 판정에서 주차장 안은 차로 규칙을 보지 않는다</summary>
+        /// <summary>p 가 주차장(시설 parking) 안인지. 도로 주행 판정에서 주차장 안은 차로 규칙을 보지 않는다</summary>
         public bool InParkingLot(V2 p)
         {
             foreach (var f in facilities)
@@ -210,7 +278,7 @@ namespace DriveCoach.Core
         public List<BusStop> busStops = new List<BusStop>();
         /// <summary>
         /// 신호 교차로 → 서울 교차로 번호와
-        /// 번호별 실제 운영계획(평일 시간대, "sp": [[번호, [[시작 분, 주기, 옵셋, [A 링 현시…]], …]], …] — 경찰청 교차로계획정보)
+        /// 번호별 실제 운영계획(평일 시간대, "sp": [[번호, [[시작 분, 주기, 옵셋, [A 링 현시…]], …]], …], 경찰청 교차로계획정보)
         /// </summary>
         public Dictionary<int, (int no, string name)> junctionIds = new Dictionary<int, (int, string)>();
         public Dictionary<int, List<SignalSlot>> signalPlans = new Dictionary<int, List<SignalSlot>>();

@@ -110,7 +110,7 @@ class Game3DActivity : UnityPlayerActivity() {
 
     /**
      * Unity 로 보내는 줄: "핸들각;기어;브레이크;속도;회전수;액셀%;방향;비상;전조등;와이퍼;벨트" (모르는 값은 -1 · U · UNKNOWN)
-     * 뒤 다섯 칸(실차 스위치)은 GameLink.switches — 비어 있으면 붙이지 않는다(예전 Unity 도 앞 여섯 칸만 읽으면 된다).
+     * 뒤 다섯 칸(실차 스위치)은 GameLink.switches. 비어 있으면 붙이지 않는다(예전 Unity 도 앞 여섯 칸만 읽으면 된다).
      */
     private fun onState(steer: Double, gear: String, brake: Boolean, speedKmh: Double, rpm: Double, accelPct: Double, switches: String) {
         lastState = String.format(Locale.ROOT, "%.1f;%s;%d;%.1f;%.0f;%.0f", steer, gear, if (brake) 1 else 0, speedKmh, rpm, accelPct) +
@@ -130,7 +130,7 @@ class Game3DActivity : UnityPlayerActivity() {
         if (ready) UnityPlayer.UnitySendMessage(BRIDGE, "OnCarSpec", json)
     }
 
-    /** Unity(GameMain.Start)가 부른다 — Unity 스레드에서 오므로 화면 스레드로 넘긴다. */
+    /** Unity(GameMain.Start)가 부른다. Unity 스레드에서 오므로 화면 스레드로 넘긴다. */
     @Keep
     fun onUnityReady() {
         runOnUiThread {

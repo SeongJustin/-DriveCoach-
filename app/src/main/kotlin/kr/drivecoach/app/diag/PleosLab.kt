@@ -1,4 +1,4 @@
-// 진단 — Pleos 쪽 문제를 앱 안에서 바로 시험하는 실험 패널
+// 진단: Pleos 쪽 문제를 앱 안에서 바로 시험하는 실험 패널
 // 설정 > 진단 보기 > "Pleos 실험". 결과는 화면 목록과 logcat(태그 PleosLab)에 남는다.
 package kr.drivecoach.app.diag
 
@@ -32,8 +32,7 @@ import kr.drivecoach.app.speech.VoiceCommandListener
  *    AAOS user 빌드는 시스템 앱이 아니면 "허용된 설치 출처(앱 마켓)"에서 설치된 앱의 DO 선언만 인정한다.
  * 2) Pleos TTS(ON_DEVICE)로 시험 문장 한 번. 3) Pleos STT(ON_DEVICE)로 8초 동안 한 번 듣기.
  * 에뮬레이터 결과: DO = false(user 빌드 + 허용 설치 출처 목록 비어 있음 → 사이드로드 앱은 인정 안 됨).
- *    TTS·STT 의 ON_DEVICE_ENGINE_ERROR 는 로캘을 "ko"로 넘긴 탓이었다(ko-KR 로 고치고 Cold Boot 후 둘 다 동작).
- *    (서버·HYBRID 모드, 오디오 존·용도를 바꾸는 시험은 원인을 찾은 뒤 뺐다.)
+ *    TTS·STT 는 로캘을 ko-KR 로 넘긴다("ko" 로 넘기면 ON_DEVICE_ENGINE_ERROR).
  */
 class PleosLab(
     context: Context,
